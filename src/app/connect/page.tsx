@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-/**
- * Interface ConnectInstallProps
- */
-interface ConnectInstallProps {
-  /** Thay thế $emit bằng callback prop */
-  onAccessToken?: (token: string) => void;
-}
 
-const ConnectInstall: React.FC<ConnectInstallProps> = ({}) => {
+const ConnectInstall = () => {
   /**
    * State accessToken
    */
