@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 
 import { MOCK_DATA } from "@/utils/data";
+import { UserProfile } from "@/types";
 
 const ConnectInstall = () => {
   /**
@@ -12,7 +13,8 @@ const ConnectInstall = () => {
   /**
    * Danh sách page
    */
-  const [pages, setPages] = useState<any>([]);
+  const [pages, setPages] = useState<UserProfile[]>([]);
+  console.log(pages, "pagesss");
 
   function getFacebookToken(event: MessageEvent) {
     /** Kiểm tra event có hợp lệ không */
@@ -161,7 +163,7 @@ const ConnectInstall = () => {
         method: "POST",
         body: JSON.stringify({
           org_id: ORG_ID,
-          page_id: pages[0].id,
+          page_id: pages[0]?.id,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -173,7 +175,7 @@ const ConnectInstall = () => {
        */
       const DATA = await RES.json();
       if (DATA?.code === 200) {
-        fetchAgent(ACCESS_TOKEN, ORG_ID);
+        fetchAgent(ACCESS_TOKEN, ORG_ID, pages[0]?.id);
       }
       console.log(DATA);
     } catch (error) {
@@ -183,7 +185,11 @@ const ConnectInstall = () => {
   /**
    * Fetch Agent
    */
-  const fetchAgent = async (ACCESS_TOKEN: string, ORG_ID: string) => {
+  const fetchAgent = async (
+    ACCESS_TOKEN: string,
+    ORG_ID: string,
+    PAGE_ID: string
+  ) => {
     try {
       /**
        * Domain add page
@@ -208,11 +214,15 @@ const ConnectInstall = () => {
       const DATA = await RES.json();
       if (DATA?.data?.length === 0) {
         /** Tạo agent */
-        createAgent(ACCESS_TOKEN, ORG_ID);
+        createAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
       } else {
         /** Nếu có rồi thì chọn agent 1 và thêm kiến kiến thức */
         console.log("Có agent rồi");
         const AGENT_ID = DATA?.data[0]?.fb_page_id;
+
+        /** Bật trợ lý ảo và chọn Trợ lý ảo cho page */
+        updateSettingPage(ACCESS_TOKEN, PAGE_ID, AGENT_ID);
+
         /**
          * Upload kiến thức
          */
@@ -225,7 +235,43 @@ const ConnectInstall = () => {
       console.error("Loi khi lay danh sach Pages:", error);
     }
   };
-
+  /** Cập nhật setting page Bật trợ lý ảo và chọn Trợ lý ảo mới tạo */
+  const updateSettingPage = async (
+    ACCESS_TOKEN: string,
+    PAGE_ID: string,
+    AGENT_ID: string
+  ) => {
+    try {
+      /**
+       * Domain add page
+       */
+      const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/update_page_setting`;
+      /**
+       * Lay danh sach page
+       */
+      const RES = await fetch(DOMAIN, {
+        method: "POST",
+        body: JSON.stringify({
+          page_id: PAGE_ID,
+          ai_agent_id: AGENT_ID,
+          is_active_ai_agent: true,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${ACCESS_TOKEN}`,
+        },
+      });
+      console.log(RES, "res");
+    } catch (error) {
+      console.error("Loi khi lay danh sach Pages:", error);
+    }
+  };
+  /**
+   *    Upload data mock
+   * @param ACCESS_TOKEN User access token
+   * @param ORG_ID
+   * @param AGENT_ID
+   */
   const uploadData = async (
     ACCESS_TOKEN: string,
     ORG_ID: string,
@@ -299,7 +345,12 @@ const ConnectInstall = () => {
     } finally {
     }
   };
-  /** Thêm kiến thức cho Trợ lý ảo  */
+  /** Thêm kiến thức cho Trợ lý ảo
+   * @param ACCESS_TOKEN User access token
+   * @param ORG_ID Org id
+   * @param AGENT_ID Agent id
+   * @param FILE_NAME File name
+   */
   const addKnowledge = async (
     ACCESS_TOKEN: string,
     ORG_ID: string,
@@ -330,7 +381,9 @@ const ConnectInstall = () => {
       /**
        * Hiển thị toast thông báo thành công
        */
-
+      /**
+       * Xem xét thêm Sản phẩm ở vị trí và kết nối với Merchant
+       */
       /**
        * Gọi hàm fetchAndFilterData
        */
@@ -341,7 +394,17 @@ const ConnectInstall = () => {
        */
     }
   };
-  const createAgent = async (ACCESS_TOKEN: string, ORG_ID: string) => {
+  /**
+   * Tạo Agent
+   * @param ACCESS_TOKEN
+   * @param ORG_ID
+   * @param PAGE_ID
+   */
+  const createAgent = async (
+    ACCESS_TOKEN: string,
+    ORG_ID: string,
+    PAGE_ID: string
+  ) => {
     try {
       /**
        * Domain add page
@@ -365,8 +428,8 @@ const ConnectInstall = () => {
        *  Parse data
        */
       const DATA = await RES.json();
-
-      fetchAgent(ACCESS_TOKEN, ORG_ID);
+      console.log(DATA, "DATA");
+      fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
       console.log(DATA);
     } catch (error) {
       console.error("Loi khi lay danh sach Pages:", error);
@@ -399,7 +462,7 @@ const ConnectInstall = () => {
         <div className="h-full">
           <h2>Chọn Trang</h2>
           <div className="flex flex-col gap-y-2">
-            {pages.map((page: any) => (
+            {pages.map((page: UserProfile) => (
               <div
                 key={page.id}
                 className="flex items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
