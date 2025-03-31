@@ -1,10 +1,29 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { find, get, has, keys, set } from "lodash";
 
 import { MOCK_DATA } from "@/utils/data";
 import { UserProfile } from "@/types";
+import { fetchApi } from "@/services/fetchApi";
 
+/**
+ * Interface Product
+ */
+type Product = {
+  /**
+   * id
+   */
+  id: number;
+  /** Tên */
+  name: string;
+  /** Giá */
+  price: number;
+  /** IMG */
+  product_image: string;
+  /** Type */
+  type: string;
+};
 const ConnectInstall = () => {
   /**
    * State accessToken
@@ -14,7 +33,19 @@ const ConnectInstall = () => {
    * Danh sách page
    */
   const [pages, setPages] = useState<UserProfile[]>([]);
-  console.log(pages, "pagesss");
+
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data));
+  }, []);
+
+  /** loading */
+  const [loading, setLoading] = useState(false);
+  /** Text loading */
+  const [loading_text, setLoadingText] = useState("");
 
   function getFacebookToken(event: MessageEvent) {
     /** Kiểm tra event có hợp lệ không */
@@ -89,23 +120,20 @@ const ConnectInstall = () => {
    * Login vào retion
    */
   const onLogin = async () => {
+    setLoadingText("Đang cài đặt...");
     try {
       /**
        * Domain login
        */
       const DOMAIN =
         "https://chatbox-service-v3.botbanhang.vn/public/oauth/facebook/login";
-      const RES = await fetch(DOMAIN, {
-        method: "POST",
-        body: JSON.stringify({ access_token: access_token }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      /**
-       * Parse data
-       */
-      const DATA = await RES.json();
+      /** Body */
+      const BODY = { access_token: access_token };
+      /** Header */
+      const HEADERS = {};
+      /** RES */
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+
       /**
        * Kiem tra data
        */
@@ -119,10 +147,12 @@ const ConnectInstall = () => {
          */
         fetchAddPageToRetion(ACCESS_TOKEN);
       }
-
       console.log(DATA);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
+    } finally {
+      //   setLoading(false);
+      //   setLoadingText("");
     }
   };
 
@@ -135,18 +165,17 @@ const ConnectInstall = () => {
       /**
        * Lay danh sach org
        */
-      const ORG_RES = await fetch(ORG_DOMAIN, {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: {
-          "Content-Type": "application/json",
+      const ORG_DATA = await fetchApi(
+        ORG_DOMAIN,
+        "POST",
+        {},
+        {
           Authorization: `${ACCESS_TOKEN}`,
-        },
-      });
+        }
+      );
       /**
        * Parse data
        */
-      const ORG_DATA = await ORG_RES.json();
       console.log(ORG_DATA);
       /**
        * Lay id org
@@ -157,23 +186,20 @@ const ConnectInstall = () => {
        */
       const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
       /**
-       * Lay danh sach page
+       * Khai báo body
        */
-      const RES = await fetch(DOMAIN, {
-        method: "POST",
-        body: JSON.stringify({
-          org_id: ORG_ID,
-          page_id: pages[0]?.id,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${ACCESS_TOKEN}`,
-        },
-      });
-      /**
-       *  Parse data
-       */
-      const DATA = await RES.json();
+      const BODY = {
+        org_id: ORG_ID,
+        page_id: pages[0]?.id,
+      };
+      /** Khai báo header */
+      const HEADERS = {
+        Authorization: `${ACCESS_TOKEN}`,
+      };
+
+      /** Thêm page vào Tổ chức */
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+
       if (DATA?.code === 200) {
         fetchAgent(ACCESS_TOKEN, ORG_ID, pages[0]?.id);
       }
@@ -190,28 +216,25 @@ const ConnectInstall = () => {
     ORG_ID: string,
     PAGE_ID: string
   ) => {
+    setLoadingText("Đang tạo Trợ lý ảo");
     try {
       /**
        * Domain add page
        */
       const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/get_agent`;
-      /**
-       * Lay danh sach page
-       */
-      const RES = await fetch(DOMAIN, {
-        method: "POST",
-        body: JSON.stringify({
-          org_id: ORG_ID,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${ACCESS_TOKEN}`,
-        },
-      });
+
+      const BODY = {
+        org_id: ORG_ID,
+      };
+      const HEADERS = {
+        Authorization: ACCESS_TOKEN,
+      };
+
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
       /**
        *  Parse data
        */
-      const DATA = await RES.json();
+
       if (DATA?.data?.length === 0) {
         /** Tạo agent */
         createAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
@@ -221,14 +244,12 @@ const ConnectInstall = () => {
         const AGENT_ID = DATA?.data[0]?.fb_page_id;
 
         /** Bật trợ lý ảo và chọn Trợ lý ảo cho page */
-        updateSettingPage(ACCESS_TOKEN, PAGE_ID, AGENT_ID);
+        updateSettingPage(ACCESS_TOKEN, ORG_ID, PAGE_ID, AGENT_ID);
 
         /**
          * Upload kiến thức
          */
         uploadData(ACCESS_TOKEN, ORG_ID, AGENT_ID);
-
-        console.log(AGENT_ID);
       }
       console.log(DATA);
     } catch (error) {
@@ -238,34 +259,187 @@ const ConnectInstall = () => {
   /** Cập nhật setting page Bật trợ lý ảo và chọn Trợ lý ảo mới tạo */
   const updateSettingPage = async (
     ACCESS_TOKEN: string,
+    ORG_ID: string,
     PAGE_ID: string,
     AGENT_ID: string
   ) => {
+    setLoadingText("Đang cài đặt trợ lý ảo");
     try {
       /**
        * Domain add page
        */
       const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/update_page_setting`;
+      /** Khai báo body */
+      const BODY = {
+        page_id: PAGE_ID,
+        ai_agent_id: AGENT_ID,
+        is_active_ai_agent: true,
+      };
+      /** Khai báo Header */
+      const HEADERS = {
+        Authorization: ACCESS_TOKEN,
+      };
       /**
-       * Lay danh sach page
+       * Gọi thông tin UPdate Setting
        */
-      const RES = await fetch(DOMAIN, {
-        method: "POST",
-        body: JSON.stringify({
-          page_id: PAGE_ID,
-          ai_agent_id: AGENT_ID,
-          is_active_ai_agent: true,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${ACCESS_TOKEN}`,
-        },
-      });
-      console.log(RES, "res");
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
     } catch (error) {
       console.error("Loi khi lay danh sach Pages:", error);
+    } finally {
+      //   setLoading(false);
+      setLoadingText("Cài đặt ChatBox Thành công!");
+
+      setTimeout(() => {
+        fetchTokenPartner(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+      }, 1000);
     }
   };
+
+  const fetchTokenPartner = async (
+    ACCESS_TOKEN: string,
+    ORG_ID: string,
+    PAGE_ID: string
+  ) => {
+    setLoadingText("Đang kết nối với Merchant");
+    try {
+      /**
+       * Domain add page
+       */
+      const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/get_page_info_to_chat`;
+      /** Khai báo body */
+      const BODY = {
+        org_id: ORG_ID,
+        list_page_id: [PAGE_ID],
+      };
+      /** Khai báo Header */
+      const HEADERS = {
+        Authorization: ACCESS_TOKEN,
+      };
+      /**
+       * fetch Data
+       */
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+
+      // Lấy danh sách các key trong `data`
+      const DATA_KEYS = keys(DATA.data);
+
+      // Tìm key nào chứa `partner_token`
+      const KEY_WITH_PARTNER_TOKEN = find(DATA_KEYS, (key) =>
+        has(DATA.data[key], "partner_token")
+      );
+
+      // Nếu tìm thấy `partner_token`, lấy giá trị của nó
+      const PARTNER_TOKEN = KEY_WITH_PARTNER_TOKEN
+        ? get(DATA, `data.${KEY_WITH_PARTNER_TOKEN}.partner_token`, null)
+        : null;
+      console.log(PARTNER_TOKEN);
+
+      //   createProductMerchant(PARTNER_TOKEN, ORG_ID, PAGE_ID);
+      fetchTokenMerchant(PARTNER_TOKEN, PAGE_ID);
+    } catch (error) {}
+  };
+
+  const fetchTokenMerchant = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
+    /** Domain Merchant */
+    const DOMAIN = "https://api.merchant.vn/v1/public/chatbox/get_config";
+    /**
+     * Body
+     */
+    const BODY = {
+      access_token: ACCESS_TOKEN,
+      client_id: "29877270768526767",
+      secret_key: "0cf5516973a145929ff36d3303183e5f",
+    };
+    /**
+     * fetch Data
+     */
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, {});
+    /**
+     * Token merchatn
+     */
+    const TOKEN_MERCHANT = DATA?.data?.access_token;
+    /**
+     * Tạo sản phẩm
+     */
+    createAllProducts(TOKEN_MERCHANT, PAGE_ID);
+    console.log(DATA, "data");
+  };
+  /** Hàm gọi API */
+  const createProductMerchant = async (
+    ACCESS_TOKEN: string,
+    PAGE_ID: string,
+    product: { name: string; product_image: string; price: number }
+  ) => {
+    try {
+      const DOMAIN = `https://api-product.merchant.vn/product/create_product`;
+
+      /** Khai báo body */
+      const BODY = {
+        name: product.name, // Thay tên sản phẩm
+        images: [product.product_image], // Thay ảnh
+        price: product.price,
+        cost: 0, // Thay giá gốc
+        wholesale_price: 0,
+        max_inventory_quantity: 0,
+        min_inventory_quantity: 0,
+        status: "ACTIVE",
+        type: "product",
+        sold_when_quantity_runs_out: false,
+        weight: 0,
+        length: 0,
+        width: 0,
+        height: 0,
+        vat: 0,
+        custom_fields: {
+          revenue_allocation: false,
+          commission_allocation: false,
+          departments_allocated_commissions: [
+            {
+              department_id: "",
+              commission: 0,
+              commission_type: "percentage",
+              max_commission: 0,
+            },
+          ],
+          calculate_commission_for_marketing: false,
+          value_gradually_decreases: null,
+        },
+        description: "SP Test",
+        service_fee: null,
+      };
+
+      /** Khai báo Header */
+      const HEADERS = {
+        "token-business": ACCESS_TOKEN,
+        accept: "application/json, text/plain, */*",
+      };
+
+      /** fetch API */
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+      console.log(`✅ Tạo sản phẩm ${product.name} thành công`, DATA);
+    } catch (error) {
+      console.error(`❌ Lỗi khi tạo sản phẩm ${product.name}`, error);
+    } finally {
+      setLoading(false);
+      setLoadingText("Tạo sản phẩm thành công!");
+      setTimeout(() => {
+        setLoadingText("");
+      }, 5000);
+    }
+  };
+
+  /** Hàm xử lý gọi API cho toàn bộ danh sách sản phẩm */
+  const createAllProducts = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
+    // Dùng Promise.all để gửi nhiều request cùng lúc
+    await Promise.all(
+      products.map((product) =>
+        createProductMerchant(ACCESS_TOKEN, PAGE_ID, product)
+      )
+    );
+
+    console.log("🎉 Hoàn tất tạo tất cả sản phẩm!");
+  };
+
   /**
    *    Upload data mock
    * @param ACCESS_TOKEN User access token
@@ -376,6 +550,9 @@ const ConnectInstall = () => {
           adds: [FILE_NAME],
         }),
       });
+      /**
+       * Data RESPONSE
+       */
       const DATA = await RES.json();
       console.log(DATA, "DATA");
       /**
@@ -411,26 +588,24 @@ const ConnectInstall = () => {
        */
       const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/create_agent?org_id=${ORG_ID}`;
       /**
-       * Lay danh sach page
+       *  Body
        */
-      const RES = await fetch(DOMAIN, {
-        method: "POST",
-        body: JSON.stringify({
-          ai_agent_name: "Agent 1",
-          description: "Agent 1",
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${ACCESS_TOKEN}`,
-        },
-      });
+      const BODY = {
+        ai_agent_name: "Agent 1",
+        description: "Agent 1",
+      };
       /**
-       *  Parse data
+       * Header
        */
-      const DATA = await RES.json();
-      console.log(DATA, "DATA");
+      const HEADERS = {
+        Authorization: ACCESS_TOKEN,
+      };
+      /**
+       * Fetch data
+       */
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+      /** Lấy thông tin AGENT */
       fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-      console.log(DATA);
     } catch (error) {
       console.error("Loi khi lay danh sach Pages:", error);
     }
@@ -440,6 +615,8 @@ const ConnectInstall = () => {
    * Handle connect page
    */
   const handleConnectPage = () => {
+    setLoading(true);
+    setLoadingText("Đang cài đặt...");
     /**
      * Lay danh sach page
      */
@@ -448,17 +625,19 @@ const ConnectInstall = () => {
 
   return (
     <div className="w-full h-full p-4">
-      {!access_token && (
-        <div className="h-10">
-          <iframe
-            loading="lazy"
-            className="relative z-[2] w-full h-full"
-            src='https://botbanhang.vn/cross-login-facebook?app_id=1282108599314861&amp;option={"return_scopes":true,"auth_type":"rerequest","enable_profile_selector":true,"scope":"public_profile,pages_show_list,pages_read_engagement,pages_messaging,email,pages_read_user_content,instagram_manage_comments,instagram_manage_insights,business_management,ads_management,read_insights,pages_manage_metadata,pages_manage_ads,pages_manage_posts,pages_manage_engagement,page_events"}&amp;text=Tiếp tục với Facebook&amp;btn_style=display%3Aflex%3Bjustify-content%3Acenter%3Bwidth%3A100%25%3Bheight%3A100%25%3Balign-items%3Acenter%3Bgap%3A0.5rem%3Bbackground-color%3A%23f1f5f9%3Bborder-radius%3A0.375rem%3Bcolor%3A%230f172a%3Bfont-size%3A16px%3Bfont-weight%3A500%3Bborder-color%3A%23e2e8f0%3Bborder-width%3A1px'
-            frameBorder="none"
-          ></iframe>
+      {!access_token && !loading && !loading_text && (
+        <div className="flex items-center justify-center h-full w-full">
+          <div className="h-10 w-80">
+            <iframe
+              loading="lazy"
+              className="relative z-[2] w-full h-full"
+              src='https://botbanhang.vn/cross-login-facebook?app_id=1282108599314861&amp;option={"return_scopes":true,"auth_type":"rerequest","enable_profile_selector":true,"scope":"public_profile,pages_show_list,pages_read_engagement,pages_messaging,email,pages_read_user_content,instagram_manage_comments,instagram_manage_insights,business_management,ads_management,read_insights,pages_manage_metadata,pages_manage_ads,pages_manage_posts,pages_manage_engagement,page_events"}&amp;text=Tiếp tục với Facebook&amp;btn_style=display%3Aflex%3Bjustify-content%3Acenter%3Bwidth%3A100%25%3Bheight%3A100%25%3Balign-items%3Acenter%3Bgap%3A0.5rem%3Bbackground-color%3A%23f1f5f9%3Bborder-radius%3A0.375rem%3Bcolor%3A%230f172a%3Bfont-size%3A16px%3Bfont-weight%3A500%3Bborder-color%3A%23e2e8f0%3Bborder-width%3A1px'
+              frameBorder="none"
+            ></iframe>
+          </div>
         </div>
       )}
-      {access_token && (
+      {access_token && !loading && !loading_text && (
         <div className="h-full">
           <h2>Chọn Trang</h2>
           <div className="flex flex-col gap-y-2">
@@ -485,6 +664,18 @@ const ConnectInstall = () => {
           </div>
         </div>
       )}
+      <div className="flex h-full w-full flex-col items-center justify-center gap-y-5">
+        {loading && (
+          <div className="flex items-center justify-center h-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          </div>
+        )}
+        {
+          <div className="flex items-center justify-center h-12">
+            <p>{loading_text}</p>
+          </div>
+        }
+      </div>
     </div>
   );
 };

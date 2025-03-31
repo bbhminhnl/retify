@@ -1,7 +1,29 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+
 import ProductItem from "./components/ProductItem";
-import React from "react";
+
+/**
+ * Interface Product
+ */
+type Product = {
+  /**
+   * id
+   */
+  id: number;
+  /** Tên */
+  name: string;
+  /** Giá */
+  price: number;
+  /** IMG */
+  product_image: string;
+  /** Type */
+  type: string;
+};
 
 function Product() {
+  /** MOCK DATA */
   const LIST_PRODUCT = [
     {
       id: 1,
@@ -53,6 +75,18 @@ function Product() {
       type: "product",
     },
   ];
+  /**
+   * List product
+   */
+  const [products, setProducts] = useState<Product[]>([]);
+  /**
+   * Fetch list product
+   */
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data));
+  }, []);
   return (
     <div className="md:container md:mx-auto p-2 px-4">
       <h2 className="text-2xl font-bold">Menu</h2>
