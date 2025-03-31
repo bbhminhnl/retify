@@ -7,6 +7,10 @@ const ConnectInstall = () => {
    * State accessToken
    */
   const [access_token, setAccessToken] = useState("");
+  /**
+   * Danh sách page
+   */
+  const [pages, setPages] = useState<any>([]);
 
   function getFacebookToken(event: MessageEvent) {
     /** Kiểm tra event có hợp lệ không */
@@ -42,6 +46,144 @@ const ConnectInstall = () => {
     };
     /** Chỉ chạy một lần khi component mount */
   }, []);
+  useEffect(() => {
+    /**
+     * Nếu có token thì lấy danh sách page
+     */
+    if (access_token) {
+      fetchPageFacebook();
+    }
+  }, [access_token]);
+  /**
+   * Lay danh sach page
+   */
+  const fetchPageFacebook = async () => {
+    try {
+      /**
+       * Gọi api lấy danh sách page
+       */
+      const RES = await fetch(
+        // `https://graph.facebook.com/me/accounts?access_token=${access_token}`
+        `https://graph.facebook.com/me/accounts?fields=id,name,picture&type=large&access_token=${access_token}`
+      );
+      /**
+       * Lay data
+       */
+      const DATA = await RES.json();
+      /**
+       * Kiem tra data
+       */
+      if (DATA.data) {
+        setPages(DATA.data);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách Pages:", error);
+    }
+  };
+
+  /**
+   * Login vào retion
+   */
+  const onLogin = async () => {
+    try {
+      /**
+       * Domain login
+       */
+      const DOMAIN =
+        "https://chatbox-service-v3.botbanhang.vn/public/oauth/facebook/login";
+      const RES = await fetch(DOMAIN, {
+        method: "POST",
+        body: JSON.stringify({ access_token: access_token }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      /**
+       * Parse data
+       */
+      const DATA = await RES.json();
+      /**
+       * Kiem tra data
+       */
+      const ACCESS_TOKEN = DATA.data.access_token;
+      /**
+       * Nếu co token thì lấy danh sách page
+       */
+      if (ACCESS_TOKEN) {
+        /**
+         * Add vào REtion
+         */
+        fetchAddPageToRetion(ACCESS_TOKEN);
+      }
+
+      console.log(DATA);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách Pages:", error);
+    }
+  };
+
+  const fetchAddPageToRetion = async (ACCESS_TOKEN: string) => {
+    try {
+      /**
+       * DOmain org
+       */
+      const ORG_DOMAIN = `https://chatbox-billing.botbanhang.vn/app/organization/read_org`;
+      /**
+       * Lay danh sach org
+       */
+      const ORG_RES = await fetch(ORG_DOMAIN, {
+        method: "POST",
+        body: JSON.stringify({}),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${ACCESS_TOKEN}`,
+        },
+      });
+      /**
+       * Parse data
+       */
+      const ORG_DATA = await ORG_RES.json();
+      console.log(ORG_DATA);
+      /**
+       * Lay id org
+       */
+      const ORG_ID = ORG_DATA.data[0].org_id;
+      /**
+       * Domain add page
+       */
+      const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
+      /**
+       * Lay danh sach page
+       */
+      const RES = await fetch(DOMAIN, {
+        method: "POST",
+        body: JSON.stringify({
+          org_id: ORG_ID,
+          page_id: pages[0].id,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${ACCESS_TOKEN}`,
+        },
+      });
+      /**
+       *  Parse data
+       */
+      const DATA = await RES.json();
+      console.log(DATA);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách Pages:", error);
+    }
+  };
+  /**
+   * Handle connect page
+   */
+  const handleConnectPage = () => {
+    /**
+     * Lay danh sach page
+     */
+    onLogin();
+  };
 
   return (
     <div className="w-full h-full p-4">
@@ -58,6 +200,28 @@ const ConnectInstall = () => {
       {access_token && (
         <div className="h-full">
           <h2>Chọn Trang</h2>
+          <div className="flex flex-col gap-y-2">
+            {pages.map((page: any) => (
+              <div
+                key={page.id}
+                className="flex items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
+                onClick={() => {
+                  handleConnectPage(page);
+                }}
+              >
+                <img
+                  src={page?.picture?.data?.url}
+                  alt={"logo"}
+                  style={{ objectFit: "cover" }}
+                  className="w-8 h-8 rounded-lg flex justify-center items-center"
+                />
+                <div>
+                  <h3>{page.name}</h3>
+                  <p>{page.id}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
