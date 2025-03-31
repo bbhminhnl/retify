@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 
+import { MOCK_DATA } from "@/utils/data";
+
 const ConnectInstall = () => {
   /**
    * State accessToken
@@ -170,11 +172,207 @@ const ConnectInstall = () => {
        *  Parse data
        */
       const DATA = await RES.json();
+      if (DATA?.code === 200) {
+        fetchAgent(ACCESS_TOKEN, ORG_ID);
+      }
       console.log(DATA);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
     }
   };
+  /**
+   * Fetch Agent
+   */
+  const fetchAgent = async (ACCESS_TOKEN: string, ORG_ID: string) => {
+    try {
+      /**
+       * Domain add page
+       */
+      const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/get_agent`;
+      /**
+       * Lay danh sach page
+       */
+      const RES = await fetch(DOMAIN, {
+        method: "POST",
+        body: JSON.stringify({
+          org_id: ORG_ID,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${ACCESS_TOKEN}`,
+        },
+      });
+      /**
+       *  Parse data
+       */
+      const DATA = await RES.json();
+      if (DATA?.data?.length === 0) {
+        /** Tạo agent */
+        createAgent(ACCESS_TOKEN, ORG_ID);
+      } else {
+        /** Nếu có rồi thì chọn agent 1 và thêm kiến kiến thức */
+        console.log("Có agent rồi");
+        const AGENT_ID = DATA?.data[0]?.fb_page_id;
+        /**
+         * Upload kiến thức
+         */
+        uploadData(ACCESS_TOKEN, ORG_ID, AGENT_ID);
+
+        console.log(AGENT_ID);
+      }
+      console.log(DATA);
+    } catch (error) {
+      console.error("Loi khi lay danh sach Pages:", error);
+    }
+  };
+
+  const uploadData = async (
+    ACCESS_TOKEN: string,
+    ORG_ID: string,
+    AGENT_ID: string
+  ) => {
+    const MOCK_DATA_FILE = new File(
+      [MOCK_DATA],
+      "mau_tra_loi_nhan_vien_ai.txt",
+      {
+        type: "text/plain",
+      }
+    );
+    /**
+     * Đường dẫn API upload file
+     */
+    const END_POINT = `app/document/upload?org_id=${ORG_ID}`;
+    const FORM_DATA = new FormData();
+
+    FORM_DATA.append("file", MOCK_DATA_FILE);
+    /**
+     * Fetch API
+     */
+    try {
+      /**
+       * Fetch API
+       */
+      const RES = await fetch(
+        `https://chatbox-llm.botbanhang.vn/${END_POINT}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: ACCESS_TOKEN,
+          },
+          body: FORM_DATA,
+        }
+      );
+
+      /**
+       * Chuyển dữ liệu trả về thành JSON
+       */
+
+      const DATA = await RES.json();
+      console.log(DATA, "RES");
+      /**
+       * Nếu có lỗi thì throw data
+       */
+      if (DATA?.code !== 200) throw DATA.mean;
+      /** Thêm kiến kiến thức cho Trợ lý ảo*/
+      addKnowledge(
+        ACCESS_TOKEN,
+        ORG_ID,
+        AGENT_ID,
+        DATA?.data?.d_embedding_path
+      );
+      console.log(DATA, "DATA");
+    } catch (error) {
+      console.log(error);
+      if (error === "LIMIT_SIZE") {
+        /**
+         * Hiển thị toast lỗi
+         */
+      } else if (error === "LIMIT_DOCUMENT") {
+        /**
+         * Hiển thị toast lỗi
+         */
+      } else {
+        /**
+         * Hiển thị toast lỗi
+         */
+      }
+    } finally {
+    }
+  };
+  /** Thêm kiến thức cho Trợ lý ảo  */
+  const addKnowledge = async (
+    ACCESS_TOKEN: string,
+    ORG_ID: string,
+    AGENT_ID: string,
+    FILE_NAME: string
+  ) => {
+    const END_POINT = `https://chatbox-llm.botbanhang.vn/app/config/proxy/workspace/${AGENT_ID}/update-embeddings?org_id=${ORG_ID}`;
+
+    /**
+     * Gọi API cập nhật embedding
+     */
+    try {
+      /**
+       *  Gọi API cập nhật embedding
+       */
+      const RES = await fetch(END_POINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: ACCESS_TOKEN,
+        },
+        body: JSON.stringify({
+          adds: [FILE_NAME],
+        }),
+      });
+      const DATA = await RES.json();
+      console.log(DATA, "DATA");
+      /**
+       * Hiển thị toast thông báo thành công
+       */
+
+      /**
+       * Gọi hàm fetchAndFilterData
+       */
+    } catch (error) {
+      console.error("Error updating embeddings:", error);
+      /**
+       * Hiển thị toast thông báo lỗi
+       */
+    }
+  };
+  const createAgent = async (ACCESS_TOKEN: string, ORG_ID: string) => {
+    try {
+      /**
+       * Domain add page
+       */
+      const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/create_agent?org_id=${ORG_ID}`;
+      /**
+       * Lay danh sach page
+       */
+      const RES = await fetch(DOMAIN, {
+        method: "POST",
+        body: JSON.stringify({
+          ai_agent_name: "Agent 1",
+          description: "Agent 1",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${ACCESS_TOKEN}`,
+        },
+      });
+      /**
+       *  Parse data
+       */
+      const DATA = await RES.json();
+
+      fetchAgent(ACCESS_TOKEN, ORG_ID);
+      console.log(DATA);
+    } catch (error) {
+      console.error("Loi khi lay danh sach Pages:", error);
+    }
+  };
+
   /**
    * Handle connect page
    */
@@ -206,7 +404,7 @@ const ConnectInstall = () => {
                 key={page.id}
                 className="flex items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
                 onClick={() => {
-                  handleConnectPage(page);
+                  handleConnectPage();
                 }}
               >
                 <img
