@@ -19,28 +19,21 @@ interface ProductItemProps {
 }
 const ProductItem = (data: ProductItemProps) => {
   return (
-    <div className="flex flex-col gap-y-2 h-fit w-fit relative overflow-hidden ">
-      <div className="relative w-full">
-        {data.product_image ? (
-          <Image
-            src={data.product_image}
-            alt=""
-            width={200}
-            height={200}
-            className="rounded"
-          />
-        ) : (
-          <div className=" bg-gray-300 rounded-xl flex items-center justify-center text-2xl">
-            48x48
-          </div>
-        )}
-        {/* Nút "+" nằm gọn bên trong */}
-        <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-2xl cursor-pointer hover:bg-gray-800">
-          +
-        </div>
+    <div className="flex flex-col items-center w-full max-w-[200px]">
+      {/* Ảnh sản phẩm */}
+      <div className="w-full aspect-square bg-gray-200 flex items-center justify-center overflow-hidden rounded">
+        <Image
+          src={data.product_image || ""}
+          alt={data.name || "Product image"}
+          width={200}
+          height={200}
+          className="w-full h-full object-contain"
+        />
       </div>
-      <div className="">
-        <h1 className="text-sm font-medium">{data.name}</h1>
+
+      {/* Thông tin sản phẩm */}
+      <div className="w-full">
+        <h1 className="text-sm font-medium truncate">{data.name}</h1>
         <p className="text-sm font-semibold">
           {formatCurrency(data?.price || 0)}
         </p>

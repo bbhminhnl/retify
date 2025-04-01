@@ -8,7 +8,7 @@ export async function GET() {
       name: "Cốt dừa đá xay",
       price: 30000,
       product_image:
-        "https://static.botbanhang.vn/merchant/files/business_67d2932bab27af2383584987/1743442207865.png",
+        "https://lypham.vn/wp-content/uploads/2024/09/ca-phe-cot-dua-da-xay.jpg",
       type: "product",
     },
     {
@@ -16,7 +16,7 @@ export async function GET() {
       name: "Trà sữa trân châu",
       price: 20000,
       product_image:
-        "https://static.botbanhang.vn/merchant/files/business_67d2932bab27af2383584987/1743442207865.png",
+        "https://cdn.nguyenkimmall.com/images/companies/_1/tin-tuc/kinh-nghiem-meo-hay/n%E1%BA%A5u%20%C4%83n/cach-lam-tran-chau-tra-sua_1.jpg",
       type: "product",
     },
     {
@@ -24,7 +24,7 @@ export async function GET() {
       name: "Trà sữa trân châu đường đen",
       price: 30000,
       product_image:
-        "https://static.botbanhang.vn/merchant/files/business_67d2932bab27af2383584987/1743442207865.png",
+        "https://xingfuvietnam.vn/wp-content/uploads/2023/02/xingfu-tra-sua-tran-chau-duong-den-2-FILEminimizer.jpg",
       type: "product",
     },
     {
@@ -32,7 +32,7 @@ export async function GET() {
       name: "Trả đào cam sả",
       price: 20000,
       product_image:
-        "https://static.botbanhang.vn/merchant/files/business_67d2932bab27af2383584987/1743442207865.png",
+        "https://lypham.vn/wp-content/uploads/2024/09/cach-lam-tra-dao-cam-sa.jpg",
       type: "product",
     },
     {
@@ -40,7 +40,7 @@ export async function GET() {
       name: "Cà phê đen",
       price: 15000,
       product_image:
-        "https://static.botbanhang.vn/merchant/files/business_67d2932bab27af2383584987/1743442207865.png",
+        "https://noithatcaphe.vn/images/2022/07/20/ca-phe-den-3.jpg",
       type: "product",
     },
     {
@@ -48,7 +48,7 @@ export async function GET() {
       name: "Cà phê sữa",
       price: 30000,
       product_image:
-        "https://static.botbanhang.vn/merchant/files/business_67d2932bab27af2383584987/1743442207865.png",
+        "https://classiccoffee.com.vn/files/common/uong-cafe-sua-co-tot-khong-luu-y-khi-uong-cafe-sua-b7nrl.png",
       type: "product",
     },
     {
@@ -56,7 +56,7 @@ export async function GET() {
       name: "Sữa chua mít",
       price: 20000,
       product_image:
-        "https://static.botbanhang.vn/merchant/files/business_67d2932bab27af2383584987/1743442207865.png",
+        "https://thucthan.com/media/2018/06/sua-chua-mit/sua-chua-mit-tran-chau-dua.jpg",
       type: "product",
     },
   ];

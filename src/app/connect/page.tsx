@@ -23,6 +23,10 @@ type Product = {
   product_image: string;
   /** Type */
   type: string;
+  /**
+   * cost
+   */
+  cost: number;
 };
 const ConnectInstall = () => {
   /** State accessToken*/
@@ -460,7 +464,12 @@ const ConnectInstall = () => {
   const createProductMerchant = async (
     ACCESS_TOKEN: string,
     PAGE_ID: string,
-    product: { name: string; product_image: string; price: number }
+    product: {
+      name: string;
+      product_image: string;
+      price: number;
+      cost: number;
+    }
   ) => {
     try {
       /** Domain Tạo sản phẩm */
@@ -471,7 +480,7 @@ const ConnectInstall = () => {
         name: product.name, // Thay tên sản phẩm
         images: [product.product_image], // Thay ảnh
         price: product.price,
-        cost: 0, // Thay giá gốc
+        cost: product?.cost || product?.price, // Thay giá gốc
         wholesale_price: 0,
         max_inventory_quantity: 0,
         min_inventory_quantity: 0,
