@@ -31,6 +31,11 @@ const ConnectInstall = () => {
   const [pages, setPages] = useState<UserProfile[]>([]);
   /** Danh sách product */
   const [products, setProducts] = useState<Product[]>([]);
+  /** Page đã chọn */
+  const [selected_page, setSelectedPage] = useState<string>("");
+  /** Chatbox token */
+  const [chatbox_token, setChatboxToken] = useState<string>("");
+
   /** Lấy đata products */
   useEffect(() => {
     fetch("/api/products")
@@ -42,6 +47,11 @@ const ConnectInstall = () => {
   const [loading, setLoading] = useState(false);
   /** Text loading */
   const [loading_text, setLoadingText] = useState("");
+
+  /**
+   * Chọn Tổ chức để thêm page vào
+   */
+  const [organization, setOrganization] = useState([]);
 
   /** Lấy Facebook Token */
   function getFacebookToken(event: MessageEvent) {
@@ -115,8 +125,9 @@ const ConnectInstall = () => {
 
   /**
    * Login vào retion
+   * @param PAGE_ID
    */
-  const onLogin = async () => {
+  const onLogin = async (PAGE_ID: string) => {
     /** Cập nhật text */
     setLoadingText("Đang cài đặt...");
     try {
@@ -135,6 +146,9 @@ const ConnectInstall = () => {
        * Kiem tra data
        */
       const ACCESS_TOKEN = DATA.data.access_token;
+
+      setChatboxToken(ACCESS_TOKEN);
+
       /**
        * Nếu co token thì lấy danh sách page
        */
@@ -142,7 +156,7 @@ const ConnectInstall = () => {
         /**
          * Add vào REtion
          */
-        fetchAddPageToRetion(ACCESS_TOKEN);
+        fetchAddPageToRetion(ACCESS_TOKEN, PAGE_ID);
       }
       console.log(DATA);
     } catch (error) {
@@ -157,7 +171,10 @@ const ConnectInstall = () => {
    *  Hàm thêm page vào Tổ chức
    * @param ACCESS_TOKEN
    */
-  const fetchAddPageToRetion = async (ACCESS_TOKEN: string) => {
+  const fetchAddPageToRetion = async (
+    ACCESS_TOKEN: string,
+    PAGE_ID: string
+  ) => {
     try {
       /**
        * DOmain org
@@ -178,26 +195,69 @@ const ConnectInstall = () => {
        * Parse data
        */
       console.log(ORG_DATA);
-      /**
-       * Lay id org
-       */
-      const ORG_ID = ORG_DATA.data[0].org_id;
+      setOrganization(ORG_DATA.data);
+
+      //   /**
+      //    * Lay id org
+      //    */
+      //   const ORG_ID = ORG_DATA.data[0].org_id;
+      //   /**
+      //    * Domain add page
+      //    */
+      //   const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
+      //   /**
+      //    * Khai báo body
+      //    */
+      //   const BODY = {
+      //     org_id: ORG_ID,
+      //     page_id: PAGE_ID,
+      //   };
+      //   /** Khai báo header */
+      //   const HEADERS = {
+      //     Authorization: `${ACCESS_TOKEN}`,
+      //   };
+
+      //   /** Thêm page vào Tổ chức */
+      //   const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+      //   /**
+      //    * Parse data
+      //    */
+      //   if (DATA?.code === 200) {
+      //     /** Lấy danh sách page */
+      //     fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+      //   }
+      //   console.log(DATA);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách Pages:", error);
+    }
+  };
+  /**
+   * Hàm chọn BM để add Page vào
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param ACCESS_TOKEN
+   */
+  const addPage = async (
+    ORG_ID: string,
+    PAGE_ID: string,
+    ACCESS_TOKEN: string
+  ) => {
+    /** Cập nhật text */
+    setLoadingText("Đang cài đặt trợ lý ảo");
+    try {
       /**
        * Domain add page
        */
       const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
-      /**
-       * Khai báo body
-       */
+      /** Khai báo body */
       const BODY = {
+        page_id: PAGE_ID,
         org_id: ORG_ID,
-        page_id: pages[0]?.id,
       };
-      /** Khai báo header */
+      /** Khai báo Header */
       const HEADERS = {
-        Authorization: `${ACCESS_TOKEN}`,
+        Authorization: ACCESS_TOKEN,
       };
-
       /** Thêm page vào Tổ chức */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
       /**
@@ -205,13 +265,17 @@ const ConnectInstall = () => {
        */
       if (DATA?.code === 200) {
         /** Lấy danh sách page */
-        fetchAgent(ACCESS_TOKEN, ORG_ID, pages[0]?.id);
+        fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
       }
-      console.log(DATA);
+      //   }
     } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
+    } finally {
+      //   setLoading(false);
+      //   setLoadingText("");
     }
   };
+
   /**
    * Fetch Agent
    * @param ACCESS_TOKEN
@@ -368,8 +432,11 @@ const ConnectInstall = () => {
      */
     const BODY = {
       access_token: ACCESS_TOKEN,
-      client_id: "29877270768526767",
-      secret_key: "0cf5516973a145929ff36d3303183e5f",
+      //   client_id: "29877270768526767",
+      //   client_id: "9481492605237941",
+      client_id: "9907822685912987",
+      //   secret_key: "0cf5516973a145929ff36d3303183e5f",
+      secret_key: "6f8b22eebe1d4d93b2f4a618901df020",
     };
     /**
      * fetch Data
@@ -650,8 +717,9 @@ const ConnectInstall = () => {
 
   /**
    * Handle connect page
+   * @param PAGE_ID
    */
-  const handleConnectPage = () => {
+  const handleConnectPage = (PAGE_ID: string) => {
     /** Bắt đầu loading */
     setLoading(true);
     /** Hiện text tiến trình */
@@ -659,7 +727,7 @@ const ConnectInstall = () => {
     /**
      * Lay danh sach page
      */
-    onLogin();
+    onLogin(PAGE_ID);
   };
 
   return (
@@ -685,7 +753,8 @@ const ConnectInstall = () => {
                 key={page.id}
                 className="flex items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
                 onClick={() => {
-                  handleConnectPage();
+                  setSelectedPage(page?.id);
+                  handleConnectPage(page?.id);
                 }}
               >
                 <img
@@ -703,6 +772,36 @@ const ConnectInstall = () => {
           </div>
         </div>
       )}
+      {organization?.length > 0 && (
+        <div className="h-full">
+          <h2>Chọn BM</h2>
+          <div className="flex flex-col gap-y-2">
+            {organization.map((org: any) => (
+              <div
+                key={org?.org_id}
+                className="flex items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
+                onClick={() => {
+                  console.log(org, "checkkk", chatbox_token);
+                  addPage(org?.org_id, selected_page, chatbox_token);
+                  setOrganization([]);
+                }}
+              >
+                <img
+                  src={org?.org_info?.org_avatar}
+                  alt={"logo"}
+                  style={{ objectFit: "cover" }}
+                  className="w-8 h-8 rounded-lg flex justify-center items-center"
+                />
+                <div>
+                  <h3>{org?.org_info?.org_name}</h3>
+                  <p>{org?.org_id}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex h-full w-full flex-col items-center justify-center gap-y-5">
         {loading && (
           <div className="flex items-center justify-center h-12">
