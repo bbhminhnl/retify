@@ -25,17 +25,13 @@ type Product = {
   type: string;
 };
 const ConnectInstall = () => {
-  /**
-   * State accessToken
-   */
+  /** State accessToken*/
   const [access_token, setAccessToken] = useState("");
-  /**
-   * Danh sách page
-   */
+  /** Danh sách page*/
   const [pages, setPages] = useState<UserProfile[]>([]);
-
+  /** Danh sách product */
   const [products, setProducts] = useState<Product[]>([]);
-
+  /** Lấy đata products */
   useEffect(() => {
     fetch("/api/products")
       .then((res) => res.json())
@@ -47,6 +43,7 @@ const ConnectInstall = () => {
   /** Text loading */
   const [loading_text, setLoadingText] = useState("");
 
+  /** Lấy Facebook Token */
   function getFacebookToken(event: MessageEvent) {
     /** Kiểm tra event có hợp lệ không */
     if (
@@ -62,10 +59,9 @@ const ConnectInstall = () => {
      * Lay response tu facebook
      */
     const FACEBOOK_RESPONSE = event.data.data;
-
-    console.log(FACEBOOK_RESPONSE, FACEBOOK_RESPONSE.authResponse.accessToken);
+    /** Kiểm tra token */
     if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
-      //   onAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
+      /** Set token */
       setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
     }
   }
@@ -86,6 +82,7 @@ const ConnectInstall = () => {
      * Nếu có token thì lấy danh sách page
      */
     if (access_token) {
+      /** Lấy danh sách page */
       fetchPageFacebook();
     }
   }, [access_token]);
@@ -98,17 +95,17 @@ const ConnectInstall = () => {
        * Gọi api lấy danh sách page
        */
       const RES = await fetch(
-        // `https://graph.facebook.com/me/accounts?access_token=${access_token}`
         `https://graph.facebook.com/me/accounts?fields=id,name,picture&type=large&access_token=${access_token}`
       );
       /**
-       * Lay data
+       * Lấy data
        */
       const DATA = await RES.json();
       /**
-       * Kiem tra data
+       * Kiểm tra data
        */
       if (DATA.data) {
+        /** Lấy danh sách page */
         setPages(DATA.data);
       }
     } catch (error) {
@@ -120,6 +117,7 @@ const ConnectInstall = () => {
    * Login vào retion
    */
   const onLogin = async () => {
+    /** Cập nhật text */
     setLoadingText("Đang cài đặt...");
     try {
       /**
@@ -133,7 +131,6 @@ const ConnectInstall = () => {
       const HEADERS = {};
       /** RES */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-
       /**
        * Kiem tra data
        */
@@ -156,6 +153,10 @@ const ConnectInstall = () => {
     }
   };
 
+  /**
+   *  Hàm thêm page vào Tổ chức
+   * @param ACCESS_TOKEN
+   */
   const fetchAddPageToRetion = async (ACCESS_TOKEN: string) => {
     try {
       /**
@@ -199,8 +200,11 @@ const ConnectInstall = () => {
 
       /** Thêm page vào Tổ chức */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-
+      /**
+       * Parse data
+       */
       if (DATA?.code === 200) {
+        /** Lấy danh sách page */
         fetchAgent(ACCESS_TOKEN, ORG_ID, pages[0]?.id);
       }
       console.log(DATA);
@@ -210,26 +214,31 @@ const ConnectInstall = () => {
   };
   /**
    * Fetch Agent
+   * @param ACCESS_TOKEN
+   * @param ORG_ID
+   * @param PAGE_ID
    */
   const fetchAgent = async (
     ACCESS_TOKEN: string,
     ORG_ID: string,
     PAGE_ID: string
   ) => {
+    /** Cập nhật text */
     setLoadingText("Đang tạo Trợ lý ảo");
     try {
       /**
        * Domain add page
        */
       const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/get_agent`;
-
+      /** Khai báo body */
       const BODY = {
         org_id: ORG_ID,
       };
+      /** Khai báo Header */
       const HEADERS = {
         Authorization: ACCESS_TOKEN,
       };
-
+      /** Call API lấy danh sách agent */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
       /**
        *  Parse data
@@ -256,13 +265,19 @@ const ConnectInstall = () => {
       console.error("Loi khi lay danh sach Pages:", error);
     }
   };
-  /** Cập nhật setting page Bật trợ lý ảo và chọn Trợ lý ảo mới tạo */
+  /** Cập nhật setting page Bật trợ lý ảo và chọn Trợ lý ảo mới tạo
+   * @param ACCESS_TOKEN
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param AGENT_ID
+   */
   const updateSettingPage = async (
     ACCESS_TOKEN: string,
     ORG_ID: string,
     PAGE_ID: string,
     AGENT_ID: string
   ) => {
+    /** Cập nhật text */
     setLoadingText("Đang cài đặt trợ lý ảo");
     try {
       /**
@@ -287,8 +302,9 @@ const ConnectInstall = () => {
       console.error("Loi khi lay danh sach Pages:", error);
     } finally {
       //   setLoading(false);
+      /** Kết nối với chatbox thành công */
       setLoadingText("Cài đặt ChatBox Thành công!");
-
+      /** Sau 1s thì gọi API lấy token Partner */
       setTimeout(() => {
         fetchTokenPartner(ACCESS_TOKEN, ORG_ID, PAGE_ID);
       }, 1000);
@@ -300,6 +316,7 @@ const ConnectInstall = () => {
     ORG_ID: string,
     PAGE_ID: string
   ) => {
+    /** Cập nhật text */
     setLoadingText("Đang kết nối với Merchant");
     try {
       /**
@@ -320,25 +337,29 @@ const ConnectInstall = () => {
        */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
 
-      // Lấy danh sách các key trong `data`
+      /** Lấy danh sách các key trong `data` */
       const DATA_KEYS = keys(DATA.data);
 
-      // Tìm key nào chứa `partner_token`
+      /**Tìm key nào chứa `partner_token` */
       const KEY_WITH_PARTNER_TOKEN = find(DATA_KEYS, (key) =>
         has(DATA.data[key], "partner_token")
       );
 
-      // Nếu tìm thấy `partner_token`, lấy giá trị của nó
+      /** Nếu tìm thấy `partner_token`, lấy giá trị của nó */
       const PARTNER_TOKEN = KEY_WITH_PARTNER_TOKEN
         ? get(DATA, `data.${KEY_WITH_PARTNER_TOKEN}.partner_token`, null)
         : null;
       console.log(PARTNER_TOKEN);
 
-      //   createProductMerchant(PARTNER_TOKEN, ORG_ID, PAGE_ID);
+      /**   createProductMerchant(PARTNER_TOKEN, ORG_ID, PAGE_ID); */
       fetchTokenMerchant(PARTNER_TOKEN, PAGE_ID);
     } catch (error) {}
   };
-
+  /**
+   * Hàm lấy token merchant
+   * @param ACCESS_TOKEN
+   * @param PAGE_ID
+   */
   const fetchTokenMerchant = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
     /** Domain Merchant */
     const DOMAIN = "https://api.merchant.vn/v1/public/chatbox/get_config";
@@ -364,13 +385,18 @@ const ConnectInstall = () => {
     createAllProducts(TOKEN_MERCHANT, PAGE_ID);
     console.log(DATA, "data");
   };
-  /** Hàm gọi API */
+  /** Hàm gọi API
+   * @param ACCESS_TOKEN
+   * @param PAGE_ID
+   * @param product
+   */
   const createProductMerchant = async (
     ACCESS_TOKEN: string,
     PAGE_ID: string,
     product: { name: string; product_image: string; price: number }
   ) => {
     try {
+      /** Domain Tạo sản phẩm */
       const DOMAIN = `https://api-product.merchant.vn/product/create_product`;
 
       /** Khai báo body */
@@ -420,17 +446,27 @@ const ConnectInstall = () => {
     } catch (error) {
       console.error(`❌ Lỗi khi tạo sản phẩm ${product.name}`, error);
     } finally {
+      /** Tắt loading */
       setLoading(false);
+      /**
+       * Hiển thị text tiền trình
+       */
       setLoadingText("Tạo sản phẩm thành công!");
+      /**
+       * Xoá text sau 5s
+       */
       setTimeout(() => {
         setLoadingText("");
       }, 5000);
     }
   };
 
-  /** Hàm xử lý gọi API cho toàn bộ danh sách sản phẩm */
+  /** Hàm xử lý gọi API cho toàn bộ danh sách sản phẩm
+   * @param ACCESS_TOKEN
+   * @param PAGE_ID
+   */
   const createAllProducts = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
-    // Dùng Promise.all để gửi nhiều request cùng lúc
+    /** Dùng Promise.all để gửi nhiều request cùng lúc */
     await Promise.all(
       products.map((product) =>
         createProductMerchant(ACCESS_TOKEN, PAGE_ID, product)
@@ -451,6 +487,7 @@ const ConnectInstall = () => {
     ORG_ID: string,
     AGENT_ID: string
   ) => {
+    /** Tạo mock data */
     const MOCK_DATA_FILE = new File(
       [MOCK_DATA],
       "mau_tra_loi_nhan_vien_ai.txt",
@@ -615,7 +652,9 @@ const ConnectInstall = () => {
    * Handle connect page
    */
   const handleConnectPage = () => {
+    /** Bắt đầu loading */
     setLoading(true);
+    /** Hiện text tiến trình */
     setLoadingText("Đang cài đặt...");
     /**
      * Lay danh sach page
@@ -672,7 +711,7 @@ const ConnectInstall = () => {
         )}
         {
           <div className="flex items-center justify-center h-12">
-            <p>{loading_text}</p>
+            <p className="text-lg ">{loading_text}</p>
           </div>
         }
       </div>

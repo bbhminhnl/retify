@@ -8,8 +8,13 @@ interface ProductItemProps {
    * Product name
    */
   name?: string;
+  /**
+   * Giá sản phẩm
+   */
   price?: number;
+  /** Ảnh sản phẩm */
   product_image?: string;
+  /** Loại sản phẩm */
   type?: string;
 }
 const ProductItem = (data: ProductItemProps) => {

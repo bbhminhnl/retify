@@ -23,54 +23,54 @@ type Product = {
 };
 
 function Product() {
-  /** MOCK DATA */
+  /** Danh sách sản phẩm MOCK*/
   const LIST_PRODUCT = [
     {
       id: 1,
-      name: "Product 1",
-      price: 100000,
+      name: "Cốt dừa đá xay",
+      price: 30000,
       product_image: "/imgs/image.png",
       type: "product",
     },
     {
       id: 2,
-      name: "Product 2",
-      price: 200,
+      name: "Trà sữa trân châu",
+      price: 20000,
       product_image: "/imgs/image.png",
       type: "product",
     },
     {
       id: 3,
-      name: "Product 3",
-      price: 300,
+      name: "Trà sữa trân châu đường đen",
+      price: 30000,
       product_image: "/imgs/image.png",
       type: "product",
     },
     {
       id: 4,
-      name: "Product 4",
-      price: 400,
+      name: "Trả đào cam sả",
+      price: 20000,
       product_image: "/imgs/image.png",
       type: "product",
     },
     {
       id: 5,
-      name: "Product 5",
-      price: 500,
+      name: "Cà phê đen",
+      price: 15000,
       product_image: "/imgs/image.png",
       type: "product",
     },
     {
       id: 6,
-      name: "Product 6",
-      price: 600,
+      name: "Cà phê sữa",
+      price: 30000,
       product_image: "/imgs/image.png",
       type: "product",
     },
     {
       id: 7,
-      name: "Product 7",
-      price: 700,
+      name: "Sữa chua mít",
+      price: 20000,
       product_image: "/imgs/image.png",
       type: "product",
     },
