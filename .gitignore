@@ -39,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Thêm vào .gitignore
+/src/app/api/google-vision-key.json

@@ -1,3 +1,10 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+
+  "functions": {
+    "app/api/detect/route.js": {
+      "memory": 3008,
+      "maxDuration": 30
+    }
+  }
 }
