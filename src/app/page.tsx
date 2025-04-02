@@ -1,15 +1,13 @@
 import ActionConnect from "./products/components/ActionConnect";
 import ImageToJsonExtractor from "./components/ImageToJsonExtractor";
 import Product from "./products/Products";
+import VisionUploader from "./components/VisionUploader";
 
 export default function Home() {
   return (
     <div className="flex flex-col gap-y-4 flex-grow min-h-screen">
-      {/* <ImageDetector /> */}
       <ImageToJsonExtractor />
-      {/* <FacebookImageToJson /> */}
-      {/* <TestMenuExtractor /> */}
-      {/* <ImageExtractor /> */}
+      <VisionUploader />
 
       <div className="overflow-hidden overflow-y-auto flex-grow">
         <Product />
