@@ -1,57 +1,4 @@
-// import { ImageAnnotatorClient } from "@google-cloud/vision";
-// import { NextResponse } from "next/server";
-
-// const client = new ImageAnnotatorClient();
-
-// export async function POST(request: Request) {
-//   try {
-//     const { imageUrl } = await request.json();
-
-//     // 1. Tải ảnh từ URL
-//     const imageRes = await fetch(imageUrl);
-//     const imageBuffer = await imageRes.arrayBuffer();
-
-//     // 2. Gọi Google Vision API
-//     const [result] = await client.textDetection({
-//       image: { content: Buffer.from(imageBuffer) },
-//     });
-
-//     // 3. Phân tích kết quả OCR
-//     const menuData = parseMenuText(result.fullTextAnnotation?.text || "");
-
-//     return NextResponse.json(menuData);
-//   } catch (error: any) {
-//     return NextResponse.json({ error: error.message }, { status: 500 });
-//   }
-// }
-
-// // Hàm phân tích văn bản menu
-// function parseMenuText(text: string) {
-//   const lines = text.split("\n").filter((line) => line.trim());
-//   const menuItems = [];
-
-//   for (let i = 0; i < lines.length; i++) {
-//     const line = lines[i];
-
-//     // Tìm tên món và giá (tuỳ chỉnh theo định dạng menu)
-//     const PRICE_MATCH = line.match(/(\d{1,3}(?:\.\d{3})*(?:,\d+)?)\s*₫/);
-//     /** Phát hiện giá (regex tuỳ chỉnh theo menu) */
-//     // const PRICE_MATCH = line.match(/(\d{1,3}(?:[.,]\d{3})*)\s*(đ|vnd|k|$)/i);
-//     if (PRICE_MATCH) {
-//       const price = parseFloat(
-//         PRICE_MATCH[1].replace(/\./g, "").replace(",", ".")
-//       );
-//       const name = line.replace(PRICE_MATCH[0], "").trim();
-
-//       if (name) {
-//         menuItems.push({ name, price });
-//       }
-//     }
-//   }
-
 import { ImageAnnotatorClient } from "@google-cloud/vision";
-//   return menuItems;
-// }
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 /** Khơi tạo client */
@@ -64,7 +11,7 @@ const CURRENCY_REGEX =
 export async function POST(req: Request) {
   try {
     /** 1. Nhận URL ảnh từ client */
-    const { imageUrl: IMAGE_URL } = await req.json();
+    const { image_url: IMAGE_URL } = await req.json();
 
     /** 2. Tải và tiền xử lý ảnh */
     const PROCESSED_IMAGE = await processImage(IMAGE_URL);
@@ -198,3 +145,42 @@ type MenuItem = {
    */
   originalText?: string;
 };
+// import { NextResponse } from "next/server";
+// import { getVisionClient } from "@/lib/googleVision";
+// import sharp from "sharp";
+
+// export async function POST(request: Request) {
+//   try {
+//     // 1. Nhận ảnh từ client
+//     const formData = await request.formData();
+//     const file = formData.get("image") as File;
+//     const buffer = Buffer.from(await file.arrayBuffer());
+
+//     // 2. Tiền xử lý ảnh
+//     const processedImage = await sharp(buffer)
+//       .greyscale()
+//       .normalize()
+//       .sharpen()
+//       .toBuffer();
+
+//     // 3. Gọi Google Vision API
+//     const [result] = await getVisionClient().textDetection({
+//       image: { content: processedImage },
+//     });
+
+//     return NextResponse.json({
+//       text: result.fullTextAnnotation?.text || "",
+//     });
+//   } catch (error) {
+//     return NextResponse.json(
+//       { error: "OCR processing failed" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+// export const config = {
+//   api: {
+//     bodyParser: false, // Cho phép đọc FormData
+//   },
+// };

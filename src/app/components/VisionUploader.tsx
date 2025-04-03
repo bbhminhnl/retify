@@ -31,10 +31,12 @@ export default function VisionUploader() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image_url }),
       });
+      const DATA = await RES.json();
+
       /**
        * Set data
        */
-      setResults(await RES.json());
+      setResults(DATA.data);
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +61,7 @@ export default function VisionUploader() {
         </button>
       </div>
 
-      {results.length > 0 && (
+      {results?.length > 0 && (
         <div className="mt-6 border rounded-lg overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-100">
@@ -69,7 +71,7 @@ export default function VisionUploader() {
               </tr>
             </thead>
             <tbody>
-              {results.map((item, index) => (
+              {results?.map((item, index) => (
                 <tr key={index} className="border-t">
                   <td className="p-3">{item.name}</td>
                   <td className="p-3 text-right">
