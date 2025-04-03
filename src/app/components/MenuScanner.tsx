@@ -32,7 +32,7 @@ export default function MenuScanner() {
       const RES = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image_url }),
+        body: JSON.stringify({ imageUrl: image_url }),
       });
       setResult(await RES.json());
     } finally {
