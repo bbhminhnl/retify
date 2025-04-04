@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
       allowedOrigins: ["*"],
     },
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "oaidalleapiprodscus.blob.core.windows.net",
+        pathname: "/**",
+      },
+    ],
+  },
   webpack: (config) => {
     config.resolve.fallback = { fs: false, path: false };
     return config;

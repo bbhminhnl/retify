@@ -1,5 +1,5 @@
 import ActionConnect from "./products/components/ActionConnect";
-import CallWebhook from "./components/CallWebhook";
+// import CallWebhook from "./components/CallWebhook";
 import ImageToJsonExtractor from "./components/ImageToJsonExtractor";
 import ImageUploader from "./components/ImageUploader";
 import MenuProcessor from "./components/MenuProcessor";

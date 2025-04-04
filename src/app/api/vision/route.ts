@@ -193,6 +193,9 @@ export async function POST(req: Request) {
     const [labelResult] = await CLIENT.labelDetection({
       image: { content: base64Image.split(",")[1] },
     });
+
+    const RAW_TEXT = textResult.fullTextAnnotation?.text || "";
+    console.log(RAW_TEXT, "raw text");
     /**
      * Trả về kết quả
      * @description
@@ -200,8 +203,9 @@ export async function POST(req: Request) {
      * - labels: Danh sách nhãn nhận diện được
      */
     return NextResponse.json({
+      // texts: RAW_TEXT,
       texts: textResult.textAnnotations?.map((t) => t.description),
-      labels: labelResult.labelAnnotations?.map((l) => l.description),
+      // labels: labelResult.labelAnnotations?.map((l) => l.description),
     });
   } catch (error) {
     console.error("Vision API Error:", error);
