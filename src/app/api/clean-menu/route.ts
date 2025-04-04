@@ -8,6 +8,9 @@ const OPEN_AI = new OpenAI({
 });
 
 export async function POST(req: Request) {
+  /**
+   * Nhận dữ liệu từ client
+   */
   const { rawText } = await req.json();
   /**
    * Kiểm tra dữ liệu đầu vào
