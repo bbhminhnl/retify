@@ -106,17 +106,16 @@ export async function POST(req: NextRequest) {
 
     /** 2. Chuẩn bị data để gửi đến API xử lý */
     const PAYLOAD = {
-      event_type: "webhook_received",
-      timestamp: new Date().toISOString(),
-      data: WEBHOOK_DATA,
+      org_id: "f48ef6f6bd05467b8b66b1602b27913f",
+      limit: 50,
     };
-
+    console.log(req);
     /** 3. Call API xử lý */
     const API_RESPONSE = await fetch(PROCESS_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        Authorization: `${ACCESS_TOKEN}`,
       },
       body: JSON.stringify(PAYLOAD),
     });

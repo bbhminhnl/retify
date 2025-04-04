@@ -199,6 +199,7 @@ const ConnectInstall = () => {
        * Parse data
        */
       console.log(ORG_DATA);
+      /** Lấy thông tin ORG */
       setOrganization(ORG_DATA.data);
 
       //   /**
@@ -523,7 +524,7 @@ const ConnectInstall = () => {
       console.error(`❌ Lỗi khi tạo sản phẩm ${product.name}`, error);
     } finally {
       /** Tắt loading */
-      setLoading(false);
+      // setLoading(false);
       /**
        * Hiển thị text tiền trình
        */
@@ -531,9 +532,9 @@ const ConnectInstall = () => {
       /**
        * Xoá text sau 5s
        */
-      setTimeout(() => {
-        setLoadingText("");
-      }, 5000);
+      // setTimeout(() => {
+      //   setLoadingText("");
+      // }, 5000);
     }
   };
 
@@ -548,8 +549,143 @@ const ConnectInstall = () => {
         createProductMerchant(ACCESS_TOKEN, PAGE_ID, product)
       )
     );
-
+    fetchListPages(ACCESS_TOKEN, PAGE_ID);
     console.log("🎉 Hoàn tất tạo tất cả sản phẩm!");
+  };
+  /**
+   *  Lấy thông tin page merchant
+   * @param ACCESS_TOKEN
+   * @param PAGE_ID
+   */
+  const fetchListPages = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
+    setLoadingText("Đang đồng bộ sản phẩm");
+    try {
+      /**
+       * Domain
+       */
+      const DOMAIN = `https://api.merchant.vn/v1/apps/facebook/pages`;
+      /**
+       * Header
+       */
+      const HEADERS = {
+        "token-business": ACCESS_TOKEN,
+        accept: "application/json, text/plain, */*",
+      };
+      /**
+       * fetch Data
+       */
+      const DATA = await fetchApi(DOMAIN, "POST", {}, HEADERS);
+      /**
+       * Page
+       */
+      const PAGE = DATA.data.find((page: any) => page.page_id === PAGE_ID);
+      /**
+       * External business
+       */
+      const EXTERNAL_BUSINESS_ID = PAGE.external_business_id;
+      /**
+       * Tạo state trên fb
+       */
+      createState(ACCESS_TOKEN, PAGE_ID, EXTERNAL_BUSINESS_ID);
+      /**
+       * Sync data lên fb
+       */
+      syncDataToFbSMC(ACCESS_TOKEN, EXTERNAL_BUSINESS_ID);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      // setLoading(false);
+      // setLoadingText("");
+    }
+  };
+
+  /**
+   *  Kết nối với Facebook
+   * @param ACCESS_TOKEN
+   * @param PAGE_ID
+   * @param EXTERNAL_BUSINESS_ID
+   */
+  const createState = async (
+    ACCESS_TOKEN: string,
+    PAGE_ID: string,
+    EXTERNAL_BUSINESS_ID: string
+  ) => {
+    /**
+     * Domain
+     */
+    const DOMAIN = `https://api.merchant.vn/v1/apps/facebook/create_state`;
+    /**
+     * Header
+     */
+    const HEADERS = {
+      "token-business": ACCESS_TOKEN,
+      accept: "application/json, text/plain, */*",
+    };
+    /**
+     * Body
+     */
+    const BODY = {
+      page_id: PAGE_ID,
+      external_business_id: EXTERNAL_BUSINESS_ID,
+      redirect_uri: "https://smc-oauth.merchant.vn/",
+    };
+    /**
+     * fetch Data
+     */
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    console.log(DATA, "DATA");
+  };
+
+  /**
+   * sync data lên fb
+   * @param ACCESS_TOKEN
+   */
+  const syncDataToFbSMC = async (ACCESS_TOKEN: string, BUSINESS_ID: string) => {
+    /**
+     * Bật trạng thái loading
+     */
+    setLoadingText("Đang đồng bộ sản phẩm...");
+    setLoading(true);
+    try {
+      /**
+       * Domain
+       */
+      const DOMAIN = `https://api-product.merchant.vn/product/sync_product_facebook`;
+      /** Header */
+      const HEADERS = {
+        "token-business": ACCESS_TOKEN,
+        accept: "application/json, text/plain, */*",
+      };
+      /** Body */
+      const BODY = {
+        external_business_id: BUSINESS_ID,
+        type: "ALL",
+      };
+      /**
+       * fetch Data
+       */
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+      console.log(DATA, "DATA");
+    } catch (error) {
+      console.log(error);
+    } finally {
+      /**
+       * Tắt loading
+       */
+      setLoading(false);
+      /**
+       * Cập nhật text
+       */
+      setLoadingText(
+        "Đã đồng bộ sản phẩm lên FB SMC! Sau khi đồng bộ, có thể mất 24 giờ để sản phẩm của bạn xuất hiện trên Messenger hoặc tối đa 02 giờ để gắn được lên Facebook Livestream"
+      );
+      /**
+       * Xoá text sau 5s
+       */
+      setTimeout(() => {
+        setLoadingText("");
+      }, 5000);
+    }
   };
 
   /**
@@ -563,14 +699,29 @@ const ConnectInstall = () => {
     ORG_ID: string,
     AGENT_ID: string
   ) => {
-    /** Tạo mock data */
+    /** Định dạng dữ liệu sản phẩm */
+    const FORMATTED_DATA = products
+      .map(
+        (product) =>
+          `${product.name}: ${product.price.toLocaleString("vi-VN")} đ`
+      )
+      .join("\n");
+
+    /** Giả sử MOCK_DATA đã có dữ liệu trước đó */
+    const EXISTING_DATA = typeof MOCK_DATA === "string" ? MOCK_DATA : "";
+
+    /** Ghép dữ liệu cũ và mới */
+    const UPDATED_DATA = EXISTING_DATA + "\n" + FORMATTED_DATA;
+
+    /** Tạo mock data file mới với dữ liệu đã cập nhật */
     const MOCK_DATA_FILE = new File(
-      [MOCK_DATA],
-      "mau_tra_loi_nhan_vien_ai.txt",
+      [UPDATED_DATA],
+      "mau_tra_loi_nhan_vien_ai_update.txt",
       {
         type: "text/plain",
       }
     );
+
     /**
      * Đường dẫn API upload file
      */

@@ -1,28 +1,7 @@
+import { MENU_PATTERNS } from "@/utils";
 import { NextResponse } from "next/server";
 import { getVisionClient } from "@/lib/googleVision";
 import sharp from "sharp";
-
-export const MENU_PATTERNS = {
-  /** Cải thiện phát hiện tiêu đề mục trong menu tiếng Việt */
-  SECTION:
-    /^(?!.*\b(available|mon|tue|wed|thu|fri|sat|sun|am|pm|giờ|phục vụ)\b)[A-ZÀ-Ỹ][A-ZÀ-Ỹ\s]+$/i,
-
-  /** Cải thiện phát hiện giá với định dạng tiền tệ Việt Nam */
-  PRICE: /\b\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*(?:₫|vnd|đ|d|k|nghìn)?\b/gi,
-
-  /** Cải thiện danh sách từ khóa cần bỏ qua */
-  IGNORE:
-    /^(menu|thực đơn|quán|địa chỉ|hotline|====|http|\b(available|mon|tue|wed|thu|fri|sat|sun|\d+\s?[ap]m|giờ|phục vụ)\b)/i,
-
-  /** Phát hiện đơn vị tiền tệ Việt Nam và quốc tế */
-  CURRENCY: /\b(₫|vnd|đ|d|\$|€|usd|k|nghìn)\b/i,
-
-  /** Định dạng giá tính theo nghìn đồng */
-  THOUSAND_VND: /\b(nghìn đồng|giá tính theo nghìn)\b/i,
-
-  /** Phát hiện đơn vị trong menu */
-  UNIT: /\b(đĩa|plate|phần|serving|người|person|suất)\b/i,
-};
 
 export async function POST(request: Request) {
   try {
@@ -55,7 +34,7 @@ export async function POST(request: Request) {
      * Lay text menu
      */
     const RAW_TEXT = ocrResult.fullTextAnnotation?.text || "";
-
+    console.log(RAW_TEXT, "raw text");
     /** Check if the menu uses thousand VND as base unit */
     const USES_THOUSAND_VND = MENU_PATTERNS.THOUSAND_VND.test(RAW_TEXT);
     const PARSED_DATA = parseVietnameseMenu(RAW_TEXT, USES_THOUSAND_VND);
@@ -84,6 +63,7 @@ export async function POST(request: Request) {
 function parseVietnameseMenu(text: string, usesThousandVND: boolean = false) {
   /** Trích xử lý menu */
   const LINES = text.split("\n");
+  console.log(LINES, "split by \n");
   /**
    * Kết quả phân tích menu
    */
@@ -243,12 +223,20 @@ function detectVietnameseCurrency(currencyStr: string): string {
 
 // ========== Helper Functions ==========
 async function processImage(url: string) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Không thể tải ảnh từ URL");
+  /**
+   * Tải hình ảnh
+   */
+  const RESPONSE = await fetch(url);
+  /**
+   * Không thể tải ảnh từ URL
+   */
+  if (!RESPONSE.ok) throw new Error("Không thể tải ảnh từ URL");
+  /**
+   * Chuyển đổi hình ảnh thanh buffer
+   */
+  let buffer = Buffer.from((await RESPONSE.arrayBuffer()) as any);
 
-  let buffer = Buffer.from(await response.arrayBuffer());
-
-  // Process image to improve OCR accuracy
+  /** Process image to improve OCR accuracy */
   buffer = await sharp(buffer)
     .resize({ width: 1200, withoutEnlargement: true })
     .greyscale()
@@ -258,7 +246,11 @@ async function processImage(url: string) {
 
   return { buffer };
 }
-
+/**
+ *  Kiem tra url
+ * @param url
+ * @returns
+ */
 function isValidImageUrl(url: string) {
   try {
     const parsed = new URL(url);
@@ -267,7 +259,9 @@ function isValidImageUrl(url: string) {
     return false;
   }
 }
-
+/**
+ * Câu hình API
+ */
 export const config = {
   api: {
     bodyParser: {

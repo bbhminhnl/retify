@@ -6,54 +6,15 @@ Cơ sở 2: BBH Tea & Coffee 21 Thái hà. Địa chỉ: 21 Thái hà, Trung Li�
 Email liên hệ: hi@botbanhang.vn
 Hotline: 0987888111
 
-Câu hỏi: đã đồng ý kết bạn
-Câu trả lời: Chào mừng bạn đến với BBH Tea & Coffee! Đặc biệt, bạn nhận ngay 3 lượt ưu đãi GIẢM 50% (tối đa 50.000đ) khi đặt hàng qua Zalo. Nhắn tin ngay để được tư vấn hoặc đặt hàng nhé https://shop.merchant.vn/template2?bu=67c0129eab27af2383532774&bm=66fe6004fde3544cbb288b4b
-
-
-Câu hỏi: Menu, sản phẩm, đồ uống của cửa hàng
-Câu trả lời: Đây là menu, danh sách sản phẩm, đồ uống của cửa hàng bên em ạ:
-Cà phê đen/ sữa : 25.000đ
-Bạc xỉu: 30.000đ
-Cà phê muối: 35.000đ
-Cà phê hạnh nhân: 39.000đ
-Cà phê kem mây: 39.000đ
-Cà phê caramel sữa tươi: 39.000đ
-Trà sữa nguyên lá ủ: 39.000đ
-Trà sữa chôm chôm: 39.000đ
-Trà sữa trà xanh cà phê: 39.000đ
-Ruby đá xay: 45.000đ
-Matcha đá xay: 45.000đ
-Caramel đá xay: 45.000đ
-Trà hoa nhân chôm chôm: 45.000đ
-Trà lài đác dứa: 38.000đ
-Đá me rim dứa: 32.000đ
-Ép cam: 35.000đ
-Dưa hấu vài: 35.000đ
-Chanh bạc hà: 30.000đ
-Cookie đá xay: 42.000đ
-Hồng trà vài dầm: 38.000đ
-Hồng trà thanh đào: 38.000đ
-Ngoài ra, anh chị có thể đặt đồ trước trước tại https://shop.merchant.vn/template2?bu=67c0129eab27af2383532774&bm=66fe6004fde3544cbb288b4b
-
-Câu hỏi: Có thể đặt bàn trước không?
-Câu trả lời: Dạ được ạ! Anh/chị muốn đặt bàn mấy người và vào khung giờ nào ạ? Em có thể
-kiểm tra giúp mình ngay bây giờ! Ngoài ra, anh chị có thể đặt đồ trước trước tại https://shop.merchant.vn/template2?bu=67c0129eab27af2383532774&bm=66fe6004fde3544cbb288b4b và chọn mục thời gian anh chị qua được cửa hàng ạ. Cửa hàng sẽ xác nhận và chuẩn bị đồ từ sớm cho anh/chị.
 
 Câu hỏi: Nhà hàng có khu vực VIP không?
 Câu trả lời: Dạ có, nhà hàng có khu vực VIP với không gian riêng tư, phù hợp cho tiệc gia đình
 và gặp gỡ đối tác (hình ảnh cung cấp). Anh/chị có muốn đặt trước không ạ?
 
-Câu hỏi: Quán mình có ship tận nơi không?
-Câu trả lời: Để có thể đặt hàng anh/chị có thể truy cập qua : https://shop.merchant.vn/template2?bu=67c0129eab27af2383532774&bm=66fe6004fde3544cbb288b4b 
-
 Câu hỏi: Quán có tính phí ship ko?
 Câu trả lời: Dạ bên em có, phí ship được tính theo bên giao hàng xanhsm, be.
 
-Câu hỏi: Quán có cho đặt hàng trước rồi qua lấy ko
-Câu trả lời: Dạ có, anh/chị có thể đặt hàng và chọn mục qua cửa hàng để lấy đồ ạ https://shop.merchant.vn/template2?bu=67c0129eab27af2383532774&bm=66fe6004fde3544cbb288b4b 
 
-Câu hỏi: khách hàng nói về “địa chỉ” để nhận hàng
-Câu trả lời: Để có thể đặt hàng anh/chị về địa chỉ của anh/chị tại https://shop.merchant.vn/template2?bu=67c0129eab27af2383532774&bm=66fe6004fde3544cbb288b4b 
 
 Câu hỏi: Cửa hàng mình có thanh toán bằng thẻ Visa không?
 Câu trả lời: Cửa hàng chấp nhận thanh toán bằng tiền mặt, thẻ tín dụng và ví điện tử như [Momo, ZaloPay,…]. Anh/chị muốn thanh toán bằng phương thức nào ạ?
@@ -84,7 +45,7 @@ cung cấp thông tin xuất hóa đơn (tên công ty, mã số thuế, địa 
 thanh toán hoặc gửi trước qua email/Zalo. Hóa đơn sẽ được gửi trong
 vòng 3 ngày sau khi thanh toán ạ.
 
+Câu hỏi: Menu, sản phẩm, đồ uống của cửa hàng
+Câu trả lời: Đây là menu, danh sách sản phẩm, đồ uống của cửa hàng bên em ạ:
 
-Câu hỏi: Bên nào làm ra Nhân viên AI này?
-Câu trả lời: Giải pháp Nhân viên AI bán hàng tự động được phát triển bởi Bot Bán Hàng (https://botbanhang.vn) Anh/chị có thể liên hệ Bot Bán Hàng để được triển khai giải pháp miễn phí.
 `;
