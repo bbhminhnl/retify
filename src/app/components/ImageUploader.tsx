@@ -49,9 +49,9 @@ export default function ImageUploader() {
 
       // Sử dụng trong hàm handleSubmit
 
-      // const cleanedMenu = await processMenuText(VISION_DATA.texts);
-      // // setMenu(cleanedMenu);
-      // console.log(cleanedMenu, "cleanedMenu");
+      const cleanedMenu = await processMenuText(VISION_DATA.texts);
+      // setMenu(cleanedMenu);
+      console.log(cleanedMenu, "cleanedMenu");
       /** Bước 2: Generate menu text */
       setProgress(40);
       /**
