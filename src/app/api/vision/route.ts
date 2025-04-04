@@ -194,8 +194,6 @@ export async function POST(req: Request) {
       image: { content: base64Image.split(",")[1] },
     });
 
-    const RAW_TEXT = textResult.fullTextAnnotation?.text || "";
-    console.log(RAW_TEXT, "raw text");
     /**
      * Trả về kết quả
      * @description

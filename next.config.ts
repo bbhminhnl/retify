@@ -2,16 +2,16 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    serverComponentsExternalPackages: [
-      "sharp",
-      "@huggingface/inference",
-      "@google-cloud/vision",
-    ],
-    serverActions: {
-      allowedOrigins: ["*"],
-    },
-  },
+  // experimental: {
+  //   serverComponentsExternalPackages: [
+  //     "sharp",
+  //     "@huggingface/inference",
+  //     "@google-cloud/vision",
+  //   ],
+  //   serverActions: {
+  //     allowedOrigins: ["*"],
+  //   },
+  // },
   images: {
     remotePatterns: [
       {
