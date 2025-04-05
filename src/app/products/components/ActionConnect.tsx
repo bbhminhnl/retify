@@ -1,56 +1,63 @@
-// import Link from "next/link";
-// import React from "react";
-
-// const ActionConnect = () => {
-//   return (
-//     <div className="flex items-center justify-center h-12">
-//       <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-//         <Link href="/connect" className="text-white">
-//           Kết nối và cài đặt
-//         </Link>
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default ActionConnect;
-"use client"; // Vì dùng useRouter nên cần thêm dòng này
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface Product {
-  products: MenuData[]; // Sử dụng MenuData từ types/menu.d.ts
+  /**
+   * List sản phẩm
+   */
+  products: MenuData[];
 }
 const ActionConnect = ({ products }: Product) => {
-  const router = useRouter();
+  /**
+   * ROuter
+   */
+  const ROUTER = useRouter();
+  /**
+   * Trạng thái loading
+   */
   const [loading, setLoading] = useState(false);
 
+  /**
+   *  Hàm xử lý sự kiện khi nhấn nút thêm sản phẩm
+   * @param e
+   */
   const handleAddProductAndNavigate = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Chặn hành vi mặc định của Link
-
+    /** Chặn hành vi mặc định của Link */
+    e.preventDefault();
+    /**
+     * Thêm loading
+     */
     setLoading(true);
-
+    /** Sản phẩm mới */
     const NEW_PRODUCT = products.map((product: any) => ({
       id: product.id,
       name: product.name,
-      price: product.price,
-      product_image: product.image_url,
+      price: Number(product.price),
+      product_image: `${product.image_url}`,
       type: "product",
       unit: product.unit,
     }));
 
     try {
-      const res = await fetch("/api/products", {
+      /**
+       * Thêm sản phẩm mới vào danh sách sản phẩm
+       */
+      const RES = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(NEW_PRODUCT), // Gửi danh sách sản phẩm
+        /** Gửi danh sách sản phẩm */
+        body: JSON.stringify(NEW_PRODUCT),
       });
-
-      if (res.ok) {
+      /**
+       * Kiểm tra xem có lỗi không
+       */
+      if (RES.ok) {
         console.log("Sản phẩm đã được thêm");
-        router.push("/connect"); // Chuyển trang sau khi thành công
+        /** Chuyển trang sau khi thành công */
+        ROUTER.push("/connect");
       } else {
         console.error("Lỗi khi thêm sản phẩm");
       }

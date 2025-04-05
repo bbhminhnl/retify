@@ -24,7 +24,7 @@ const ProductItemCustom = (data: ProductItemProps) => {
     <div className="flex flex-col items-center w-full max-w-[200px]">
       {/* Ảnh sản phẩm */}
       <div className="w-full aspect-square bg-gray-200 flex items-center justify-center overflow-hidden rounded">
-        <Image
+        <img
           src={data.product_image || "/imgs/no_img.jpg"}
           alt={data.name || "Product image"}
           width={200}

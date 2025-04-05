@@ -22,25 +22,102 @@ export default function ImageUploader() {
   const [menu_list, setMenuList] = useState<MenuData[]>([]);
 
   const processMenuText = async (rawText: string[]) => {
-    // Bước 1: Gọi API làm sạch dữ liệu
-    const cleanRes = await fetch("/api/clean-menu", {
+    /** Bước 1: Gọi API làm sạch dữ liệu */
+    const CLEAN_RES = await fetch("/api/clean-menu", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rawText: rawText.join("\n") }),
     });
-    const { menuItems } = await cleanRes.json();
+    /**
+     * Kết quả trả về từ API
+     */
+    const { menuItems } = await CLEAN_RES.json();
 
-    // Bước 2: Tách tên và giá
-    const parsedMenu = menuItems.map((item: string) => {
+    /** Bước 2: Tách tên và giá */
+    const PARSED_MENU = menuItems.map((item: string) => {
+      /** Tách tên và giá , đơn vị*/
       const [name, price, unit] = item.split(" - ");
       return { name, price, unit };
     });
 
-    return parsedMenu;
+    return PARSED_MENU;
   };
-  const handleSubmit = async () => {
-    if (!preview) return;
 
+  /**
+   * Hàm xử lý upload ảnh lên server
+   * @param base64Image Luồng base64 của ảnh
+   * @returns {string} - Đường dẫn ảnh đã lưu
+   */
+
+  const fetchUploadImage = async (base64Image: string) => {
+    try {
+      /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
+      const MIME_TYPE = "image/png";
+
+      /** Convert base64 → binary → File */
+      const BYTE_STRING = atob(base64Image);
+      /**
+       * Chuyển đổi base64 thành Uint8Array
+       */
+      const BYTE_ARRAY = new Uint8Array(BYTE_STRING.length);
+      /**
+       * Chuyển đổi base64 thành Uint8Array
+       */
+      for (let i = 0; i < BYTE_STRING.length; i++) {
+        BYTE_ARRAY[i] = BYTE_STRING.charCodeAt(i);
+      }
+      /**
+       * Tạo đối tượng File từ Uint8Array
+       */
+      const FILE = new File([BYTE_ARRAY], "image.png", { type: MIME_TYPE });
+
+      /** Đưa vào FormData */
+      const FORM_DATA = new FormData();
+      /** đổi 'file' nếu API cần tên khác */
+      FORM_DATA.append("file", FILE);
+      /**
+       * Gọi API để upload ảnh
+       */
+      const RES = await fetch(
+        "https://api.merchant.vn/v1/internals/attachment/upload?path=&label=&folder_id=&root_file_id=",
+        {
+          method: "POST",
+          body: FORM_DATA,
+          headers: {
+            "token-business":
+              process.env.NEXT_PUBLIC_MERCHANT_TOKEN_BUSINESS || "",
+          },
+        }
+      );
+      /**
+       * Kết quả trả về từ API dạng JSON
+       */
+      const RESULT = await RES.json();
+      /**
+       * URL ảnh
+       */
+      const FILE_PATH = RESULT?.data?.file_path || "";
+      console.log(RESULT);
+      /**
+       * Tra ve URL ảnh
+       */
+      return FILE_PATH;
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
+  /**
+   * Hàm xử lý sự kiện khi nhấn nút Tạo Menu
+   * @returns
+   */
+  const handleSubmit = async () => {
+    /**
+     * Kiểm tra nếu không có preview thì trả về
+     */
+    if (!preview) return;
+    /**
+     * Bật Loading
+     */
     setIsLoading(true);
     setProgress(0);
 
@@ -61,30 +138,43 @@ export default function ImageUploader() {
        */
       const VISION_DATA = await VISION_RES.json();
 
-      // Sử dụng trong hàm handleSubmit
-
+      /** Sử dụng trong hàm handleSubmit */
       const CLEANED_MENU = await processMenuText(VISION_DATA.texts);
-      const updatedMenu = await Promise.all(
+      /**
+       * Lọc các món ăn không hợp lệ
+       */
+      const UPDATED_MENU = await Promise.all(
         CLEANED_MENU.map(async (item: any) => {
           try {
-            const res = await fetch("/api/google-generate-img", {
+            /**
+             * Gọi API để tạo ảnh từ prompt
+             */
+            const RES = await fetch("/api/google-generate-img", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ prompt: item.name }),
             });
+            /**
+             * Kết quả trả về từ API tạo ảnh
+             */
+            const DATA = await RES.json();
 
-            const data = await res.json();
-
-            const imageUrl = await saveImageToServer(data?.image);
-
-            return { ...item, image_url: imageUrl };
+            // const imageUrl = await saveImageToServer(data?.image);
+            /**
+             * Gọi API để lưu ảnh
+             * @param base64Image Luồng base64 của ảnh
+             * @returns {string} - Đường dẫn ảnh đã lưu
+             */
+            const IMG_URL = await fetchUploadImage(DATA?.image);
+            /** Trả về item và thêm image_url */
+            return { ...item, image_url: IMG_URL };
           } catch (error) {
             console.error("Error generating image:", error);
             return { ...item, image_url: null };
           }
         })
       );
-      console.log(updatedMenu, "updatedMenu");
+      console.log(UPDATED_MENU, "updatedMenu");
       // setMenu(cleanedMenu);
       // console.log(CLEANED_MENU, "cleanedMenu");
 
@@ -120,7 +210,7 @@ export default function ImageUploader() {
       //  */
       // const MENU_DATA = await MENU_RES.json();
       // setMenu(CLEANED_MENU[0]);
-      setMenuList(updatedMenu);
+      setMenuList(UPDATED_MENU);
       /** Bước 3: Generate ảnh từ prompt */
       setProgress(60);
       // const imageRes = await fetch("/api/generate-image", {
@@ -146,17 +236,29 @@ export default function ImageUploader() {
     }
   };
 
+  /**
+   *  Hàm xử lý sự kiện khi thay đổi input
+   * @param e Sự kiện thay đổi input
+   * @returns
+   */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     /** Khai báo FILE */
     const FILE = e.target.files?.[0];
+    /** Kiểm tra nếu không có FILE thì trả về */
     if (!FILE) return;
     /**
      * Tạo READER
      */
     const READER = new FileReader();
+    /**
+     * Kiểm tra định dạng file
+     */
     READER.onload = () => {
       setPreview(READER.result as string);
     };
+    /**
+     * Kiểm tra định dạng file
+     */
     READER.readAsDataURL(FILE);
   };
   /**
@@ -227,60 +329,11 @@ export default function ImageUploader() {
         </div>
       )}
 
-      {/* <img src={`data:image/jpeg;base64,${base64Image}`} alt="Ảnh base64" /> */}
-      {/* <img src={`${base64Image2}`} alt="Ảnh base64" /> */}
-      {/* {menu && (
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
-          <div className="border rounded-lg overflow-hidden">
-            <img
-              src={menu.image_url!}
-              alt={menu.name_vi}
-              className="w-full h-64 object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/placeholder-food.jpg";
-              }}
-            />
-          </div>
-
-          <div className="p-4 bg-white rounded-lg shadow">
-            <h2 className="text-2xl font-bold text-gray-800">{menu.name_vi}</h2>
-            <p className="text-gray-600 italic">{menu.name_en}</p>
-            <p className="text-red-500 font-bold text-xl my-2">{menu.price}</p>
-            <p className="text-gray-700 mb-4">{menu.description}</p>
-
-            <div className="mt-4 p-3 bg-gray-50 rounded border">
-              <h3 className="font-semibold text-gray-700">Prompt ảnh:</h3>
-              <p className="text-sm text-gray-600 mt-1">{menu.image_prompt}</p>
-            </div>
-          </div>
-        </div>
-      )} */}
       {menu_list?.length > 0 && (
         <div className="md:container md:mx-auto p-2 px-4">
           <h2 className="text-2xl font-bold">Menu</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {menu_list.map((menu, index) => (
-              // <div
-              //   key={index}
-              //   className="overflow-hidden bg-white rounded-lg shadow"
-              // >
-              //   <img
-              //     src={menu.image_url!}
-              //     alt={menu.name}
-              //     className="w-full h-64 object-cover rounded-lg"
-              //     onError={(e) => {
-              //       (e.target as HTMLImageElement).src = "/placeholder-food.jpg";
-              //     }}
-              //   />
-              //   <div className="">
-              //     <h2 className="text-2xl font-bold text-gray-800">
-              //       {menu.name}
-              //     </h2>
-              //     <p className="text-red-500 font-bold text-xl my-2">
-              //       {menu.price}
-              //     </p>
-              //   </div>
-              // </div>
               <ProductItemCustom
                 key={index}
                 name={menu.name}
