@@ -293,7 +293,7 @@ export default function ImageUploader() {
   };
   return (
     <div className="container mx-auto space-y-6">
-      <h2 className="text-2xl font-bold">Tải ảnh lên để phân tích</h2>
+      <h2 className="text-2xl font-bold">Upload an image for analysis</h2>
       {/* Phần upload ảnh giữ nguyên */}
       <div className="flex items-center gap-4">
         <input
@@ -309,7 +309,7 @@ export default function ImageUploader() {
             disabled={is_loading}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
-            {is_loading ? "Đang xử lý..." : "Tạo Menu"}
+            {is_loading ? "Processing...." : "Create Menu"}
           </button>
         )}
       </div>

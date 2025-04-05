@@ -75,7 +75,7 @@ const ActionConnect = ({ products }: Product) => {
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         disabled={loading} // Vô hiệu hóa nút khi đang xử lý
       >
-        {loading ? "Đang xử lý..." : "Kết nối và cài đặt"}
+        {loading ? "Processing..." : "Connect and Set Up"}
       </button>
     </div>
   );

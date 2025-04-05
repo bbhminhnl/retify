@@ -40,6 +40,11 @@ const ConnectInstall = () => {
   /** Chatbox token */
   const [chatbox_token, setChatboxToken] = useState<string>("");
 
+  /**
+   * Finish Installing
+   */
+  const [finish_installing, setFinishInstalling] = useState(false);
+
   /** Lấy đata products */
   useEffect(() => {
     fetch("/api/products")
@@ -133,7 +138,7 @@ const ConnectInstall = () => {
    */
   const onLogin = async (PAGE_ID: string) => {
     /** Cập nhật text */
-    setLoadingText("Đang cài đặt...");
+    setLoadingText("Installing...");
     try {
       /**
        * Domain login
@@ -248,7 +253,7 @@ const ConnectInstall = () => {
     ACCESS_TOKEN: string
   ) => {
     /** Cập nhật text */
-    setLoadingText("Đang cài đặt trợ lý ảo");
+    setLoadingText("Installing virtual assistant...");
     try {
       /**
        * Domain add page
@@ -293,7 +298,7 @@ const ConnectInstall = () => {
     PAGE_ID: string
   ) => {
     /** Cập nhật text */
-    setLoadingText("Đang tạo Trợ lý ảo");
+    setLoadingText("Creating Virtual Assistant...");
     try {
       /**
        * Domain add page
@@ -347,7 +352,7 @@ const ConnectInstall = () => {
     AGENT_ID: string
   ) => {
     /** Cập nhật text */
-    setLoadingText("Đang cài đặt trợ lý ảo");
+    setLoadingText("Setting up the virtual assistant...");
     try {
       /**
        * Domain add page
@@ -372,7 +377,7 @@ const ConnectInstall = () => {
     } finally {
       //   setLoading(false);
       /** Kết nối với chatbox thành công */
-      setLoadingText("Cài đặt ChatBot Thành công!");
+      setLoadingText("ChatBot setup complete!");
       /** Sau 1s thì gọi API lấy token Partner */
       setTimeout(() => {
         fetchTokenPartner(ACCESS_TOKEN, ORG_ID, PAGE_ID);
@@ -386,7 +391,7 @@ const ConnectInstall = () => {
     PAGE_ID: string
   ) => {
     /** Cập nhật text */
-    setLoadingText("Đang kết nối với CRM");
+    setLoadingText("Connecting to CRM...");
     try {
       /**
        * Domain add page
@@ -528,7 +533,7 @@ const ConnectInstall = () => {
       /**
        * Hiển thị text tiền trình
        */
-      setLoadingText("Tạo sản phẩm thành công!");
+      setLoadingText("The product has been created successfully!");
       /**
        * Xoá text sau 5s
        */
@@ -558,7 +563,7 @@ const ConnectInstall = () => {
    * @param PAGE_ID
    */
   const fetchListPages = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
-    setLoadingText("Đang đồng bộ sản phẩm");
+    setLoadingText("Syncing product...");
     try {
       /**
        * Domain
@@ -644,7 +649,7 @@ const ConnectInstall = () => {
     /**
      * Bật trạng thái loading
      */
-    setLoadingText("Đang đồng bộ sản phẩm...");
+    setLoadingText("Starting to sync product with Facebook...");
     setLoading(true);
     try {
       /**
@@ -677,13 +682,14 @@ const ConnectInstall = () => {
        * Cập nhật text
        */
       setLoadingText(
-        "Đã đồng bộ sản phẩm lên FB SMC! Sau khi đồng bộ, có thể mất 24 giờ để sản phẩm của bạn xuất hiện trên Messenger hoặc tối đa 02 giờ để gắn được lên Facebook Livestream"
+        "The product has been synced to FB SMC! After synchronization, it may take up to 24 hours for your product to appear on Messenger or up to 2 hours to be linked to Facebook Livestream."
       );
       /**
        * Xoá text sau 5s
        */
       setTimeout(() => {
         setLoadingText("");
+        setFinishInstalling(true);
       }, 5000);
     }
   };
@@ -883,7 +889,7 @@ const ConnectInstall = () => {
     /** Bắt đầu loading */
     setLoading(true);
     /** Hiện text tiến trình */
-    setLoadingText("Đang cài đặt...");
+    setLoadingText("Start installing...");
     /**
      * Lay danh sach page
      */
@@ -892,7 +898,7 @@ const ConnectInstall = () => {
 
   return (
     <div className="w-full h-full p-4">
-      {!access_token && !loading && !loading_text && (
+      {!access_token && !loading && !loading_text && !finish_installing && (
         <div className="flex items-center justify-center h-full w-full">
           <div className="h-10 w-80">
             <iframe
@@ -904,9 +910,9 @@ const ConnectInstall = () => {
           </div>
         </div>
       )}
-      {access_token && !loading && !loading_text && (
+      {access_token && !loading && !loading_text && !finish_installing && (
         <div className="h-full">
-          <h2>Chọn Trang</h2>
+          <h2>Select Page</h2>
           <div className="flex flex-col gap-y-2">
             {pages.map((page: UserProfile) => (
               <div
@@ -934,7 +940,7 @@ const ConnectInstall = () => {
       )}
       {organization?.length > 0 && (
         <div className="h-full">
-          <h2>Chọn BM</h2>
+          <h2>Select CRM</h2>
           <div className="flex flex-col gap-y-2">
             {organization.map((org: any) => (
               <div
@@ -973,6 +979,13 @@ const ConnectInstall = () => {
             <p className="text-lg ">{loading_text}</p>
           </div>
         }
+        {finish_installing && (
+          <div className="flex items-center justify-center h-12">
+            <p className="text-lg text-green-500">
+              Kết nối thành công! Bạn có thể sử dụng sản phẩm ngay bây giờ.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

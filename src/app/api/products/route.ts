@@ -65,45 +65,31 @@
 // }
 import { NextResponse } from "next/server";
 
-let PRODUCTS = [
-  {
-    id: 1,
-    name: "Cốt dừa đá xay",
-    price: 30000,
-    product_image:
-      "https://lypham.vn/wp-content/uploads/2024/09/ca-phe-cot-dua-da-xay.jpg",
-    type: "product",
-  },
-  {
-    id: 2,
-    name: "Trà sữa trân châu",
-    price: 20000,
-    product_image:
-      "https://cdn.nguyenkimmall.com/images/companies/_1/tin-tuc/kinh-nghiem-meo-hay/n%E1%BA%A5u%20%C4%83n/cach-lam-tran-chau-tra-sua_1.jpg",
-    type: "product",
-  },
-];
+let PRODUCTS = [] as any; // Danh sách sản phẩm
 
-// ✅ GET: Lấy danh sách sản phẩm
+/** ✅ GET: Lấy danh sách sản phẩm */
 export async function GET() {
   return NextResponse.json(PRODUCTS);
 }
 
-// ✅ POST: Thêm một hoặc nhiều sản phẩm
+/** ✅ POST: Thêm một hoặc nhiều sản phẩm */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    /**
+     * Kiểm tra xem có sản phẩm nào trong danh sách không
+     */
+    const BODY = await req.json();
 
-    // Kiểm tra nếu `body` là một danh sách (mảng)
-    if (!Array.isArray(body)) {
+    /** Kiểm tra nếu `BODY` là một danh sách (mảng) */
+    if (!Array.isArray(BODY)) {
       return NextResponse.json(
         { error: "Dữ liệu phải là một danh sách sản phẩm" },
         { status: 400 }
       );
     }
 
-    // Kiểm tra từng sản phẩm trong danh sách
-    const newProducts = body.map((product, index) => {
+    /** Kiểm tra từng sản phẩm trong danh sách */
+    const newProducts = BODY.map((product, index) => {
       if (!product.name || !product.price || !product.product_image) {
         throw new Error(`Sản phẩm thứ ${index + 1} thiếu thông tin`);
       }
