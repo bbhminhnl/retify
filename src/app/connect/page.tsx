@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { find, get, has, keys, set } from "lodash";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { MOCK_DATA } from "@/utils/data";
 import { UserProfile } from "@/types";
@@ -31,6 +32,7 @@ type Product = {
 const ConnectInstall = () => {
   /** State accessToken*/
   const [access_token, setAccessToken] = useState("");
+
   /** Danh sách page*/
   const [pages, setPages] = useState<UserProfile[]>([]);
   /** Danh sách product */
@@ -39,6 +41,33 @@ const ConnectInstall = () => {
   const [selected_page, setSelectedPage] = useState<string>("");
   /** Chatbox token */
   const [chatbox_token, setChatboxToken] = useState<string>("");
+  /** Router */
+  const ROUTER = useRouter();
+  /**
+   * Lấy search params
+   */
+  const SEARCH_PARAMS = useSearchParams();
+
+  useEffect(() => {
+    /**
+     * Lấy access token
+     */
+    const ACCESS_TOKEN = SEARCH_PARAMS.get("access_token");
+    /**
+     * Nếu có access token thì lưu vào localStorage
+     */
+    if (ACCESS_TOKEN) {
+      // localStorage.setItem("accessToken", ACCESS_TOKEN);
+      setAccessToken(ACCESS_TOKEN);
+
+      /** Xoá accessToken khỏi URL */
+      const NEW_PARAMS = new URLSearchParams(SEARCH_PARAMS.toString());
+      /** Xoá access token */
+      NEW_PARAMS.delete("access_token");
+      /** Replace */
+      ROUTER.replace(`/connect?${NEW_PARAMS.toString()}`);
+    }
+  }, [SEARCH_PARAMS, ROUTER]);
 
   /**
    * Finish Installing
@@ -62,40 +91,6 @@ const ConnectInstall = () => {
    */
   const [organization, setOrganization] = useState([]);
 
-  /** Lấy Facebook Token */
-  function getFacebookToken(event: MessageEvent) {
-    /** Kiểm tra event có hợp lệ không */
-    if (
-      !event ||
-      !event.data ||
-      typeof event.data !== "object" ||
-      event.data.from !== "FACEBOOK_IFRAME" ||
-      event.data.event !== "LOGIN"
-    ) {
-      return;
-    }
-    /**
-     * Lay response tu facebook
-     */
-    const FACEBOOK_RESPONSE = event.data.data;
-    /** Kiểm tra token */
-    if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
-      /** Set token */
-      setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
-    }
-  }
-
-  useEffect(() => {
-    /**
-     * Add event listener
-     */
-    window.addEventListener("message", getFacebookToken);
-
-    return () => {
-      window.removeEventListener("message", getFacebookToken);
-    };
-    /** Chỉ chạy một lần khi component mount */
-  }, []);
   useEffect(() => {
     /**
      * Nếu có token thì lấy danh sách page
@@ -205,7 +200,9 @@ const ConnectInstall = () => {
        */
       console.log(ORG_DATA);
       /** Lấy thông tin ORG */
-      setOrganization(ORG_DATA.data);
+      // setOrganization(ORG_DATA.data);
+
+      addPage("7bd3ac17116c4aacb2e9e55ba0330388", PAGE_ID, ACCESS_TOKEN);
 
       //   /**
       //    * Lay id org
@@ -898,7 +895,7 @@ const ConnectInstall = () => {
 
   return (
     <div className="w-full h-full p-4">
-      {!access_token && !loading && !loading_text && !finish_installing && (
+      {/* {!access_token && !loading && !loading_text && !finish_installing && (
         <div className="flex items-center justify-center h-full w-full">
           <div className="h-10 w-80">
             <iframe
@@ -909,7 +906,7 @@ const ConnectInstall = () => {
             ></iframe>
           </div>
         </div>
-      )}
+      )} */}
       {access_token && !loading && !loading_text && !finish_installing && (
         <div className="h-full">
           <h2>Select Page</h2>
@@ -940,7 +937,7 @@ const ConnectInstall = () => {
       )}
       {organization?.length > 0 && (
         <div className="h-full">
-          <h2>Select CRM</h2>
+          <h2>Select Organization</h2>
           <div className="flex flex-col gap-y-2">
             {organization.map((org: any) => (
               <div
@@ -953,7 +950,7 @@ const ConnectInstall = () => {
                 }}
               >
                 <img
-                  src={org?.org_info?.org_avatar}
+                  src={org?.org_info?.org_avatar || "./imgs/BBH.png"}
                   alt={"logo"}
                   style={{ objectFit: "cover" }}
                   className="w-8 h-8 rounded-lg flex justify-center items-center"
@@ -980,10 +977,16 @@ const ConnectInstall = () => {
           </div>
         }
         {finish_installing && (
-          <div className="flex items-center justify-center h-12">
-            <p className="text-lg text-green-500">
-              Kết nối thành công! Bạn có thể sử dụng sản phẩm ngay bây giờ.
-            </p>
+          <div className="flex flex-col items-center justify-center h-12">
+            <p className="text-lg text-green-500">Kết nối thành công!.</p>
+            <a
+              href="https://m.me/414786618395170"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white px-4 py-2 rounded-md bg-blue-500"
+            >
+              Mở Messenger
+            </a>
           </div>
         )}
       </div>

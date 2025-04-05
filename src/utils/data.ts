@@ -14,7 +14,8 @@ và gặp gỡ đối tác (hình ảnh cung cấp). Anh/chị có muốn đặt
 Câu hỏi: Quán có tính phí ship ko?
 Câu trả lời: Dạ bên em có, phí ship được tính theo bên giao hàng xanhsm, be.
 
-
+Câu hỏi: Đặt hàng như thế nào?
+Câu trả lời: Anh/chị có thể bấm vào nút "Sản phẩm" ở dưới góc trái màn hình để xem danh sách sản phẩm của cửa hàng. Sau đó, anh/chị có thể chọn sản phẩm và số lượng muốn đặt. Cuối cùng, anh/chị bấm vào nút "Đặt hàng" để hoàn tất đơn hàng. Nếu cần hỗ trợ thêm, anh/chị có thể liên hệ với nhân viên qua số điện thoại hoặc email bên dưới nhé!
 
 Câu hỏi: Cửa hàng mình có thanh toán bằng thẻ Visa không?
 Câu trả lời: Cửa hàng chấp nhận thanh toán bằng tiền mặt, thẻ tín dụng và ví điện tử như [Momo, ZaloPay,…]. Anh/chị muốn thanh toán bằng phương thức nào ạ?

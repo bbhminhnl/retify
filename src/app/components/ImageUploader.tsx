@@ -1,11 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import ActionConnect from "../products/components/ActionConnect";
 import ProductItem from "../products/components/ProductItem";
 import ProductItemCustom from "../products/components/ProductItemCustom";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ImageUploader() {
+  /**
+   * ROuter
+   */
+  const ROUTER = useRouter();
   /**
    * Khai báo các biến trạng thái
    */
@@ -15,7 +21,7 @@ export default function ImageUploader() {
    */
   const [is_loading, setIsLoading] = useState(false);
   /** Tiến trình */
-  const [progress, setProgress] = useState<number>(0);
+  const [progress, setProgress] = useState<string | null>(null);
   /**
    * Khai báo biến trạng thái cho menu
    */
@@ -119,11 +125,8 @@ export default function ImageUploader() {
      * Bật Loading
      */
     setIsLoading(true);
-    setProgress(0);
 
     try {
-      /** Bước 1: Gọi Vision API */
-      setProgress(20);
       const VISION_RES = await fetch("/api/vision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -140,6 +143,8 @@ export default function ImageUploader() {
 
       /** Sử dụng trong hàm handleSubmit */
       const CLEANED_MENU = await processMenuText(VISION_DATA.texts);
+      const totalItems = CLEANED_MENU.length;
+      let completed = 0;
       /**
        * Lọc các món ăn không hợp lệ
        */
@@ -171,6 +176,15 @@ export default function ImageUploader() {
           } catch (error) {
             console.error("Error generating image:", error);
             return { ...item, image_url: null };
+          } finally {
+            completed++;
+            setProgress(`${completed}/${totalItems}`);
+            if (completed === totalItems) {
+              setProgress("Done");
+              setTimeout(() => {
+                setProgress(null);
+              }, 2000);
+            }
           }
         })
       );
@@ -192,7 +206,7 @@ export default function ImageUploader() {
 
       // setBase64Image(data.description);
       /** Bước 2: Generate menu text */
-      setProgress(40);
+
       /**
        * Gọi API để tạo menu từ kết quả Vision API
        */
@@ -212,7 +226,7 @@ export default function ImageUploader() {
       // setMenu(CLEANED_MENU[0]);
       setMenuList(UPDATED_MENU);
       /** Bước 3: Generate ảnh từ prompt */
-      setProgress(60);
+
       // const imageRes = await fetch("/api/generate-image", {
       //   method: "POST",
       //   headers: { "Content-Type": "application/json" },
@@ -291,6 +305,92 @@ export default function ImageUploader() {
       setIsLoading(false);
     }
   };
+
+  /** State accessToken*/
+  const [access_token, setAccessToken] = useState("");
+  /** Lấy Facebook Token */
+  function getFacebookToken(event: MessageEvent) {
+    /** Kiểm tra event có hợp lệ không */
+    if (
+      !event ||
+      !event.data ||
+      typeof event.data !== "object" ||
+      event.data.from !== "FACEBOOK_IFRAME" ||
+      event.data.event !== "LOGIN"
+    ) {
+      return;
+    }
+    /**
+     * Lay response tu facebook
+     */
+    const FACEBOOK_RESPONSE = event.data.data;
+    /** Kiểm tra token */
+    if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
+      /** Set token */
+      setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
+    }
+  }
+  useEffect(() => {
+    /**
+     * Add event listener
+     */
+    window.addEventListener("message", getFacebookToken);
+
+    return () => {
+      window.removeEventListener("message", getFacebookToken);
+    };
+    /** Chỉ chạy một lần khi component mount */
+  }, []);
+  useEffect(() => {
+    if (access_token) {
+      handleAddProductAndNavigate(access_token);
+    }
+  }, [access_token]);
+  /**
+   *  Hàm xử lý sự kiện khi nhấn nút thêm sản phẩm
+   * @param e
+   */
+  const handleAddProductAndNavigate = async (access_token: string) => {
+    /**
+     * Thêm loading
+     */
+
+    /** Sản phẩm mới */
+    const NEW_PRODUCT = menu_list.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      price: Number(product.price),
+      product_image: `${product.image_url}`,
+      type: "product",
+      unit: product.unit,
+    }));
+
+    try {
+      /**
+       * Thêm sản phẩm mới vào danh sách sản phẩm
+       */
+      const RES = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        /** Gửi danh sách sản phẩm */
+        body: JSON.stringify(NEW_PRODUCT),
+      });
+      /**
+       * Kiểm tra xem có lỗi không
+       */
+      if (RES.ok) {
+        console.log("Sản phẩm đã được thêm");
+        /** Chuyển trang sau khi thành công */
+        ROUTER.push("/connect?access_token=" + access_token);
+      } else {
+        console.error("Lỗi khi thêm sản phẩm");
+      }
+    } catch (error) {
+      console.error("Lỗi mạng hoặc server:", error);
+    } finally {
+      // setLoading(false);
+    }
+  };
   return (
     <div className="container mx-auto space-y-6">
       <h2 className="text-2xl font-bold">Upload an image for analysis</h2>
@@ -328,6 +428,17 @@ export default function ImageUploader() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
       )}
+      {progress && (
+        <div className="text-center text-xl text-blue-500">
+          {progress === "Done" ? (
+            <span className="text-green-500">The menu has been generated</span>
+          ) : (
+            <span>
+              <span className="text-blue-500">Processing... {progress}</span>
+            </span>
+          )}
+        </div>
+      )}
 
       {menu_list?.length > 0 && (
         <div className="md:container md:mx-auto p-2 px-4">
@@ -343,9 +454,17 @@ export default function ImageUploader() {
               />
             ))}
           </div>
-          <div className="sticky bottom-0 w-full text-center bg-white">
-            <ActionConnect products={menu_list || []} />
+          <div className="flex items-center justify-center h-full w-full">
+            <div className="h-10 w-80">
+              <iframe
+                loading="lazy"
+                className="relative z-[2] w-full h-full"
+                src='https://botbanhang.vn/cross-login-facebook?app_id=1282108599314861&amp;option={"return_scopes":true,"auth_type":"rerequest","enable_profile_selector":true,"scope":"public_profile,pages_show_list,pages_read_engagement,pages_messaging,email,pages_read_user_content,instagram_manage_comments,instagram_manage_insights,business_management,ads_management,read_insights,pages_manage_metadata,pages_manage_ads,pages_manage_posts,pages_manage_engagement,page_events"}&amp;text=Tiếp tục với Facebook&amp;btn_style=display%3Aflex%3Bjustify-content%3Acenter%3Bwidth%3A100%25%3Bheight%3A100%25%3Balign-items%3Acenter%3Bgap%3A0.5rem%3Bbackground-color%3A%23f1f5f9%3Bborder-radius%3A0.375rem%3Bcolor%3A%230f172a%3Bfont-size%3A16px%3Bfont-weight%3A500%3Bborder-color%3A%23e2e8f0%3Bborder-width%3A1px'
+                frameBorder="none"
+              ></iframe>
+            </div>
           </div>
+          <div className="sticky bottom-0 w-full text-center bg-white"></div>
         </div>
       )}
     </div>
