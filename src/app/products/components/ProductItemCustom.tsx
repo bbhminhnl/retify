@@ -11,7 +11,7 @@ interface ProductItemProps {
   /**
    * Giá sản phẩm
    */
-  price?: number | string;
+  price?: number | string | undefined;
   /** Ảnh sản phẩm */
   product_image?: string;
   /** Loại sản phẩm */
@@ -25,8 +25,8 @@ const ProductItemCustom = (data: ProductItemProps) => {
       {/* Ảnh sản phẩm */}
       <div className="w-full aspect-square bg-gray-200 flex items-center justify-center overflow-hidden rounded">
         <img
-          src={data.product_image || "/imgs/no_img.jpg"}
-          alt={data.name || "Product image"}
+          src={data?.product_image || "/imgs/no_img.jpg"}
+          alt={data?.name || "Product image"}
           width={200}
           height={200}
           className="w-full h-full object-contain"
@@ -35,10 +35,10 @@ const ProductItemCustom = (data: ProductItemProps) => {
 
       {/* Thông tin sản phẩm */}
       <div className="w-full">
-        <h1 className="text-sm font-medium truncate">{data.name}</h1>
+        <h1 className="text-sm font-medium truncate">{data?.name}</h1>
         <p className="text-sm font-semibold">
           {/* {formatCurrency(data?.price || 0)} */}
-          {data?.price} {data?.unit || "đ"}
+          {formatCurrency(data?.price)} {data?.unit || "đ"}
         </p>
       </div>
     </div>

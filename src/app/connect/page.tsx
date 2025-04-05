@@ -372,7 +372,7 @@ const ConnectInstall = () => {
     } finally {
       //   setLoading(false);
       /** Kết nối với chatbox thành công */
-      setLoadingText("Cài đặt ChatBox Thành công!");
+      setLoadingText("Cài đặt ChatBot Thành công!");
       /** Sau 1s thì gọi API lấy token Partner */
       setTimeout(() => {
         fetchTokenPartner(ACCESS_TOKEN, ORG_ID, PAGE_ID);
@@ -386,7 +386,7 @@ const ConnectInstall = () => {
     PAGE_ID: string
   ) => {
     /** Cập nhật text */
-    setLoadingText("Đang kết nối với Merchant");
+    setLoadingText("Đang kết nối với CRM");
     try {
       /**
        * Domain add page

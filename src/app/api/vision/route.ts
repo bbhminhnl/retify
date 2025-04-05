@@ -1,4 +1,3 @@
-// }
 import { NextResponse } from "next/server";
 import vision from "@google-cloud/vision";
 /** Khai báo client */

@@ -2,7 +2,7 @@
  * @param {string} value - The value to format
  * @returns {string} - Formatted currency string
  */
-export const formatCurrency = (value: string | number) => {
+export const formatCurrency = (value?: string | number | undefined) => {
   /**
    * Kiểm tra nếu không có value thì trả về ''
    */
