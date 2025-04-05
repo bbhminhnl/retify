@@ -3,7 +3,11 @@ import vision from "@google-cloud/vision";
 /** Khai báo client */
 
 /** Khởi tạo client Vision API */
-const CLIENT = new vision.ImageAnnotatorClient();
+// const CLIENT = new vision.ImageAnnotatorClient();
+const CLIENT = new vision.ImageAnnotatorClient({
+  credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS || "{}"),
+});
+
 export async function POST(req: Request) {
   /**
    * Nhận base64 từ client
