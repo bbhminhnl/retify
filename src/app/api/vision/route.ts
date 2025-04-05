@@ -2,12 +2,9 @@
 import { NextResponse } from "next/server";
 import vision from "@google-cloud/vision";
 /** Khai báo client */
-const CLIENT = new vision.ImageAnnotatorClient({
-  credentials: process.env.GOOGLE_CREDENTIALS
-    ? JSON.parse(process.env.GOOGLE_CREDENTIALS)
-    : null,
-});
 
+/** Khởi tạo client Vision API */
+const CLIENT = new vision.ImageAnnotatorClient();
 export async function POST(req: Request) {
   /**
    * Nhận base64 từ client
