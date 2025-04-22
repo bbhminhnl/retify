@@ -150,6 +150,8 @@ export async function POST(req: NextRequest) {
  * Hàm GET đơn giản (nếu cần cho verification)
  */
 export async function GET(req: NextRequest) {
+  console.log("Webhook endpoint is active");
+  console.log(req, "req");
   return NextResponse.json(
     { status: "ready", message: "Webhook endpoint is active" },
     { status: 200 }

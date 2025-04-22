@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { find, get, has, keys, set } from "lodash";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { find, get, has, keys } from "lodash";
 
+import ConnectHandler from "../components/ConnectHandler";
 import { MOCK_DATA } from "@/utils/data";
 import { UserProfile } from "@/types";
 import { fetchApi } from "@/services/fetchApi";
@@ -31,7 +31,7 @@ type Product = {
 };
 const ConnectInstall = () => {
   /** State accessToken*/
-  const [access_token, setAccessToken] = useState("");
+  const [access_token, setAccessToken] = useState<any>("");
 
   /** Danh sách page*/
   const [pages, setPages] = useState<UserProfile[]>([]);
@@ -42,32 +42,32 @@ const ConnectInstall = () => {
   /** Chatbox token */
   const [chatbox_token, setChatboxToken] = useState<string>("");
   /** Router */
-  const ROUTER = useRouter();
+  // const ROUTER = useRouter();
   /**
    * Lấy search params
    */
-  const SEARCH_PARAMS = useSearchParams();
+  // const SEARCH_PARAMS = useSearchParams();
 
-  useEffect(() => {
-    /**
-     * Lấy access token
-     */
-    const ACCESS_TOKEN = SEARCH_PARAMS.get("access_token");
-    /**
-     * Nếu có access token thì lưu vào localStorage
-     */
-    if (ACCESS_TOKEN) {
-      // localStorage.setItem("accessToken", ACCESS_TOKEN);
-      setAccessToken(ACCESS_TOKEN);
+  // useEffect(() => {
+  //   /**
+  //    * Lấy access token
+  //    */
+  //   const ACCESS_TOKEN = SEARCH_PARAMS.get("access_token");
+  //   /**
+  //    * Nếu có access token thì lưu vào localStorage
+  //    */
+  //   if (ACCESS_TOKEN) {
+  //     // localStorage.setItem("accessToken", ACCESS_TOKEN);
+  //     setAccessToken(ACCESS_TOKEN);
 
-      /** Xoá accessToken khỏi URL */
-      const NEW_PARAMS = new URLSearchParams(SEARCH_PARAMS.toString());
-      /** Xoá access token */
-      NEW_PARAMS.delete("access_token");
-      /** Replace */
-      ROUTER.replace(`/connect?${NEW_PARAMS.toString()}`);
-    }
-  }, [SEARCH_PARAMS, ROUTER]);
+  //     /** Xoá accessToken khỏi URL */
+  //     const NEW_PARAMS = new URLSearchParams(SEARCH_PARAMS.toString());
+  //     /** Xoá access token */
+  //     NEW_PARAMS.delete("access_token");
+  //     /** Replace */
+  //     ROUTER.replace(`/connect?${NEW_PARAMS.toString()}`);
+  //   }
+  // }, [SEARCH_PARAMS, ROUTER]);
 
   /**
    * Finish Installing
@@ -440,8 +440,8 @@ const ConnectInstall = () => {
     const BODY = {
       access_token: ACCESS_TOKEN,
       //   client_id: "29877270768526767",
-      //   client_id: "9481492605237941",
-      client_id: "9907822685912987",
+      client_id: "31de2b21f9e64952bd4e14479e66344b",
+      // client_id: "9907822685912987",
       //   secret_key: "0cf5516973a145929ff36d3303183e5f",
       secret_key: "6f8b22eebe1d4d93b2f4a618901df020",
     };
@@ -895,6 +895,16 @@ const ConnectInstall = () => {
 
   return (
     <div className="w-full h-full p-4">
+      {/* Nhúng component xử lý kết nối */}
+      <Suspense fallback={<div>Đang xử lý kết nối...</div>}>
+        <ConnectHandler
+          onComplete={(e) => {
+            console.log("Xử lý token hoàn tất");
+            setAccessToken(e);
+          }}
+        />
+      </Suspense>
+
       {/* {!access_token && !loading && !loading_text && !finish_installing && (
         <div className="flex items-center justify-center h-full w-full">
           <div className="h-10 w-80">
@@ -978,7 +988,7 @@ const ConnectInstall = () => {
         }
         {finish_installing && (
           <div className="flex flex-col items-center justify-center h-12">
-            <p className="text-lg text-green-500">Kết nối thành công!.</p>
+            <p className="text-lg text-green-500">Kết nối thành công!</p>
             <a
               href="https://m.me/414786618395170"
               target="_blank"

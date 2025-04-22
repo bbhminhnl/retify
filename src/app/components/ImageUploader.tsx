@@ -26,6 +26,8 @@ export default function ImageUploader() {
    * Khai báo biến trạng thái cho menu
    */
   const [menu_list, setMenuList] = useState<MenuData[]>([]);
+  /** Query */
+  const [query, setQuery] = useState("");
 
   const processMenuText = async (rawText: string[]) => {
     /** Bước 1: Gọi API làm sạch dữ liệu */
@@ -391,9 +393,62 @@ export default function ImageUploader() {
       // setLoading(false);
     }
   };
+
+  const [image, setImage] = useState("");
+  const handleGenerateImage = async () => {
+    const prompt = `nhân viên nhập liệu thủ công, thực đơn giấy cũ`;
+    try {
+      /**
+       * Gọi API để tạo ảnh từ prompt
+       */
+      const RES = await fetch("/api/google-generate-img", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt }),
+      });
+      /**
+       * Kết quả trả về từ API tạo ảnh
+       */
+      const DATA = await RES.json();
+
+      // const imageUrl = await saveImageToServer(data?.image);
+      /**
+       * Gọi API để lưu ảnh
+       * @param base64Image Luồng base64 của ảnh
+       * @returns {string} - Đường dẫn ảnh đã lưu
+       */
+      const IMG_URL = await fetchUploadImage(DATA?.image);
+      /** Trả về item và thêm image_url */
+      setImage(IMG_URL);
+    } catch (error) {
+      console.error("Lỗi mạng hoặc server:", error);
+    }
+  };
+
+  const searchShopInfo = async (query: string) => {
+    const res = await fetch("/api/web-info", {
+      method: "POST",
+      body: JSON.stringify({ query }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+    return data.results; // danh sách các kết quả từ Google
+  };
+
   return (
     <div className="container mx-auto space-y-6">
       <h2 className="text-2xl font-bold">Upload an image for analysis</h2>
+
+      {/* <button onClick={handleGenerateImage}>generate Image</button>
+      <img
+        src={image}
+        alt=""
+        className="max-h-60 object-contain rounded border"
+      /> */}
+
       {/* Phần upload ảnh giữ nguyên */}
       <div className="flex items-center gap-4">
         <input
@@ -413,13 +468,23 @@ export default function ImageUploader() {
           </button>
         )}
       </div>
-
+      <div className="flex items-center gap-4">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full px-4 py-2 border rounded"
+        />
+        <button onClick={() => searchShopInfo(query)} className="btn">
+          Click search api google
+        </button>
+      </div>
       {preview && (
         <div className="mt-4">
           <img
             src={preview}
             alt="Preview"
-            className="max-h-60 object-contain rounded border"
+            className="w-full object-contain rounded border"
           />
         </div>
       )}
