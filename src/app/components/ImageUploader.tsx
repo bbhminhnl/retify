@@ -29,6 +29,17 @@ export default function ImageUploader() {
   /** Query */
   const [query, setQuery] = useState("");
 
+  /**
+   *  Hàm xử lý menu text
+   * @description
+   * - Bước 1: Gọi API làm sạch dữ liệu
+   * - Bước 2: Tách tên và giá
+   * - Bước 3: Tạo ảnh từ prompt
+   * - Bước 4: Lưu ảnh vào server
+   * - Bước 5: Trả về danh sách món ăn
+   * @param rawText Danh sách văn bản nhận diện
+   * @returns
+   */
   const processMenuText = async (rawText: string[]) => {
     /** Bước 1: Gọi API làm sạch dữ liệu */
     const CLEAN_RES = await fetch("/api/clean-menu", {
