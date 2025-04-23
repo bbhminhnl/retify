@@ -53,7 +53,13 @@ export async function POST(req: NextRequest) {
     /** Nhận dữ liệu webhook */
     const WEBHOOK_DATA = await req.json();
     LoggerService.logReceivedWebhook(WEBHOOK_DATA);
-
+    /** Kiểm tra dữ liệu webhook */
+    if (WEBHOOK_DATA?.event === "message.update") {
+      LoggerService.logError(
+        new Error("Webhook event is message.update, ignoring...")
+      );
+      return;
+    }
     /** Xử lý dữ liệu webhook */
     const IMAGE_URL = await WebhookService.processWebhookData(WEBHOOK_DATA);
     if (!IMAGE_URL) {
@@ -76,7 +82,7 @@ export async function POST(req: NextRequest) {
     /** Thêm ảnh mô tả cho từng món ăn */
     // const UPDATED_MENU = await addImageDescription(DATA_PROCESS);
     // LoggerService.logApiResult(UPDATED_MENU);
-
+    console.log(STORAGE_KEY, "STORAGE_KEY");
     /** Lưu vào Redis */
     saveMenuToRedis(STORAGE_KEY, JSON.stringify(DATA_PROCESS));
     /** Lưu vào Redis thành công */
@@ -280,7 +286,7 @@ async function generateTemplateMessage(params: TemplateParams) {
   /**
    * Định nghĩa LInk hiển thị data
    */
-  const LINK = `${DOMAIN}/template/${params.client_id}_${params.message_id}`;
+  const LINK = `${DOMAIN}/template?template_id=${params.client_id}_${params.message_id}`;
   /** Domain API Facebook */
   const FB_DOMAIN = process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN;
   /** Token API Facebook */
