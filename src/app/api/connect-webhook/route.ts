@@ -70,12 +70,15 @@ export async function POST(req: NextRequest) {
     const DATA_PROCESS = await processMenuText(VISION_RESULT.texts);
     LoggerService.logApiResult(DATA_PROCESS);
 
+    console.log(VISION_RESULT, "VISION_RESULT");
+    console.log(DATA_PROCESS, "DATA_PROCESS");
+
     /** Thêm ảnh mô tả cho từng món ăn */
-    const UPDATED_MENU = await addImageDescription(DATA_PROCESS);
-    LoggerService.logApiResult(UPDATED_MENU);
+    // const UPDATED_MENU = await addImageDescription(DATA_PROCESS);
+    // LoggerService.logApiResult(UPDATED_MENU);
 
     /** Lưu vào Redis */
-    saveMenuToRedis(STORAGE_KEY, JSON.stringify(UPDATED_MENU));
+    saveMenuToRedis(STORAGE_KEY, JSON.stringify(DATA_PROCESS));
     /** Lưu vào Redis thành công */
     // console.log("Menu data saved to Redis successfully");
     /**
@@ -101,7 +104,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       status: "success",
       message: "Webhook processed by external API",
-      vision_result: UPDATED_MENU,
+      vision_result: DATA_PROCESS,
     });
   } catch (error) {
     LoggerService.logError(error as Error);
