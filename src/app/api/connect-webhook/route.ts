@@ -60,6 +60,8 @@ export async function POST(req: NextRequest) {
       throw new Error("No image URL found in webhook data");
     }
     LoggerService.logImageUrl(IMAGE_URL);
+    /** Tạo Storage key lưu giá trị JSON MENU */
+    const STORAGE_KEY = `${WEBHOOK_DATA?.client_id}__${WEBHOOK_DATA?.message?.message_id}`;
 
     /** Gọi API xử lý hình ảnh */
     const VISION_RESULT = await VisionApiService.processImage(IMAGE_URL);
@@ -72,6 +74,35 @@ export async function POST(req: NextRequest) {
     const UPDATED_MENU = await addImageDescription(DATA_PROCESS);
     LoggerService.logApiResult(UPDATED_MENU);
 
+    /** Lưu vào Redis */
+    // const SAVE_RESULT = await saveMenuToRedis(STORAGE_KEY, UPDATED_MENU);
+    // if (!SAVE_RESULT) {
+    //   return NextResponse.json(
+    //     { error: "Failed to save menu data" },
+    //     { status: 500 }
+    //   );
+    // }
+    /** Lưu vào Redis thành công */
+    // console.log("Menu data saved to Redis successfully");
+    /**
+     * Gọi API để gửi tin nhắn đến Facebook Messenger
+     * @param {string} client_id - ID của client
+     * @param {string} message_id - ID của tin nhắn
+     * @param {string} menu_title - Tiêu đề của menu
+     * @param {string} page_id - ID của trang
+     * @description
+     * - Gọi API để gửi tin nhắn đến Facebook Messenger
+     * - Sử dụng template message để hiển thị menu
+     * - Sử dụng đường dẫn đến menu đã được tạo
+     * - Đường dẫn đến menu được tạo bằng cách kết hợp client_id và message_id
+     * - Ví dụ: https://example.com/template/template_id=client_id_message_id
+     */
+    generateTemplateMessage({
+      client_id: WEBHOOK_DATA.client_id,
+      message_id: WEBHOOK_DATA.message.message_id,
+      menu_title: WEBHOOK_DATA.message.message_attachments[0].title,
+      page_id: WEBHOOK_DATA.page_id,
+    });
     /** Trả về response thành công */
     return NextResponse.json({
       status: "success",
@@ -242,3 +273,68 @@ const fetchUploadImage = async (base64Image: string) => {
     console.error("Upload failed:", error);
   }
 };
+
+/**
+ * Hàm gửi tin nhắn đến Facebook Messenger
+ * @param params Tham số bao gồm client_id, message_id, menu_title, page_id
+ * @returns Kết quả trả về từ API Facebook Messenger
+ */
+export async function generateTemplateMessage(params: TemplateParams) {
+  /**
+   * Định nghĩa LInk hiển thị data
+   */
+  const LINK = `${DOMAIN}/template/template_id=${params.client_id}_${params.message_id}`;
+  /** Domain API Facebook */
+  const FB_DOMAIN = process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN;
+  /** Token API Facebook */
+  const FB_TOKEN = process.env.NEXT_PUBLIC_FACEBOOK_TOKEN;
+  /** Kiểm tra token và domain */
+  if (!FB_DOMAIN) {
+    throw new Error("Facebook domain is not defined");
+  }
+
+  /**
+   * Body gửi đi
+   */
+  const BODY = {
+    access_token: FB_TOKEN,
+    client_id: params.client_id,
+    page_id: params.page_id,
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "button",
+          text: "Preview Demo Menu",
+          buttons: [
+            {
+              type: "web_url",
+              url: LINK,
+              title: "Preview",
+            },
+          ],
+        },
+      },
+    },
+  };
+  /**
+   * Gọi API Facebook Messenger
+   */
+  const SEND_MESSAGE = await fetch(FB_DOMAIN, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(BODY),
+  });
+  console.log(SEND_MESSAGE, "SEND_MESSAGE");
+  /**
+   * Kết quả trả về từ API Facebook Messenger
+   */
+  const RES = await SEND_MESSAGE.json();
+  console.log(RES, "ress");
+  /**
+   * Kiểm tra kết quả trả về
+   */
+  return RES;
+}
