@@ -21,7 +21,8 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   /** Lấy id từ params */
-  const { id } = await params; // params is already available synchronously
+  /** params is already available synchronously */
+  const { id } = await params;
   /** Kiểm tra id */
   const RAW_DATA = await redis.get(id);
   console.log(RAW_DATA, "RAW_DATA");
