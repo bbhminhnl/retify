@@ -183,7 +183,9 @@ export default function TemplateClient({
         /**
          * Chuyển đổi dữ liệu từ Redis về định dạng JSON
          */
-        const PARSED_DATA = JSON.parse(rawData);
+        // const PARSED_DATA = JSON.parse(rawData);
+        const PARSED_DATA = rawData;
+
         console.log(rawData, "rawData");
         /** Kiểm tra nếu tất cả phần tử đều có image_url */
         const HAS_IMAGE_URL = PARSED_DATA.every(
