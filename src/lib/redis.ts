@@ -1,15 +1,17 @@
 // lib/redis.ts
 import { createClient } from "redis";
 
-const redisClient = createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6379",
+/** Khởi tạo client Redis */
+const redis = createClient({
+  url: process.env.REDIS_URL!,
 });
 
-redisClient.on("error", (err) => console.error("Redis Client Error", err));
+/** Kiểm tra kết nối Redis */
+redis.on("error", (err) => console.error("Redis Client Error", err));
 
-// Kết nối khi khởi động ứng dụng
+/** Kết nối khi khởi động ứng dụng */
 (async () => {
-  await redisClient.connect();
+  await redis.connect();
 })();
 
-export default redisClient;
+export default redis;

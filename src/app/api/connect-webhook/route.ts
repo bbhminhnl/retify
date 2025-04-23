@@ -75,13 +75,7 @@ export async function POST(req: NextRequest) {
     LoggerService.logApiResult(UPDATED_MENU);
 
     /** Lưu vào Redis */
-    // const SAVE_RESULT = await saveMenuToRedis(STORAGE_KEY, UPDATED_MENU);
-    // if (!SAVE_RESULT) {
-    //   return NextResponse.json(
-    //     { error: "Failed to save menu data" },
-    //     { status: 500 }
-    //   );
-    // }
+    saveMenuToRedis(STORAGE_KEY, JSON.stringify(UPDATED_MENU));
     /** Lưu vào Redis thành công */
     // console.log("Menu data saved to Redis successfully");
     /**
@@ -279,11 +273,11 @@ const fetchUploadImage = async (base64Image: string) => {
  * @param params Tham số bao gồm client_id, message_id, menu_title, page_id
  * @returns Kết quả trả về từ API Facebook Messenger
  */
-export async function generateTemplateMessage(params: TemplateParams) {
+async function generateTemplateMessage(params: TemplateParams) {
   /**
    * Định nghĩa LInk hiển thị data
    */
-  const LINK = `${DOMAIN}/template/template_id=${params.client_id}_${params.message_id}`;
+  const LINK = `${DOMAIN}/template/${params.client_id}_${params.message_id}`;
   /** Domain API Facebook */
   const FB_DOMAIN = process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN;
   /** Token API Facebook */
@@ -338,3 +332,31 @@ export async function generateTemplateMessage(params: TemplateParams) {
    */
   return RES;
 }
+
+/**
+ * Xử lý add vào redis
+ */
+const saveMenuToRedis = async (key: string, value: any) => {
+  try {
+    /** Lưu vào Redis với key: client_id__message_id */
+    /** Parse JSON */
+    const JSON_INPUT = JSON.parse(value);
+    /** Gửi request lưu vào Redis */
+    const RES = await fetch(`${DOMAIN}/api/json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, value: JSON_INPUT }), // gửi key và value
+    });
+    /** Kết quả sau khi parse json */
+    const RESULT = await RES.json();
+    /** Kiểm tra kết quả */
+    if (RESULT.success) {
+      console.log("Lưu thành công vào Redis");
+    } else {
+      alert("Lưu thất bại!");
+    }
+  } catch (error) {
+    console.error("Error saving to Redis:", error);
+    return false;
+  }
+};
