@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import axios from "axios";
 /**
  * Khai báo OpenAI
  */
@@ -24,9 +23,11 @@ export async function POST(req: Request) {
       query
     )}&key=${GOOGLE_API_KEY}&cx=${CX}`;
     /** Data trích xuất đươc từ google */
-    const { data } = await axios.get(SEARCH_URL);
+    const RES = await fetch(SEARCH_URL);
+    const DATA = await RES.json();
+    console.log(DATA, "DATA");
     /** Kiểm tra dữ liệu trả về từ google */
-    const RESULTS = data.items;
+    const RESULTS = DATA.items;
     /**
      * Kiểm tra dữ liệu trả về từ google
      * Nếu không có kết quả nào, trả về lỗi 404
