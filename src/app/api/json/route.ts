@@ -1,50 +1,68 @@
-// import { NextResponse } from "next/server";
-// // app/api/json/route.ts
-// import { redis } from "@/lib/redis";
-
-// export async function POST(req: Request) {
-//   const json = await req.json();
-
-//   await redis.set("my-json", JSON.stringify(json));
-//   return NextResponse.json({ success: true });
-// }
-
 import { NextResponse } from "next/server";
-// app/api/json/route.ts
 import redis from "@/lib/redis";
 
+/**
+ * POST /api/json
+ * Body: { key: string, value: any }
+ */
 export async function POST(req: Request) {
-  const { key, value } = await req.json();
-  /** Kiểm tra key và value */
-  if (!key || !value) {
+  try {
+    /**
+     * Lấy dữ liệu từ body
+     */
+    const { key, value } = await req.json();
+    /** Kiểm tra key và value */
+    if (!key || !value) {
+      return NextResponse.json(
+        { success: false, error: "Thiếu key hoặc value" },
+        { status: 400 }
+      );
+    }
+
+    await redis.set(key, JSON.stringify(value));
+    /** Thiết lập thời gian sống cho key */
+    return NextResponse.json({ success: true });
+  } catch (error) {
     return NextResponse.json(
-      { success: false, error: "Thiếu key hoặc value" },
-      { status: 400 }
+      { success: false, error: "Lỗi khi xử lý yêu cầu" },
+      { status: 500 }
     );
   }
-
-  /** Lưu vào Redis với key: client_id__message_id */
-  await redis.set(key, JSON.stringify(value));
-  return NextResponse.json({ success: true });
 }
 
-/** GET dữ liệu theo `key` (client_id__message_id) */
+/**
+ * GET /api/json?key=client_id__message_id
+ */
 export async function GET(req: Request) {
-  /** lấy params trên url */
-  const { searchParams } = new URL(req.url);
-  /** lấy key từ params */
-  const KEY = searchParams.get("key"); // hoặc có thể lấy từ params nếu cần
-  /** Lấy key */
-  if (!KEY) {
+  try {
+    const { searchParams } = new URL(req.url);
+    console.log(searchParams, "searchParams");
+    /** Lấy key từ query */
+    const KEY = searchParams.get("key");
+    /** Kiểm tra key */
+    if (!KEY) {
+      return NextResponse.json(
+        { success: false, error: "Thiếu key" },
+        { status: 400 }
+      );
+    }
+
+    const RAW_DATA = await redis.get(KEY);
+    console.log(RAW_DATA, "RAW_DATA server");
+    /** Kiểm tra dữ liệu */
+    if (!RAW_DATA) {
+      return NextResponse.json(
+        { success: false, error: "Không tìm thấy dữ liệu" },
+        { status: 404 }
+      );
+    }
+    /** Chuyển đổi dữ liệu từ Redis về định dạng JSON */
+    const DATA = JSON.parse(RAW_DATA);
+    return NextResponse.json({ success: true, DATA });
+  } catch (error) {
     return NextResponse.json(
-      { success: false, error: "Thiếu key" },
-      { status: 400 }
+      { success: false, error: "Lỗi khi lấy dữ liệu từ Redis" },
+      { status: 500 }
     );
   }
-  /** Lưu thông tin raw data */
-  const RAW_DATA = await redis.get(KEY);
-  /** Kiểm tra dữ liệu */
-  const VALUE = RAW_DATA ? JSON.parse(RAW_DATA) : null;
-  /** Trả về thông tin */
-  return NextResponse.json({ data: VALUE });
 }

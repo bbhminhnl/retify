@@ -286,7 +286,7 @@ async function generateTemplateMessage(params: TemplateParams) {
   /**
    * Định nghĩa LInk hiển thị data
    */
-  const LINK = `${DOMAIN}/template?template_id=${params.client_id}_${params.message_id}`;
+  const LINK = `${DOMAIN}/template?template_id=${params.client_id}__${params.message_id}`;
   /** Domain API Facebook */
   const FB_DOMAIN = process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN;
   /** Token API Facebook */
@@ -358,6 +358,8 @@ const saveMenuToRedis = async (key: string, value: any) => {
     });
     /** Kết quả sau khi parse json */
     const RESULT = await RES.json();
+
+    console.log(RESULT, "RESULT");
     /** Kiểm tra kết quả */
     if (RESULT.success) {
       console.log("Lưu thành công vào Redis");

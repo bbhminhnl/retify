@@ -10,58 +10,40 @@ export default function JSONEditor() {
     {
       "name": "Măng tươi xào thịt bò",
       "price": "155000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384193209.png"
-    },
+      "unit": "VND" },
     {
       "name": "Bò xào lá lốt",
       "price": "155000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384199862.png"
-    },
+      "unit": "VND"},
     {
       "name": "Súp lơ xào bò",
       "price": "155000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384198061.png"
+      "unit": "VND"
     },
     {
       "name": "Bò xào cần tỏi",
       "price": "155000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384196887.png"
+      "unit": "VND"
     },
     {
       "name": "Bắp bò kho gừng",
       "price": "245000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384197801.png"
+      "unit": "VND"
     },
     {
       "name": "Bê xào xả ớt",
       "price": "165000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384199494.png"
+      "unit": "VND"
     },
     {
       "name": "Bò xào dưa chua",
       "price": "155000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384195437.png"
+      "unit": "VND"
     },
     {
       "name": "Bò xào rau muống",
       "price": "155000",
-      "unit": "VND",
-      "image_url":
-        "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1745384197231.png"
+      "unit": "VND"
     }
   ]`);
   /** Key */

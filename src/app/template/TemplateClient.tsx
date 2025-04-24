@@ -15,6 +15,11 @@ export default function TemplateClient({
   const [data, setData] = useState<any[]>([]);
   /** Error */
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * setLoading
+   */
+  const [loading, setLoading] = useState<boolean>(false);
   /** Thêm ảnh mô tả cho sản phẩm
    * @param menuItems Danh sách các món ăn đã được làm sạch và tách tên, giá, đơn vị
    * @returns Danh sách các món ăn đã được thêm ảnh mô tả
@@ -74,6 +79,11 @@ export default function TemplateClient({
     );
     return UPDATED_MENU;
   };
+  /**
+   * Hàm xử lý upload ảnh lên server
+   * @param base64Image Luồng base64 của ảnh
+   * @returns {string} - Đường dẫn ảnh đã lưu
+   */
   const fetchUploadImage = async (base64Image: string) => {
     try {
       /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
@@ -133,45 +143,7 @@ export default function TemplateClient({
       console.error("Upload failed:", error);
     }
   };
-  //   useEffect(() => {
-  //     /** Hàm xử lý dữ liệu */
-  //     const fetchData = async () => {
-  //       if (!rawData) {
-  //         setError("Không tìm thấy dữ liệu hoặc dữ liệu đã quá hạn.");
-  //         return;
-  //       }
 
-  //       try {
-  //         /**
-  //          * Chuyển đổi dữ liệu từ Redis về định dạng JSON
-  //          */
-  //         const PARSED = JSON.parse(rawData);
-  //         // setData(PARSED);
-
-  //         const UPDATED_MENU = await addImageDescription(PARSED);
-  //         console.log(UPDATED_MENU, "UPDATED_MENU");
-  //         if (!UPDATED_MENU) {
-  //           throw new Error("Lỗi khi gọi API generate image");
-  //         }
-  //         /** Lưu giá trị vào state */
-  //         setData(UPDATED_MENU);
-  //         /** Lưu giá trị vào redis */
-  //         const RES = await fetch("/api/json", {
-  //           method: "POST",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify({
-  //             key: "template_id",
-  //             value: UPDATED_MENU,
-  //           }),
-  //         });
-  //       } catch (err: any) {
-  //         setError("Dữ liệu bị lỗi hoặc không thể tạo ảnh.");
-  //         console.error(err);
-  //       }
-  //     };
-
-  //     fetchData();
-  //   }, [rawData]);
   useEffect(() => {
     const fetchData = async () => {
       if (!rawData) {
@@ -180,6 +152,7 @@ export default function TemplateClient({
       }
 
       try {
+        setLoading(true);
         /**
          * Chuyển đổi dữ liệu từ Redis về định dạng JSON
          */
@@ -213,9 +186,12 @@ export default function TemplateClient({
             value: updated_menu,
           }),
         });
+        console.log(RES, "RES");
       } catch (err: any) {
         setError("Dữ liệu bị lỗi hoặc không thể tạo ảnh.");
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -232,23 +208,31 @@ export default function TemplateClient({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {data && data.length > 0 ? (
-            data.map((item, index) => (
-              <div key={index} className="bg-white p-4 rounded shadow-md">
-                <img
-                  src={item.image_url}
-                  alt={item.name}
-                  className="w-full h-48 object-cover rounded"
-                />
-                <h2 className="text-xl font-semibold mt-4">{item.name}</h2>
-                <p className="text-gray-500">
-                  {item.price} {item.unit}
-                </p>
-              </div>
-            ))
-          ) : (
-            <div className="p-4 text-gray-500">Dữ liệu trống.</div>
+          {loading && (
+            <div className="p-4 bg-gray-100 text-gray-500 rounded">
+              <p>Đang tải dữ liệu...</p>
+            </div>
           )}
+          {!loading &&
+            (data && data.length > 0 ? (
+              data.map((item, index) => (
+                <div key={index} className="bg-white p-4 rounded shadow-md">
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="w-full h-48 object-cover rounded"
+                  />
+                  <h2 className="text-xl font-semibold mt-4 truncate">
+                    {item.name}
+                  </h2>
+                  <p className="text-gray-500">
+                    {item.price} {item.unit}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 text-gray-500">Dữ liệu trống.</div>
+            ))}
         </div>
       )}
     </main>
