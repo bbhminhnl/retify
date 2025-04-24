@@ -93,25 +93,25 @@ Ví dụ:
     /**
      * Dùng OpenAI API để làm sạch dữ liệu menu
      */
-    // const GPT_RESPONSE = await OPEN_AI.chat.completions.create({
-    //   model: "gpt-3.5-turbo",
-    //   messages: [{ role: "user", content: GPT_PROMPT }],
-    //   temperature: 0.3, // Giảm nhiệt độ để kết quả ổn định
-    // });
+    const GPT_RESPONSE = await OPEN_AI.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: GPT_PROMPT }],
+      temperature: 0.3, // Giảm nhiệt độ để kết quả ổn định
+    });
     /**
      * Kết quả trả về từ OpenAI
      * Chỉ lấy phần nội dung chính
      */
-    // const AI_CONTENT = GPT_RESPONSE.choices[0].message.content;
-    // console.log(AI_CONTENT, "AI_CONTENT");
+    const AI_CONTENT = GPT_RESPONSE.choices[0].message.content;
+    console.log(AI_CONTENT, "AI_CONTENT");
     /**
      * Trả về JSON
      * Chỉ lấy phần nội dung chính
      */
     return NextResponse.json({
       success: true,
-      //   content: AI_CONTENT,
-      data: RESULTS,
+      content: AI_CONTENT,
+      //   data: RESULTS,
     });
   } catch (err) {
     console.error(err);
