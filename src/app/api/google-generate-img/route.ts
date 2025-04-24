@@ -28,26 +28,31 @@ export async function POST(request: Request) {
     /**
      * Gọi API Gemini để tạo ảnh từ prompt
      */
-    const RES = await GEN_AI.models.generateContent({
-      model: "gemini-2.0-flash-exp-image-generation",
-      contents: prompt,
-      config: {
-        responseModalities: ["Text", "Image"],
-      },
-    });
+    // const RES = await GEN_AI.models.generateContent({
+    //   model: "gemini-2.0-flash-exp-image-generation",
+    //   contents: prompt,
+    //   config: {
+    //     responseModalities: ["Text", "Image"],
+    //   },
+    // });
 
     // console.debug(response?.generatedImages?.[0]?.image?.imageBytes);
     // console.debug(response1?.candidates[0]?.content?.parts[0], "response");
 
     // Sử dụng model có hỗ trợ tạo ảnh (ví dụ: gemini-1.5-pro-latest)
-    // const response = genAI.models.generateImages({
-    //   model: "gemini-2.0-flash-exp-image-generation",
-    //   prompt: "A flying cat",
-    //   config: {
-    //     numberOfImages: 1,
-    //     includeRaiReason: true,
-    //   },
-    // });
+    /** Model api xử lý ảnh mới */
+    const RESPONSE = await GEN_AI.models.generateImages({
+      model: "imagen-3.0-generate-002",
+      prompt: prompt,
+      config: {
+        numberOfImages: 1,
+        includeRaiReason: true,
+      },
+    });
+    /** Ẩnh AI trả ra dạng base64 */
+    const IMAGE = RESPONSE?.generatedImages?.[0]?.image?.imageBytes;
+    // console.log(response?.generatedImages?.[0]?.image?.imageBytes, "response");
+    // console.log(response, "response");
 
     // const response = await genAI.models.generateContent({
     //   model: "gemini-2.0-flash-001",
@@ -61,8 +66,8 @@ export async function POST(request: Request) {
     // // Gemini hiện tại không trả về ảnh trực tiếp mà chỉ mô tả ảnh
     // // Bạn có thể sử dụng API khác để chuyển mô tả thành ảnh
     // // Hoặc xử lý nếu có dữ liệu ảnh trong response
-    const IMAGE =
-      RES?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? "";
+    // const IMAGE =
+    //   RES?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ?? "";
 
     /**
      * Trả về JSON

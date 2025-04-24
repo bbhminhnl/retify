@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const URL = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(
       query
     )}&key=${GOOGLE_API_KEY}&cx=${CX}`;
-
+    console.log(URL);
     const { data } = await axios.get(URL);
 
     const RESULTS =
