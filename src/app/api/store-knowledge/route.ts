@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
 import axios from "axios";
+/**
+ * Khai báo OpenAI
+ */
+const OPEN_AI = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY!;
 const CX = process.env.GOOGLE_SEARCH_CX!;
@@ -82,28 +89,19 @@ Ví dụ:
      * Gọi OpenAI API để xử lý dữ liệu
      * Với Prompt custom
      */
-    const GPT_RESPONSE = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        model: "gpt-3.5-turbo",
-        messages: [
-          { role: "system", content: "Bạn là một trợ lý AI thông minh." },
-          { role: "user", content: GPT_PROMPT },
-        ],
-        temperature: 0.5,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    /**
+     * Dùng OpenAI API để làm sạch dữ liệu menu
+     */
+    const GPT_RESPONSE = await OPEN_AI.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: GPT_PROMPT }],
+      temperature: 0.3, // Giảm nhiệt độ để kết quả ổn định
+    });
     /**
      * Kết quả trả về từ OpenAI
      * Chỉ lấy phần nội dung chính
      */
-    const AI_CONTENT = GPT_RESPONSE.data.choices[0].message.content;
+    const AI_CONTENT = GPT_RESPONSE.choices[0].message.content;
     console.log(AI_CONTENT, "AI_CONTENT");
     /**
      * Trả về JSON
