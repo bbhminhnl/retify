@@ -200,9 +200,9 @@ const ConnectInstall = () => {
        */
       console.log(ORG_DATA);
       /** Lấy thông tin ORG */
-      // setOrganization(ORG_DATA.data);
+      setOrganization(ORG_DATA.data);
 
-      addPage("7bd3ac17116c4aacb2e9e55ba0330388", PAGE_ID, ACCESS_TOKEN);
+      // addPage("7bd3ac17116c4aacb2e9e55ba0330388", PAGE_ID, ACCESS_TOKEN);
 
       //   /**
       //    * Lay id org
@@ -426,21 +426,56 @@ const ConnectInstall = () => {
       fetchTokenMerchant(PARTNER_TOKEN, PAGE_ID);
     } catch (error) {}
   };
+
+  /** Lấy client ID
+   * @param page_id
+   * @returns
+   */
+  const fetchClientId = async (page_id: string) => {
+    try {
+      /** Domain Merchant */
+      const DOMAIN = `https://chatbox-public-v2.botbanhang.vn/embed/conversation/init_identify?name=anonymous&page_id=${page_id}`;
+
+      /** Gọi API */
+      const RESPONSE = await fetch(DOMAIN);
+
+      /** Kiểm tra lỗi HTTP */
+      if (!RESPONSE.ok) {
+        throw new Error(`Lỗi khi fetch: ${RESPONSE.status}`);
+      }
+
+      /** Parse JSON */
+      const DATA = await RESPONSE.json();
+
+      /** Trả ra client ID */
+      return DATA?.data;
+    } catch (error) {
+      console.error("Lỗi khi lấy client ID:", error);
+      return null; // hoặc throw lại nếu muốn xử lý phía trên
+    }
+  };
+
   /**
    * Hàm lấy token merchant
    * @param ACCESS_TOKEN
    * @param PAGE_ID
    */
   const fetchTokenMerchant = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
-    /** Domain Merchant */
-    const DOMAIN = "https://api.merchant.vn/v1/public/chatbox/get_config";
+    /** Chat Domain */
+    const DOMAIN = `https://api.merchant.vn/v1/public/chatbox/get_config`;
+
+    /**
+     * Khai báo body
+     */
+    const CLIENT_ID = await fetchClientId(PAGE_ID);
+
     /**
      * Body
      */
     const BODY = {
       access_token: ACCESS_TOKEN,
       //   client_id: "29877270768526767",
-      client_id: "31de2b21f9e64952bd4e14479e66344b",
+      client_id: CLIENT_ID,
       // client_id: "9907822685912987",
       //   secret_key: "0cf5516973a145929ff36d3303183e5f",
       secret_key: "6f8b22eebe1d4d93b2f4a618901df020",
@@ -704,6 +739,11 @@ const ConnectInstall = () => {
     }
   };
 
+  const fetchDocument = async () => {
+    const RESPONSE = await fetch("/api/shop-info");
+    console.log(RESPONSE, "response");
+  };
+
   /**
    *    Upload data mock
    * @param ACCESS_TOKEN User access token
@@ -729,6 +769,8 @@ const ConnectInstall = () => {
     /** Ghép dữ liệu cũ và mới */
     const UPDATED_DATA = EXISTING_DATA + "\n" + FORMATTED_DATA;
 
+    const RESULT = await fetchDocument();
+    console.log(RESULT, "RESULT");
     /** Tạo mock data file mới với dữ liệu đã cập nhật */
     const MOCK_DATA_FILE = new File(
       [UPDATED_DATA],

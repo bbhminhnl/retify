@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-let PRODUCTS = [] as any; // Danh sách sản phẩm
+let products = [] as any; // Danh sách sản phẩm
 
 /** ✅ GET: Lấy danh sách sản phẩm */
 export async function GET() {
-  return NextResponse.json(PRODUCTS);
+  return NextResponse.json(products);
 }
 
 /** ✅ POST: Thêm một hoặc nhiều sản phẩm */
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       }
       /** Trả về thông tin sản phẩm */
       return {
-        id: PRODUCTS.length + 1 + index,
+        id: products.length + 1 + index,
         name: product.name,
         price: product.price,
         product_image: product.product_image,
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     });
 
     /** Thêm vào danh sách sản phẩm */
-    PRODUCTS.push(...NEW_PRODUCT);
+    products.push(...NEW_PRODUCT);
     /** Trả về danh sách sản phẩm mới */
     return NextResponse.json(NEW_PRODUCT, { status: 201 });
   } catch (error: any) {
@@ -48,4 +48,9 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+/** ❌ DELETE: Xóa hết dữ liệu sản phẩm (chỉ dùng trong dev) */
+export async function DELETE() {
+  products = [];
+  return NextResponse.json({ message: "Đã reset danh sách sản phẩm." });
 }

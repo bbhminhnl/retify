@@ -118,8 +118,8 @@ export default function TemplateClient({
         )
           .then((res) => res.json())
           .then((result) => {
-            const filePath = result?.data?.file_path || "";
-            resolve(filePath);
+            const FILE_PATH = result?.data?.file_path || "";
+            resolve(FILE_PATH);
           })
           .catch((error) => {
             console.error("Upload failed:", error);
@@ -270,6 +270,16 @@ export default function TemplateClient({
     }));
 
     try {
+      /** Xóa hết dữ liệu sản phẩm (chỉ dùng trong dev) */
+      await fetch("/api/products", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      setTimeout(() => {
+        console.log("✅ Đã xóa sản phẩm cũ");
+      }, 1000);
+
       /** Gửi sản phẩm mới lưu tạm với API*/
       const PRODUCT_RES = await fetch("/api/products", {
         method: "POST",
@@ -301,8 +311,10 @@ export default function TemplateClient({
         }
       }
 
-      /** Chuyển trang sau khi thành công */
-      ROUTER.push("/editor");
+      setTimeout(() => {
+        /** Chuyển trang sau khi thành công */
+        ROUTER.push("/editor");
+      }, 1000);
     } catch (error) {
       console.error("Lỗi mạng hoặc server:", error);
     } finally {
@@ -373,7 +385,7 @@ export default function TemplateClient({
             ))}
         </div>
       )}
-      <div className="flex w-full justify-center items-center sticky bottom-0 bg-white p-4">
+      <div className="flex w-full justify-center items-center sticky bottom-0 bg-white p-2">
         <button
           onClick={() => {
             searchShopInfo(input);

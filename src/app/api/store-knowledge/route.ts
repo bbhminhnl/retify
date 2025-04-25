@@ -24,6 +24,7 @@ export async function POST(req: Request) {
     )}&key=${GOOGLE_API_KEY}&cx=${CX}`;
     /** Data trích xuất đươc từ google */
     const RES = await fetch(SEARCH_URL);
+    /** Lấy dữ liệu trả về từ google */
     const DATA = await RES.json();
     console.log(DATA, "DATA");
     /** Kiểm tra dữ liệu trả về từ google */
@@ -63,12 +64,13 @@ Hãy làm như sau:
 
 2. Nếu không tìm thấy một số thông tin nào đó, hãy đặt giá trị là "null" hoặc chuỗi rỗng "" (không tự bịa thêm thông tin).
 
-3. Sau phần trích xuất JSON, bạn hãy viết thêm, Tài liệu dạng hỏi đáp, thông tin cơ bản, Tài liệu để AI Agent trả lời:
+3. Bạn hãy viết thêm, Tài liệu dạng hỏi đáp, thông tin cơ bản, Tài liệu để AI Agent trả lời:
    - Một đoạn giới thiệu ngắn gọn và chuyên nghiệp (dùng markdown) giới thiệu tổng quan về cửa hàng.
    - Một số câu hỏi thường gặp (FAQ) kèm câu trả lời ngắn gọn, liên quan đến giờ mở cửa, tổng đài, chất lượng phục vụ, …
-      + Câu hỏi có dạng:
+      + Câu hỏi có dạng Q&A Dialogue Template:
           Câu hỏi: Tên cửa hàng là gì?
           Trả lời: Dạ quán Bún Bò Cô Hồng - Món Huế đậm đà
+        Giữa các câu hỏi và câu trả lời có thể có nhiều dấu cách, hoặc xuống dòng, bạn hãy chuẩn hóa lại cho gọn gàng.
 
 ### Dữ liệu tìm kiếm được cung cấp:
     ${FORMATTED_DATA}

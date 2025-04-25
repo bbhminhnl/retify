@@ -54,6 +54,10 @@ const Tiptap = () => {
         /** Parse dũe liệu json */
         const PRODUCT_DATA = await productRes.json();
         const SHOP_DATA = await shopRes.json();
+
+        console.log(PRODUCT_DATA, "PRODUCT_DATA");
+        console.log(SHOP_DATA, "SHOP_DATA");
+
         /** Lưu dữ liệu state */
         setProducts(PRODUCT_DATA || []);
         setShopInfo(SHOP_DATA?.shop_information || "");
