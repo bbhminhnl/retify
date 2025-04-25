@@ -142,7 +142,16 @@ const Tiptap = () => {
     }
   }, [editor, markdown]);
   /** Hàm xử lý sự kiện khi nhấn nút lưu */
-  const handleSave = () => {
+  const handleSave = async () => {
+    /**
+     * Lưu dữ liệu vào API
+     */
+    await fetch("/api/documents", {
+      // Đường dẫn API
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(markdown),
+    });
     setShowConnect(true);
   };
 

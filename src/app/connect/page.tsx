@@ -41,6 +41,8 @@ const ConnectInstall = () => {
   const [selected_page, setSelectedPage] = useState<string>("");
   /** Chatbox token */
   const [chatbox_token, setChatboxToken] = useState<string>("");
+
+  const [token_merchant, setTokenMerchant] = useState("");
   /** Router */
   // const ROUTER = useRouter();
   /**
@@ -360,6 +362,16 @@ const ConnectInstall = () => {
         page_id: PAGE_ID,
         ai_agent_id: AGENT_ID,
         is_active_ai_agent: true,
+        ai_agent_working_hour_answer: {
+          in_working_hour: {
+            type: "SEND_DIRECTLY",
+            time: 900000,
+          },
+          out_working_hour: {
+            type: "SEND_DIRECTLY",
+            time: 0,
+          },
+        },
       };
       /** Khai báo Header */
       const HEADERS = {
@@ -488,6 +500,8 @@ const ConnectInstall = () => {
      * Token merchatn
      */
     const TOKEN_MERCHANT = DATA?.data?.access_token;
+
+    setTokenMerchant(TOKEN_MERCHANT);
     /**
      * Tạo sản phẩm
      */
@@ -516,7 +530,12 @@ const ConnectInstall = () => {
       /** Khai báo body */
       const BODY = {
         name: product.name, // Thay tên sản phẩm
-        images: [product.product_image], // Thay ảnh
+        // images: [product.product_image], // Thay ảnh
+        images: [
+          ["", null, undefined, "undefined"].includes(product.product_image)
+            ? "https://i.imgur.com/Lh2vKTL.png"
+            : product.product_image,
+        ],
         price: product.price,
         cost: product?.cost || product?.price, // Thay giá gốc
         wholesale_price: 0,
@@ -740,8 +759,11 @@ const ConnectInstall = () => {
   };
 
   const fetchDocument = async () => {
-    const RESPONSE = await fetch("/api/shop-info");
+    const RESPONSE = await fetch("/api/documents");
     console.log(RESPONSE, "response");
+    const DATA = await RESPONSE.json();
+    console.log(DATA, "DATA");
+    return DATA?.document;
   };
 
   /**
@@ -773,7 +795,7 @@ const ConnectInstall = () => {
     console.log(RESULT, "RESULT");
     /** Tạo mock data file mới với dữ liệu đã cập nhật */
     const MOCK_DATA_FILE = new File(
-      [UPDATED_DATA],
+      [RESULT],
       "mau_tra_loi_nhan_vien_ai_update.txt",
       {
         type: "text/plain",
@@ -1045,12 +1067,13 @@ const ConnectInstall = () => {
           <div className="flex flex-col items-center justify-center h-12">
             <p className="text-lg text-green-500">Kết nối thành công!</p>
             <a
-              href="https://m.me/414786618395170"
+              // href="https://m.me/414786618395170"
+              href={`https://merchant.vn/login?chat_access_token=${chatbox_token}&redirect=https://merchant.vn/a/product`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-white px-4 py-2 rounded-md bg-blue-500"
             >
-              Mở Messenger
+              Mở Merchant
             </a>
           </div>
         )}
