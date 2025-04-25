@@ -1,21 +1,13 @@
-import MenuBar from "@/components/Rich-Text-Editor/MenuBar";
 import Tiptap from "@/components/Rich-Text-Editor/Tiptap";
-import dynamic from "next/dynamic";
-
-// Import dynamic vì Tiptap chỉ chạy được client-side
-const MarkdownEditor = dynamic(
-  () => import("@/app/components/MarkDown/MarkdownEditor"),
-  {
-    ssr: true,
-  }
-);
 
 export default function EditorPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Tiptap Markdown Editor</h1>
+    <div className="md:container md:mx-auto flex flex-col gap-y-4 flex-grow min-h-0 h-full justify-center items-center w-full">
+      <h1 className="text-2xl font-bold">Chỉnh sửa thông tin tài liệu</h1>
       {/* <MarkdownEditor /> */}
-      <Tiptap />
+      <div className="overflow-hidden overflow-y-auto flex-grow min-h-0 w-full">
+        <Tiptap />
+      </div>
     </div>
   );
 }

@@ -525,18 +525,19 @@ const ConnectInstall = () => {
     } catch (error) {
       console.error(`❌ Lỗi khi tạo sản phẩm ${product.name}`, error);
     } finally {
-      /** Tắt loading */
-      // setLoading(false);
-      /**
-       * Hiển thị text tiền trình
-       */
-      setLoadingText("The product has been created successfully!");
-      /**
-       * Xoá text sau 5s
-       */
-      // setTimeout(() => {
-      //   setLoadingText("");
-      // }, 5000);
+      // /** Tắt loading */
+      // // setLoading(false);
+      // /**
+      //  * Hiển thị text tiền trình
+      //  */
+      // setLoadingText("The product has been created successfully!");
+      // /**
+      //  * Xoá text sau 5s
+      //  */
+      // // setTimeout(() => {
+      // //   setLoadingText("");
+      // // }, 5000);
+      // setFinishInstalling(true);
     }
   };
 
@@ -551,8 +552,20 @@ const ConnectInstall = () => {
         createProductMerchant(ACCESS_TOKEN, PAGE_ID, product)
       )
     );
-    fetchListPages(ACCESS_TOKEN, PAGE_ID);
-    console.log("🎉 Hoàn tất tạo tất cả sản phẩm!");
+    /** update message đã tạo sản phẩm thành công */
+    setLoadingText("Created all products!");
+
+    /**
+     * Xoá text sau 5s
+     */
+    setTimeout(() => {
+      setLoadingText("");
+      setLoading(false);
+      setFinishInstalling(true);
+    }, 5000);
+
+    // fetchListPages(ACCESS_TOKEN, PAGE_ID);
+    // console.log("🎉 Hoàn tất tạo tất cả sản phẩm!");
   };
   /**
    *  Lấy thông tin page merchant
@@ -588,11 +601,11 @@ const ConnectInstall = () => {
       /**
        * Tạo state trên fb
        */
-      createState(ACCESS_TOKEN, PAGE_ID, EXTERNAL_BUSINESS_ID);
+      // createState(ACCESS_TOKEN, PAGE_ID, EXTERNAL_BUSINESS_ID);
       /**
        * Sync data lên fb
        */
-      syncDataToFbSMC(ACCESS_TOKEN, EXTERNAL_BUSINESS_ID);
+      // syncDataToFbSMC(ACCESS_TOKEN, EXTERNAL_BUSINESS_ID);
     } catch (error) {
       console.error(error);
     } finally {
