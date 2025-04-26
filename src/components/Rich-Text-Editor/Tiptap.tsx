@@ -1,7 +1,7 @@
 "use client";
 
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import Highlight from "@tiptap/extension-highlight";
 import { MOCK_DATA } from "@/utils/data";
@@ -9,11 +9,14 @@ import { Markdown } from "tiptap-markdown";
 import MenuBar from "./MenuBar";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
+import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
 
-/** Interface Product */
+/**
+ * type sản phẩm
+ */
 type Product = {
-  /** ID sản phẩm */
+  /** ID */
   id: number;
   /** Tên sản phẩm */
   name: string;
@@ -23,43 +26,101 @@ type Product = {
   product_image: string;
   /** Loại sản phẩm */
   type: string;
-  /** Đơn vị sản phẩm */
+  /** Giá sản phẩm */
   cost: number;
 };
 
 const Tiptap = () => {
-  /**
-   * ROuter
-   */
+  /** Router */
   const ROUTER = useRouter();
-  /** State markdown */
+  /** Markdown*/
   const [markdown, setMarkdown] = useState("");
-  /** List sản phẩm */
+  /** Nội dung markdown */
+  const [internal_markdown, setInternalMarkdown] = useState("");
+  /** Danh sách sản phẩm */
   const [products, setProducts] = useState<Product[]>([]);
-  /** State shop_info */
+  /** Shop info */
   const [shop_info, setShopInfo] = useState<string>("");
-
-  /** Show connect to FB */
+  /** Hiển thị kết nối */
   const [show_connect, setShowConnect] = useState(false);
+  /** Access token */
+  const [access_token, setAccessToken] = useState("");
 
-  /** Gọi API lấy sản phẩm và thông tin cửa hàng */
+  /** Debounce hàm save để tránh gọi API quá nhiều lần
+   *
+   */
+  const debouncedSave = useCallback(
+    debounce(async (content: string) => {
+      await fetch("/api/documents", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(content),
+      });
+    }, 1000),
+    []
+  );
+
+  /** Khởi tạo editor */
+  const editor = useEditor({
+    extensions: [
+      /** Extension node, markdown có sẵn */
+      StarterKit.configure({
+        bulletList: { HTMLAttributes: { class: "list-disc pl-4" } },
+        orderedList: { HTMLAttributes: { class: "list-decimal pl-4" } },
+      }),
+      /** Custom text Align */
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+      /** Custom highlight */
+      Highlight.configure({
+        HTMLAttributes: { class: "my-custom-class" },
+      }),
+      /** Custom markdown */
+      Markdown.configure({
+        html: true,
+        tightLists: true,
+        bulletListMarker: "-",
+        linkify: false,
+        breaks: false,
+      }),
+    ],
+    content: internal_markdown,
+    editorProps: {
+      attributes: {
+        class:
+          "overflow-hidden overflow-y-auto px-3 py-2 prose prose-sm m-0 focus:outline-none bg-slate-50",
+      },
+    },
+    /** Hàm update */
+    onUpdate({ editor }) {
+      /** Giá trị markdown */
+      const MD = editor.storage.markdown.getMarkdown();
+      /** Lưu vào state */
+      setInternalMarkdown(MD);
+      /** Lưu markdown vào state */
+      setMarkdown(MD);
+      /** Lưu markdown vào server */
+      debouncedSave(MD);
+    },
+  });
+
+  /** Gọi API lấy dữ liệu ban đầu */
   useEffect(() => {
     const fetchData = async () => {
       try {
-        /** Gọi API lấy sản phẩm và thông tin cửa hàng */
+        /** Gọi API lấy dữ liệu sản phẩm và shop info */
         const [productRes, shopRes] = await Promise.all([
           fetch("/api/products"),
           fetch("/api/shop-info"),
         ]);
-        /** Parse dũe liệu json */
+        /** Parse Sản phẩm */
         const PRODUCT_DATA = await productRes.json();
+        /** Parse thông tin shop */
         const SHOP_DATA = await shopRes.json();
-
-        console.log(PRODUCT_DATA, "PRODUCT_DATA");
-        console.log(SHOP_DATA, "SHOP_DATA");
-
-        /** Lưu dữ liệu state */
+        /** Lưu lại data Product */
         setProducts(PRODUCT_DATA || []);
+        /** Lưu lại thông tin shop */
         setShopInfo(SHOP_DATA?.shop_information || "");
       } catch (err) {
         console.error("Lỗi khi lấy dữ liệu:", err);
@@ -69,18 +130,52 @@ const Tiptap = () => {
     fetchData();
   }, []);
 
+  /** Xử lý khi có dữ liệu sản phẩm hoặc shop info thay đổi */
   useEffect(() => {
-    /** Nếu có sản phẩm hoặc thông tin cửa hàng thì gọi hàm processDocument */
+    /** Nếu có dữ liệu sản phẩm hoặc thông tin shop thì tạo nội dung markdown */
     if (products.length > 0 || shop_info) {
+      /**Xử lý dữ liệu */
       processDocument(products, shop_info);
     }
   }, [products, shop_info]);
 
+  /** Xử lý đồng bộ dữ liệu từ ngoài vào editor */
+  useEffect(() => {
+    if (editor && markdown) {
+      /** Lưu giá trị Markdown hiện tại */
+      const CURRENT_MARKDOWN = editor.storage.markdown.getMarkdown();
+      /** Nếu editor đã được khởi tạo và markdown khác với giá trị hiện tại trong editor */
+      if (CURRENT_MARKDOWN !== markdown) {
+        /** Lưu trạng thái selection hiện tại */
+        const SELECTION = editor.state.selection;
+        /** Lưu trạng thái focus của editor */
+        const IS_FOCUSED = editor.isFocused;
+
+        /** Cập nhật nội dung */
+        editor.commands.setContent(markdown);
+
+        /** Khôi phục selection nếu editor đang focus */
+        if (IS_FOCUSED) {
+          /** Lưu giá trị content Size */
+          const DOC_SIZE = editor.state.doc.content.size;
+          /** Nếu editor đang focus thì khôi phục selection */
+          editor.commands.setTextSelection({
+            from: Math.min(SELECTION.from, DOC_SIZE),
+            to: Math.min(SELECTION.to, DOC_SIZE),
+          });
+        }
+      }
+    }
+  }, [editor, markdown]);
+
+  /** Hàm xử lý tạo nội dung markdown từ dữ liệu
+   * @param item Danh sách sản phẩm
+   * @param shop Thông tin cửa hàng
+   */
   const processDocument = (item: Product[], shop: string) => {
-    /** THông tin cửa hàng */
+    /** Thông tin cửa hàng */
     const SHOP_INFO_BLOCK = shop ? `## 🏪 Thông tin cửa hàng\n${shop}` : "";
-    console.log(shop, "shop");
-    /** Danh sách sản phẩm */
+    /** THông tin Sản phẩm */
     const PRODUCT_BLOCK =
       item.length > 0
         ? `${item
@@ -92,74 +187,43 @@ const Tiptap = () => {
             )
             .join("\n")}`
         : "";
-    /** Thông tin base tài liệu */
+    /** Lấy dữ liệu từ Mock data */
     const EXISTING_DATA = typeof MOCK_DATA === "string" ? MOCK_DATA : "";
-    /** Tổng hợp dữ liệu  */
+    /** Cập nhật Thông tin sản phẩm và Thông tin Shop */
     const UPDATED_DATA = [EXISTING_DATA, PRODUCT_BLOCK, SHOP_INFO_BLOCK]
       .filter(Boolean)
       .join("\n\n");
-    /** Cập nhật dữ liệu */
+
+    /** Cập nhật cả markdown và internal_markdown */
     setMarkdown(UPDATED_DATA);
+    /** Cập nhật nội dung editor */
+    setInternalMarkdown(UPDATED_DATA);
   };
 
-  /** Khởi tạo editor */
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        bulletList: { HTMLAttributes: { class: "list-disc pl-4" } },
-        orderedList: { HTMLAttributes: { class: "list-decimal pl-4" } },
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      Highlight.configure({
-        HTMLAttributes: { class: "my-custom-class" },
-      }),
-      Markdown.configure({
-        html: true,
-        tightLists: true,
-        bulletListMarker: "-",
-        linkify: false,
-        breaks: false,
-      }),
-    ],
-    content: markdown,
-    editorProps: {
-      attributes: {
-        class:
-          "overflow-hidden overflow-y-auto px-3 py-2 prose prose-sm m-0 focus:outline-none bg-slate-50",
-      },
-    },
-    onUpdate({ editor }) {
-      const md = editor.storage.markdown.getMarkdown();
-      setMarkdown(md);
-    },
-  });
-  /** Khi editor khởi tạo xong thì cập nhật nội dung */
-  useEffect(() => {
-    if (editor && markdown) {
-      editor.commands.setContent(markdown); // ✅ cập nhật content sau
-    }
-  }, [editor, markdown]);
-  /** Hàm xử lý sự kiện khi nhấn nút lưu */
+  /** Hàm xử lý khi nhấn nút lưu */
   const handleSave = async () => {
-    /**
-     * Lưu dữ liệu vào API
-     */
-    await fetch("/api/documents", {
-      // Đường dẫn API
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(markdown),
-    });
-    setShowConnect(true);
+    /** Nếu editor đã được khởi tạo */
+    if (editor) {
+      const MD = editor.storage.markdown.getMarkdown();
+      console.log(MD, "MDDDD");
+      if (!MD) {
+        alert("Vui lòng nhập nội dung trước khi lưu");
+        setShowConnect(false);
+        return;
+      }
+      await fetch("/api/documents", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(MD),
+      });
+      setShowConnect(true);
+    }
   };
 
-  /** State accessToken*/
-  const [access_token, setAccessToken] = useState("");
-  /** Lấy Facebook Token */
+  /** Xử lý message từ Facebook
+   * @param event SSO
+   */
   function getFacebookToken(event: MessageEvent) {
-    /** Kiểm tra event có hợp lệ không */
     if (
       !event ||
       !event.data ||
@@ -169,103 +233,53 @@ const Tiptap = () => {
     ) {
       return;
     }
-    /**
-     * Lay response tu facebook
-     */
+    /** RESPONSE từ facebook */
     const FACEBOOK_RESPONSE = event.data.data;
-    /** Kiểm tra token */
+    /** Nếu có access token thì lưu vào state */
     if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
-      /** Set token */
+      /** Lưu vào state */
       setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
     }
   }
+  /** Lầy token facebook */
   useEffect(() => {
-    /**
-     * Add event listener
-     */
     window.addEventListener("message", getFacebookToken);
-
     return () => {
       window.removeEventListener("message", getFacebookToken);
     };
-    /** Chỉ chạy một lần khi component mount */
   }, []);
+
   useEffect(() => {
+    /** Nếu có access token thì điều hướng đến trang kết nối */
     if (access_token) {
       handleAddProductAndNavigate(access_token);
     }
   }, [access_token]);
-  /**
-   *  Hàm xử lý sự kiện khi nhấn nút thêm sản phẩm
-   * @param e
-   */
+
   const handleAddProductAndNavigate = async (access_token: string) => {
-    /**
-     * Thêm loading
-     */
-
-    /** Chuyển trang sau khi thành công */
     ROUTER.push("/connect?access_token=" + access_token);
-    /** Sản phẩm mới */
-    // const NEW_PRODUCT = products.map((product: any) => ({
-    //   id: product.id,
-    //   name: product.name,
-    //   price: Number(product.price),
-    //   product_image: `${product.image_url}`,
-    //   type: "product",
-    //   unit: product.unit,
-    // }));
-
-    // try {
-    //   /**
-    //    * Thêm sản phẩm mới vào danh sách sản phẩm
-    //    */
-    //   const RES = await fetch("/api/products", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     /** Gửi danh sách sản phẩm */
-    //     body: JSON.stringify(NEW_PRODUCT),
-    //   });
-    //   /**
-    //    * Kiểm tra xem có lỗi không
-    //    */
-    //   if (RES.ok) {
-    //     console.log("Sản phẩm đã được thêm");
-    //     /** Chuyển trang sau khi thành công */
-    //     ROUTER.push("/connect?access_token=" + access_token);
-    //   } else {
-    //     console.error("Lỗi khi thêm sản phẩm");
-    //   }
-    // } catch (error) {
-    //   console.error("Lỗi mạng hoặc server:", error);
-    // } finally {
-    //   // setLoading(false);
-    // }
   };
 
   return (
     <div className="flex flex-col flex-grow min-h-0 h-full w-full overflow-hidden">
-      {/* Editor cố định phía trên */}
-      <div className=" py-2 bg-white">
+      <div className="py-2 w-full ">
         <div className="flex gap-x-2 w-full justify-between items-center">
           <MenuBar editor={editor} />
-          {/* Nút lưu */}
-
           <button
             onClick={handleSave}
-            className="h-10 px-4 flex-shrink-0 bg-blue-500 text-white rounded-md flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-600 "
+            className="h-10 px-4 flex-shrink-0 bg-blue-500 text-white rounded-md flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-600"
           >
             <span className="text-sm font-semibold">Lưu</span>
           </button>
         </div>
+
         <EditorContent
           editor={editor}
           className="h-80 overflow-y-auto border border-black rounded-md bg-slate-50"
         />
       </div>
-      {/* Markdown Preview scrollable */}
-      <div className="flex-grow min-h-0 bg-gray-100 overflow-hidden rounded-lg overflow-y-auto p-4">
-        <h2 className="font-bold">Markdown output:</h2>
+      <div className="hidden md:flex flex-col flex-grow min-h-0 bg-gray-100 overflow-hidden rounded-lg overflow-y-auto p-4">
+        <h2 className="font-bold">Tài liệu hiển thị:</h2>
         <pre className="text-sm whitespace-pre-wrap">{markdown}</pre>
       </div>
       {show_connect && (

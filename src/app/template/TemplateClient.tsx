@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import Loading from "@/components/loading/Loading";
 import ProductItemCustom from "../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
 import { useRouter } from "next/navigation";
@@ -147,9 +148,9 @@ export default function TemplateClient({
        */
       const PARSED_MENU = rawData;
       /** Set luôn data = raw data, bỏ qua bước xử lý ảnh */
-      setData(PARSED_MENU);
-      setLoading(false);
-      return;
+      // setData(PARSED_MENU);
+      // setLoading(false);
+      // return;
       // Giả sử rawData đã là JSON
       /** Kiểm tra danh sách cơ bản có image_url */
       const HAS_IMAGE_URL = PARSED_MENU.every((item: any) => !!item.image_url);
@@ -247,9 +248,9 @@ export default function TemplateClient({
 
     const DATA_STORE = await RES.json();
     console.log(DATA_STORE, "checkkkkkkk");
-    setLoadingShop(false);
     /** gọi hàm update tài liệu */
     handleAddDocument(data, DATA_STORE);
+    setLoadingShop(false);
 
     return;
   };
@@ -323,80 +324,68 @@ export default function TemplateClient({
   };
 
   return (
-    <main className="p-8 max-w-3xl w-full mx-auto space-y-6 relative">
-      {/* <input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        className="border p-2"
-      />
-      <button
-        className="bg-blue-500 text-white px-4 py-2"
-        onClick={() => handleGenerateImage(input)}
-      >
-        Generate
-      </button>
-      {image && (
-        <img
-        src={`data:image/png;base64,${image}`}
-        alt="Generated"
-        className="w-full h96 object-cover rounded"
-        />
-        )} */}
-      <h1 className="text-2xl font-bold">Menu</h1>
-      {error ? (
-        <div className="p-4 bg-yellow-100 text-yellow-800 rounded">
-          ⚠️ {error}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {loading && (
-            <div className="p-4 bg-gray-100 text-gray-500 rounded">
-              <p>Đang tải dữ liệu...</p>
-            </div>
-          )}
-          {!loading &&
-            (data && data.length > 0 ? (
-              data.map((item, index) => (
-                // <div key={index} className="bg-white p-4 rounded shadow-md">
-                //   <img
-                //     src={item.image_url || "./imgs/no_img.jpg"}
-                //     alt={item.name}
-                //     className="w-full h-48 object-cover rounded"
-                //   />
-                //   <h2 className="text-xl font-semibold mt-4 truncate">
-                //     {item.name}
-                //   </h2>
-                //   <p className="text-gray-500">
-                //     {item.price} {item.unit}
-                //   </p>
-                // </div>
-                <div key={index} className="bg-white p-4 rounded shadow-md">
-                  <ProductItemCustom
-                    key={index}
-                    name={item.name}
-                    price={item.price}
-                    product_image={item.image_url}
-                    unit={item?.unit}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="p-4 text-gray-500">Dữ liệu trống.</div>
-            ))}
+    <main className="px-3 py-2 max-w-3xl w-full mx-auto space-y-6 relative">
+      <div>
+        <h1 className="text-2xl font-bold">Menu</h1>
+        {error ? (
+          <div className="p-4 bg-yellow-100 text-yellow-800 rounded">
+            ⚠️ {error}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {loading && (
+              <div className="p-4 bg-gray-100 text-gray-500 rounded">
+                <Loading size="lg" />
+              </div>
+            )}
+            {!loading &&
+              (data && data.length > 0 ? (
+                data.map((item, index) => (
+                  // <div key={index} className="bg-white p-4 rounded shadow-md">
+                  //   <img
+                  //     src={item.image_url || "./imgs/no_img.jpg"}
+                  //     alt={item.name}
+                  //     className="w-full h-48 object-cover rounded"
+                  //   />
+                  //   <h2 className="text-xl font-semibold mt-4 truncate">
+                  //     {item.name}
+                  //   </h2>
+                  //   <p className="text-gray-500">
+                  //     {item.price} {item.unit}
+                  //   </p>
+                  // </div>
+                  <div key={index} className="bg-white p-4 rounded shadow-md">
+                    <ProductItemCustom
+                      key={index}
+                      name={item.name}
+                      price={item.price}
+                      product_image={item.image_url}
+                      unit={item?.unit}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-gray-500">Dữ liệu trống.</div>
+              ))}
+          </div>
+        )}
+      </div>
+      {!loading && (
+        <div className="flex w-full justify-center items-center sticky bottom-0 p-1">
+          <button
+            onClick={() => {
+              searchShopInfo(input);
+            }}
+            disabled={loading_shop}
+            className="bg-blue-500 text-white px-4 py-2 font-medium rounded hover:bg-blue-700 cursor-pointer flex gap-x-2 items-center"
+          >
+            {loading_shop
+              ? "Đang tìm kiếm thông tin về cửa hàng"
+              : "Tìm kiếm thông tin về cửa hàng"}
+            <div>{loading_shop && <Loading color_white />}</div>
+          </button>
         </div>
       )}
-      <div className="flex w-full justify-center items-center sticky bottom-0 bg-white p-2">
-        <button
-          onClick={() => {
-            searchShopInfo(input);
-          }}
-          className="bg-blue-500 text-white px-4 py-2 font-medium rounded hover:bg-blue-700 cursor-pointer"
-        >
-          {loading_shop
-            ? "Đang tìm kiếm thông tin về cửa hàng..."
-            : "Tìm kiếm thông tin về cửa hàng"}
-        </button>
-      </div>
     </main>
   );
 }

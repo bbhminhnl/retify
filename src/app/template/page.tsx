@@ -23,9 +23,13 @@ export default async function TemplatePage({ searchParams }: PageProps) {
   const { template_id } = await searchParams;
   /** Kiểm tra template_id */
   if (!template_id) {
-    return <p className="p-4 text-red-600">❌ Thiếu template_id</p>;
+    return (
+      <p className="p-4 text-red-600 w-full text-center font-medium">
+        Thiếu template_id
+      </p>
+    );
   }
-
+  /** Khai báo data */
   let data: any[] = [];
 
   try {
@@ -34,8 +38,8 @@ export default async function TemplatePage({ searchParams }: PageProps) {
     /** Nếu không tìm thấy dữ liệu hoặc dữ liệu quá hạn thì return */
     if (!RAW) {
       return (
-        <p className="p-4 text-yellow-600">
-          ⚠️ Không tìm thấy dữ liệu hoặc dữ liệu đã quá hạn.
+        <p className="p-4 text-yellow-600 w-full text-center font-medium">
+          Không tìm thấy dữ liệu hoặc dữ liệu đã quá hạn.
         </p>
       );
     }
@@ -47,7 +51,11 @@ export default async function TemplatePage({ searchParams }: PageProps) {
     data = PARSED;
   } catch (error) {
     console.error("Lỗi Redis:", error);
-    return <p className="p-4 text-red-700">❌ Lỗi khi lấy dữ liệu.</p>;
+    return (
+      <p className="p-4 text-red-700 w-full text-center font-medium">
+        Lỗi khi lấy dữ liệu.
+      </p>
+    );
   }
 
   return <TemplateClient rawData={data} template_id={template_id} />;
