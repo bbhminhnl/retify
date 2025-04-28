@@ -61,6 +61,22 @@ const ConnectInstall = () => {
   /** Finish Installing */
   const [finish_installing, setFinishInstalling] = useState(false);
 
+  /** Hàm Error
+   * @param message
+   * @returns void
+   * @description setLoading false
+   * @description setLoadingText message
+   * @description setTimeOut 2s setLoadingText ''
+   */
+  const handleError = (message: string) => {
+    /** Tắt loading */
+    setLoading(false);
+    /** Hàm set loading text */
+    setLoadingText(message);
+    /** Set timeout */
+    setTimeout(() => setLoadingText(""), 2000);
+  };
+
   /** Lấy đata products */
   const fetchProducts = async () => {
     try {
@@ -247,30 +263,17 @@ const ConnectInstall = () => {
       const ADD_PAGE_STATUS = await addPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
       /** Trạng thái Add page */
       if (!ADD_PAGE_STATUS) {
-        /** Tắt loading */
-        setLoading(false);
-
-        /** Cập nhật Text Message */
-        setLoadingText("Đã xảy ra lỗi, thêm Trang không thành công!");
-
-        setTimeout(() => {
-          setLoadingText("");
-        }, 2000);
+        /** Gọi hàm handle error */
+        handleError("Đã xảy ra lỗi, thêm Trang không thành công!");
         return;
       }
       /** Trạng Thái đạt giới hạn gọi sử dụng */
       if (ADD_PAGE_STATUS === "REACH_QUOTA.PAGE") {
-        /** Tắt loading */
-        setLoading(false);
-
-        /** Cập nhật Text Message */
-        setLoadingText(
+        /** Gọi hàm handle error */
+        handleError(
           "Đã đạt giới hạn Trang trong Tổ chức, thêm Trang không thành công!"
         );
 
-        setTimeout(() => {
-          setLoadingText("");
-        }, 2000);
         return;
       }
     }
@@ -278,11 +281,43 @@ const ConnectInstall = () => {
     /** ================== Lấy danh sách AGENT ==================== */
     /** Cập nhật tin nhắn */
     setLoadingText("Đang cài đặt trợ lý ảo ...");
+    /** Thông tin info */
+    let agent_info = await fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+    /** Kiểm tra thông tin trả về */
+    if (agent_info === "error") {
+      return handleError("Đã xảy ra lỗi, lấy thông tin trợ lý ảo thất bại!");
+    }
+    /** Nếu không có thống tin trợ lý tin thì Tạo mới */
+    if (!agent_info) {
+      /** Kết quả khởi tạo trợ lý Ảo */
+      const AGENT_CREATE_RESULT = await createAgent(
+        ACCESS_TOKEN,
+        ORG_ID,
+        PAGE_ID
+      );
+      /** Nếu lỗi thì hiển thị lỗi */
+      if (!AGENT_CREATE_RESULT || AGENT_CREATE_RESULT === "error") {
+        return handleError("Đã xảy ra lỗi, Tạo trợ lý ảo không thành công!");
+      }
 
-    /** Lấy Thông tin Agent */
-    const IS_EXIST_AGENT = await fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+      /** Nếu createAgent trả về true hoặc không có ID => fetch lại agent_info */
+      if (AGENT_CREATE_RESULT === true) {
+        agent_info = await fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
 
-    console.log(IS_EXIST_AGENT);
+        if (!agent_info || agent_info === "error") {
+          return handleError(
+            "Tạo trợ lý ảo thành công nhưng lấy thông tin thất bại!"
+          );
+        }
+      }
+    }
+    /** ================== Cập nhật Setting ==================== */
+    /** Cập nhật Setting  */
+    updateSettingPage(ORG_ID, PAGE_ID, ACCESS_TOKEN, agent_info);
+
+    /** Tải lên kiến thức */
+
+    uploadData(ORG_ID, ACCESS_TOKEN, agent_info);
   };
 
   /**
@@ -1042,10 +1077,20 @@ const ConnectInstall = () => {
        * Fetch data
        */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+
+      console.log(DATA, "DATA");
+
+      if (DATA?.code === 200) {
+        return true;
+      } else {
+        return false;
+      }
+
       /** Lấy thông tin AGENT */
-      fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+      // fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
     } catch (error) {
       console.error("Loi khi lay danh sach Pages:", error);
+      return "error";
     }
   };
 
@@ -1067,14 +1112,8 @@ const ConnectInstall = () => {
     const ACCESS_TOKEN = await onLogin(PAGE_ID);
     /** Kiểm tra token được return */
     if (ACCESS_TOKEN === "error" || !ACCESS_TOKEN) {
-      /** Nếu có lỗi thì tắt loading */
-      setLoading(false);
-
-      setLoadingText("Token không chính xác!");
-
-      setTimeout(() => {
-        setLoadingText("");
-      }, 2000);
+      /** Gọi handle Error */
+      handleError("Token không chính xác");
 
       return;
     }
@@ -1086,14 +1125,10 @@ const ConnectInstall = () => {
     const LIST_ORG = await fetchListOrg(ACCESS_TOKEN);
     /** Nếu không có Tổ chức, hoặc lỗi error */
     if (LIST_ORG === "error" || !LIST_ORG) {
-      /** Nếu có lỗi thì tắt loading */
-      setLoading(false);
-      /** Cập nhật text */
-      setLoadingText("Lấy Danh sách Tổ chức không thành công!");
-      /** Sau 2s thì reset Text */
-      setTimeout(() => {
-        setLoadingText("");
-      }, 2000);
+      /**
+       * Gọi handle Error
+       */
+      handleError("Lấy Danh sách Tổ chức không thành công!");
 
       return;
     }
