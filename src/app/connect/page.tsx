@@ -77,10 +77,26 @@ const ConnectInstall = () => {
   const [finish_installing, setFinishInstalling] = useState(false);
 
   /** Lấy đata products */
+  const fetchProducts = async () => {
+    try {
+      /** Gọi API lấy products*/
+      const RESPONSE = await fetch("/api/products", {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      });
+      /** DATA JSON */
+      const DATA = await RESPONSE.json();
+      /** Lưu dữ liệu product */
+      setProducts(DATA);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then((data) => setProducts(data));
+    /** Lấy dữ liệu sản phẩm */
+    fetchProducts();
   }, []);
 
   /** loading */

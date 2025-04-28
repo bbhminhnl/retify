@@ -34,3 +34,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+/\*_ Bổ sung thông tin _/
+Lưu dữ liệu vào Redis
+
+- Bao gồm thông tin sản phẩm, thông tin cửa hàng, và thông tin tài liệu sau khi đã hoàn thành.
+
+- Sẽ có dạng session_id + "\_type"
+- TTL 5min.
+  - Nếu khách hàng cảm thấy data chỉnh sửa ổn thoả và connect tới FB (Hay bất cứ kênh nào) sẽ clear trong Redis
+  - Trường hợp k sử lý hoặc tắt nhầm, sau 5min sẽ tự động clear

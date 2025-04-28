@@ -1,5 +1,6 @@
 "use client";
 
+import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
 import { useEffect, useState } from "react";
 
 import Loading from "@/components/loading/Loading";
@@ -254,12 +255,18 @@ export default function TemplateClient({
 
     return;
   };
-  /**
-   * Hàm gọi API thêm tài liệu
-   * @param data Danh sách các món ăn đã được thêm ảnh mô tả
-   * @param results Kết quả tìm kiếm thông tin cửa hàng
-   */
   const handleAddDocument = async (data: any, results: any) => {
+    /** Ensure sessionId is a string (fall back to a default string if undefined) */
+    let session_id: string = getSessionId() ?? generateSessionId(); // Fallback to generateSessionId if undefined
+
+    /** If sessionId was newly generated, store it in cookies */
+    if (!getSessionId()) {
+      storeSessionId(session_id);
+    }
+    /** Tajo 1 delay */
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
     /** Sản phẩm mới */
     const NEW_PRODUCT = data.map((product: any) => ({
       id: product.id,
@@ -271,40 +278,42 @@ export default function TemplateClient({
     }));
 
     try {
-      /** Xóa hết dữ liệu sản phẩm (chỉ dùng trong dev) */
-      await fetch("/api/products", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      });
+      /** Xóa hết dữ liệu sản phẩm */
+      // const deleteRes = await fetch("/api/products", {
+      //   method: "DELETE",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ sessionId }), // Send sessionId
+      // });
 
-      setTimeout(() => {
-        console.log("✅ Đã xóa sản phẩm cũ");
-      }, 1000);
+      // if (!deleteRes.ok) {
+      //   console.error("❌ Lỗi khi xóa sản phẩm");
+      //   return;
+      // }
 
-      /** Gửi sản phẩm mới lưu tạm với API*/
+      // console.log("✅ Đã gửi yêu cầu xoá sản phẩm cũ");
+
+      // /** Chờ 1 giây trước khi add lại */
+      // await delay(1000);
+
+      /** Gửi sản phẩm mới */
       const PRODUCT_RES = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(NEW_PRODUCT),
+        body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
       });
-      /**
-       * Kiểm tra xem có lỗi không
-       */
+
       if (!PRODUCT_RES.ok) {
-        console.error("Lỗi khi thêm sản phẩm");
         return;
       }
 
       console.log("✅ Sản phẩm đã được thêm");
 
-      /**  Gửi thông tin cửa hàng (nếu có) */
+      /** Gửi thông tin cửa hàng (nếu có) */
       if (results?.content) {
-        /** Gửi thông tin cửa hàng */
         const SHOP_INFO_RES = await fetch("/api/shop-info", {
           method: "PUT",
-          body: results.content,
+          body: JSON.stringify({ session_id, content: results.content }),
         });
-        /** Kiểm tra xem có lỗi không */
         if (SHOP_INFO_RES.ok) {
           console.log("✅ Cập nhật thông tin cửa hàng thành công");
         } else {
@@ -312,10 +321,10 @@ export default function TemplateClient({
         }
       }
 
-      setTimeout(() => {
-        /** Chuyển trang sau khi thành công */
-        ROUTER.push("/editor");
-      }, 1000);
+      /** Sau khi thành công, chờ 500ms rồi chuyển trang */
+      await delay(500);
+      /** Chuyển trang */
+      ROUTER.push("/editor"); // Custom router navigation (not using next/router)
     } catch (error) {
       console.error("Lỗi mạng hoặc server:", error);
     } finally {

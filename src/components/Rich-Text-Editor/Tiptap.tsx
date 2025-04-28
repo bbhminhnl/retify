@@ -111,13 +111,19 @@ const Tiptap = () => {
       try {
         /** Gọi API lấy dữ liệu sản phẩm và shop info */
         const [productRes, shopRes] = await Promise.all([
-          fetch("/api/products"),
-          fetch("/api/shop-info"),
+          fetch(`/api/products`, {
+            headers: { "Cache-Control": "no-store" },
+          }),
+          fetch(`/api/shop-info`, {
+            headers: { "Cache-Control": "no-store" },
+          }),
         ]);
+
         /** Parse Sản phẩm */
         const PRODUCT_DATA = await productRes.json();
         /** Parse thông tin shop */
         const SHOP_DATA = await shopRes.json();
+
         /** Lưu lại data Product */
         setProducts(PRODUCT_DATA || []);
         /** Lưu lại thông tin shop */
