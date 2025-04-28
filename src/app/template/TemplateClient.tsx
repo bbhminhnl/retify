@@ -149,9 +149,11 @@ export default function TemplateClient({
        */
       const PARSED_MENU = rawData;
       /** Set luôn data = raw data, bỏ qua bước xử lý ảnh */
-      // setData(PARSED_MENU);
-      // setLoading(false);
-      // return;
+      setData(PARSED_MENU);
+      /** Tắt loading */
+      setLoading(false);
+      return;
+
       // Giả sử rawData đã là JSON
       /** Kiểm tra danh sách cơ bản có image_url */
       const HAS_IMAGE_URL = PARSED_MENU.every((item: any) => !!item.image_url);

@@ -9,25 +9,30 @@ export default function ConnectHandler({
 }: {
   onComplete?: (e?: string | undefined) => void;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  /** Router */
+  const ROUTER = useRouter();
+  /** SearchParams */
+  const SEARCH_PARAMS = useSearchParams();
 
   useEffect(() => {
-    const accessToken = searchParams.get("access_token");
+    /** Lấy Access Token từ URL */
+    const ACCESS_TOKEN = SEARCH_PARAMS.get("access_token");
 
-    if (accessToken) {
-      // Xử lý token
-      localStorage.setItem("accessToken", accessToken);
-
-      // Xóa param từ URL
-      const newParams = new URLSearchParams(searchParams.toString());
-      newParams.delete("access_token");
-      router.replace(`?${newParams.toString()}`, { scroll: false });
-
-      // Gọi callback khi hoàn thành
-      onComplete?.(accessToken);
+    /** Nếu có URL thì lưu vào Local Storage */
+    if (ACCESS_TOKEN) {
+      /** Xử lý token */
+      localStorage.setItem("access_token", ACCESS_TOKEN);
+      /** Xóa param từ URL */
+      const NEW_PARAMS = new URLSearchParams(SEARCH_PARAMS.toString());
+      /** Xoá params trong token */
+      NEW_PARAMS.delete("access_token");
+      /** Xoá params trong URL */
+      ROUTER.replace(`?${NEW_PARAMS.toString()}`, { scroll: false });
+      /**  Gọi callback khi hoàn thành*/
+      onComplete?.(ACCESS_TOKEN);
     }
-  }, [searchParams, router, onComplete]);
+  }, [SEARCH_PARAMS, ROUTER, onComplete]);
 
-  return null; // Component này không render UI
+  /** Component này không render UI */
+  return null;
 }

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { find, get, has, keys } from "lodash";
 
 import ConnectHandler from "../components/ConnectHandler";
+import Loading from "@/components/loading/Loading";
 import { MOCK_DATA } from "@/utils/data";
 import { UserProfile } from "@/types";
 import { fetchApi } from "@/services/fetchApi";
@@ -29,10 +30,17 @@ type Product = {
    */
   cost: number;
 };
+/** kiểu dữ liệu page */
+type IPageProps = {
+  /** ID Tổ chức */
+  org_id: string;
+  /** ID Page */
+  page_id: string;
+};
+
 const ConnectInstall = () => {
   /** State accessToken*/
   const [access_token, setAccessToken] = useState<any>("");
-
   /** Danh sách page*/
   const [pages, setPages] = useState<UserProfile[]>([]);
   /** Danh sách product */
@@ -41,39 +49,16 @@ const ConnectInstall = () => {
   const [selected_page, setSelectedPage] = useState<string>("");
   /** Chatbox token */
   const [chatbox_token, setChatboxToken] = useState<string>("");
-
+  /** Token merchant */
   const [token_merchant, setTokenMerchant] = useState("");
-  /** Router */
-  // const ROUTER = useRouter();
-  /**
-   * Lấy search params
-   */
-  // const SEARCH_PARAMS = useSearchParams();
+  /** loading */
+  const [loading, setLoading] = useState(false);
+  /** Text loading */
+  const [loading_text, setLoadingText] = useState("");
+  /** Chọn Tổ chức để thêm page vào*/
+  const [organization, setOrganization] = useState([]);
 
-  // useEffect(() => {
-  //   /**
-  //    * Lấy access token
-  //    */
-  //   const ACCESS_TOKEN = SEARCH_PARAMS.get("access_token");
-  //   /**
-  //    * Nếu có access token thì lưu vào localStorage
-  //    */
-  //   if (ACCESS_TOKEN) {
-  //     // localStorage.setItem("accessToken", ACCESS_TOKEN);
-  //     setAccessToken(ACCESS_TOKEN);
-
-  //     /** Xoá accessToken khỏi URL */
-  //     const NEW_PARAMS = new URLSearchParams(SEARCH_PARAMS.toString());
-  //     /** Xoá access token */
-  //     NEW_PARAMS.delete("access_token");
-  //     /** Replace */
-  //     ROUTER.replace(`/connect?${NEW_PARAMS.toString()}`);
-  //   }
-  // }, [SEARCH_PARAMS, ROUTER]);
-
-  /**
-   * Finish Installing
-   */
+  /** Finish Installing */
   const [finish_installing, setFinishInstalling] = useState(false);
 
   /** Lấy đata products */
@@ -95,29 +80,17 @@ const ConnectInstall = () => {
   };
 
   useEffect(() => {
-    /** Lấy dữ liệu sản phẩm */
-    fetchProducts();
-  }, []);
-
-  /** loading */
-  const [loading, setLoading] = useState(false);
-  /** Text loading */
-  const [loading_text, setLoadingText] = useState("");
-
-  /**
-   * Chọn Tổ chức để thêm page vào
-   */
-  const [organization, setOrganization] = useState([]);
-
-  useEffect(() => {
     /**
      * Nếu có token thì lấy danh sách page
      */
     if (access_token) {
       /** Lấy danh sách page */
       fetchPageFacebook();
+      /** Lấy danh sách sản phẩm */
+      fetchProducts();
     }
   }, [access_token]);
+
   /**
    * Lay danh sach page
    */
@@ -148,10 +121,9 @@ const ConnectInstall = () => {
   /**
    * Login vào retion
    * @param PAGE_ID
+   * @returns Access token
    */
   const onLogin = async (PAGE_ID: string) => {
-    /** Cập nhật text */
-    setLoadingText("Installing...");
     try {
       /**
        * Domain login
@@ -164,39 +136,31 @@ const ConnectInstall = () => {
       const HEADERS = {};
       /** RES */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+
+      console.log(DATA, "DATA");
+
+      if (DATA?.code !== 200) {
+        return "error";
+      }
       /**
        * Kiem tra data
        */
-      const ACCESS_TOKEN = DATA.data.access_token;
-
-      setChatboxToken(ACCESS_TOKEN);
-
-      /**
-       * Nếu co token thì lấy danh sách page
-       */
-      if (ACCESS_TOKEN) {
-        /**
-         * Add vào REtion
-         */
-        fetchAddPageToRetion(ACCESS_TOKEN, PAGE_ID);
-      }
-      console.log(DATA);
+      const ACCESS_TOKEN = DATA?.data?.access_token;
+      /** Return Token */
+      return ACCESS_TOKEN;
     } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
+      return "error";
     } finally {
-      //   setLoading(false);
-      //   setLoadingText("");
     }
   };
 
   /**
    *  Hàm thêm page vào Tổ chức
    * @param ACCESS_TOKEN
+   * @returns List org
    */
-  const fetchAddPageToRetion = async (
-    ACCESS_TOKEN: string,
-    PAGE_ID: string
-  ) => {
+  const fetchListOrg = async (ACCESS_TOKEN: string) => {
     try {
       /**
        * DOmain org
@@ -210,13 +174,19 @@ const ConnectInstall = () => {
         "POST",
         {},
         {
-          Authorization: `${ACCESS_TOKEN}`,
+          Authorization: ACCESS_TOKEN,
         }
       );
       /**
        * Parse data
        */
-      console.log(ORG_DATA);
+      console.log(ORG_DATA, "org_data");
+
+      if (ORG_DATA?.code !== 200) {
+        return "error";
+      }
+      return ORG_DATA?.data;
+
       /** Lấy thông tin ORG */
       setOrganization(ORG_DATA.data);
 
@@ -253,7 +223,105 @@ const ConnectInstall = () => {
       //   }
       //   console.log(DATA);
     } catch (error) {
+      return "error";
+    }
+  };
+
+  /**
+   * Hàm chọn BM để add Page vào
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param ACCESS_TOKEN
+   */
+  const handleConnectToChatBox = async (
+    ORG_ID: string,
+    PAGE_ID: string,
+    ACCESS_TOKEN: string
+  ) => {
+    /** ===================== Thêm page vào Chatbox ======================== */
+    setLoadingText("Đang thêm Trang vào Tổ chức");
+    /** Kiểm tra page đã tồn tại chưa */
+    const IS_EXIST_PAGE = await checkExistPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+    /** Nếu chưa tồn tại thì thêm page */
+    if (!IS_EXIST_PAGE) {
+      const ADD_PAGE_STATUS = await addPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+      /** Trạng thái Add page */
+      if (!ADD_PAGE_STATUS) {
+        /** Tắt loading */
+        setLoading(false);
+
+        /** Cập nhật Text Message */
+        setLoadingText("Đã xảy ra lỗi, thêm Trang không thành công!");
+
+        setTimeout(() => {
+          setLoadingText("");
+        }, 2000);
+        return;
+      }
+      /** Trạng Thái đạt giới hạn gọi sử dụng */
+      if (ADD_PAGE_STATUS === "REACH_QUOTA.PAGE") {
+        /** Tắt loading */
+        setLoading(false);
+
+        /** Cập nhật Text Message */
+        setLoadingText(
+          "Đã đạt giới hạn Trang trong Tổ chức, thêm Trang không thành công!"
+        );
+
+        setTimeout(() => {
+          setLoadingText("");
+        }, 2000);
+        return;
+      }
+    }
+
+    /** ================== Lấy danh sách AGENT ==================== */
+    /** Cập nhật tin nhắn */
+    setLoadingText("Đang cài đặt trợ lý ảo ...");
+
+    /** Lấy Thông tin Agent */
+    const IS_EXIST_AGENT = await fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+
+    console.log(IS_EXIST_AGENT);
+  };
+
+  /**
+   * Hàm chọn BM để add Page vào
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param ACCESS_TOKEN
+   */
+  const checkExistPage = async (
+    ORG_ID: string,
+    PAGE_ID: string,
+    ACCESS_TOKEN: string
+  ) => {
+    try {
+      /**
+       * Domain add page
+       */
+      const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/read_page`;
+      /** Khai báo body */
+      const BODY = {
+        org_id: ORG_ID,
+      };
+      /** Khai báo Header */
+      const HEADERS = {
+        Authorization: ACCESS_TOKEN,
+      };
+      /** Thêm page vào Tổ chức */
+      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+
+      const EXISTS = DATA?.data.some(
+        (item: IPageProps) => item.page_id === PAGE_ID
+      );
+      return EXISTS;
+    } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
+      return false;
+    } finally {
+      //   setLoading(false);
+      //   setLoadingText("");
     }
   };
   /**
@@ -285,16 +353,24 @@ const ConnectInstall = () => {
       };
       /** Thêm page vào Tổ chức */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+
+      if (DATA?.code === 200) {
+        return true;
+      } else {
+        return DATA?.message;
+      }
+
       /**
        * Parse data
        */
-      if (DATA?.code === 200) {
-        /** Lấy danh sách page */
-        fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-      }
+      // if (DATA?.code === 200) {
+      //   /** Lấy danh sách page */
+      //   fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+      // }
       //   }
     } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
+      return false;
     } finally {
       //   setLoading(false);
       //   setLoadingText("");
@@ -325,22 +401,23 @@ const ConnectInstall = () => {
       };
       /** Khai báo Header */
       const HEADERS = {
-        Authorization: ACCESS_TOKEN,
+        Authorization: "ACCESS_TOKEN",
       };
       /** Call API lấy danh sách agent */
       const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
       /**
        *  Parse data
        */
-
+      console.log(DATA, "Data");
       if (DATA?.data?.length === 0) {
         /** Tạo agent */
-        createAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+        // createAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
+        return false;
       } else {
         /** Nếu có rồi thì chọn agent 1 và thêm kiến kiến thức */
         console.log("Có agent rồi");
         const AGENT_ID = DATA?.data[0]?.fb_page_id;
-
+        return AGENT_ID;
         /** Bật trợ lý ảo và chọn Trợ lý ảo cho page */
         updateSettingPage(ACCESS_TOKEN, ORG_ID, PAGE_ID, AGENT_ID);
 
@@ -352,6 +429,7 @@ const ConnectInstall = () => {
       console.log(DATA);
     } catch (error) {
       console.error("Loi khi lay danh sach Pages:", error);
+      return "error";
     }
   };
   /** Cập nhật setting page Bật trợ lý ảo và chọn Trợ lý ảo mới tạo
@@ -975,15 +1053,52 @@ const ConnectInstall = () => {
    * Handle connect page
    * @param PAGE_ID
    */
-  const handleConnectPage = (PAGE_ID: string) => {
+  const handleConnectPage = async (PAGE_ID: string) => {
+    /**================== Cập nhật trạng thái =================== */
     /** Bắt đầu loading */
     setLoading(true);
     /** Hiện text tiến trình */
     setLoadingText("Start installing...");
-    /**
-     * Lay danh sach page
-     */
-    onLogin(PAGE_ID);
+
+    /**================== Login =================== */
+    /** Cập nhạt Text tiến trình */
+    setLoadingText("Installing...");
+    /**  */
+    const ACCESS_TOKEN = await onLogin(PAGE_ID);
+    /** Kiểm tra token được return */
+    if (ACCESS_TOKEN === "error" || !ACCESS_TOKEN) {
+      /** Nếu có lỗi thì tắt loading */
+      setLoading(false);
+
+      setLoadingText("Token không chính xác!");
+
+      setTimeout(() => {
+        setLoadingText("");
+      }, 2000);
+
+      return;
+    }
+    /** Lưu token và state */
+    setChatboxToken(ACCESS_TOKEN);
+    /** ======================= Lấy danh sách page Retion ======================== */
+    setLoadingText("Fetching organization...");
+    /** Danh sách Tổ chức */
+    const LIST_ORG = await fetchListOrg(ACCESS_TOKEN);
+    /** Nếu không có Tổ chức, hoặc lỗi error */
+    if (LIST_ORG === "error" || !LIST_ORG) {
+      /** Nếu có lỗi thì tắt loading */
+      setLoading(false);
+      /** Cập nhật text */
+      setLoadingText("Lấy Danh sách Tổ chức không thành công!");
+      /** Sau 2s thì reset Text */
+      setTimeout(() => {
+        setLoadingText("");
+      }, 2000);
+
+      return;
+    }
+
+    setOrganization(LIST_ORG);
   };
 
   return (
@@ -998,18 +1113,6 @@ const ConnectInstall = () => {
         />
       </Suspense>
 
-      {/* {!access_token && !loading && !loading_text && !finish_installing && (
-        <div className="flex items-center justify-center h-full w-full">
-          <div className="h-10 w-80">
-            <iframe
-              loading="lazy"
-              className="relative z-[2] w-full h-full"
-              src='https://botbanhang.vn/cross-login-facebook?app_id=1282108599314861&amp;option={"return_scopes":true,"auth_type":"rerequest","enable_profile_selector":true,"scope":"public_profile,pages_show_list,pages_read_engagement,pages_messaging,email,pages_read_user_content,instagram_manage_comments,instagram_manage_insights,business_management,ads_management,read_insights,pages_manage_metadata,pages_manage_ads,pages_manage_posts,pages_manage_engagement,page_events"}&amp;text=Tiếp tục với Facebook&amp;btn_style=display%3Aflex%3Bjustify-content%3Acenter%3Bwidth%3A100%25%3Bheight%3A100%25%3Balign-items%3Acenter%3Bgap%3A0.5rem%3Bbackground-color%3A%23f1f5f9%3Bborder-radius%3A0.375rem%3Bcolor%3A%230f172a%3Bfont-size%3A16px%3Bfont-weight%3A500%3Bborder-color%3A%23e2e8f0%3Bborder-width%3A1px'
-              frameBorder="none"
-            ></iframe>
-          </div>
-        </div>
-      )} */}
       {access_token && !loading && !loading_text && !finish_installing && (
         <div className="h-full">
           <h2>Select Page</h2>
@@ -1048,7 +1151,11 @@ const ConnectInstall = () => {
                 className="flex items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
                 onClick={() => {
                   console.log(org, "checkkk", chatbox_token);
-                  addPage(org?.org_id, selected_page, chatbox_token);
+                  handleConnectToChatBox(
+                    org?.org_id,
+                    selected_page,
+                    chatbox_token
+                  );
                   setOrganization([]);
                 }}
               >
@@ -1071,7 +1178,7 @@ const ConnectInstall = () => {
       <div className="flex h-full w-full flex-col items-center justify-center gap-y-5">
         {loading && (
           <div className="flex items-center justify-center h-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            <Loading size="lg" />
           </div>
         )}
         {
