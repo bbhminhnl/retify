@@ -61,6 +61,9 @@ const ConnectInstall = () => {
   /** Finish Installing */
   const [finish_installing, setFinishInstalling] = useState(false);
 
+  /** Partner Token */
+  const [partner_token, setPartnerToken] = useState("");
+
   /** Hàm Error
    * @param message
    * @returns void
@@ -202,42 +205,6 @@ const ConnectInstall = () => {
         return "error";
       }
       return ORG_DATA?.data;
-
-      /** Lấy thông tin ORG */
-      setOrganization(ORG_DATA.data);
-
-      // addPage("7bd3ac17116c4aacb2e9e55ba0330388", PAGE_ID, ACCESS_TOKEN);
-
-      //   /**
-      //    * Lay id org
-      //    */
-      //   const ORG_ID = ORG_DATA.data[0].org_id;
-      //   /**
-      //    * Domain add page
-      //    */
-      //   const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
-      //   /**
-      //    * Khai báo body
-      //    */
-      //   const BODY = {
-      //     org_id: ORG_ID,
-      //     page_id: PAGE_ID,
-      //   };
-      //   /** Khai báo header */
-      //   const HEADERS = {
-      //     Authorization: `${ACCESS_TOKEN}`,
-      //   };
-
-      //   /** Thêm page vào Tổ chức */
-      //   const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-      //   /**
-      //    * Parse data
-      //    */
-      //   if (DATA?.code === 200) {
-      //     /** Lấy danh sách page */
-      //     fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-      //   }
-      //   console.log(DATA);
     } catch (error) {
       return "error";
     }
@@ -254,84 +221,155 @@ const ConnectInstall = () => {
     PAGE_ID: string,
     ACCESS_TOKEN: string
   ) => {
-    try {
-      /** ===================== Thêm page vào Chatbox ======================== */
-      setLoadingText("Đang thêm Trang vào Tổ chức");
-      /** Kiểm tra page đã tồn tại chưa */
-      const IS_EXIST_PAGE = await checkExistPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
-      /** Nếu chưa tồn tại thì thêm page */
-      if (!IS_EXIST_PAGE) {
-        await addPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
-      }
+    /** ===================== Thêm page vào Chatbox ======================== */
+    setLoadingText("Đang thêm Trang vào Tổ chức");
+    /** Kiểm tra page đã tồn tại chưa */
+    const IS_EXIST_PAGE = await checkExistPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+    /** Nếu chưa tồn tại thì thêm page */
+    if (!IS_EXIST_PAGE) {
+      await addPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+    }
 
-      /** ================== Lấy danh sách AGENT ==================== */
-      /** Cập nhật tin nhắn */
-      setLoadingText("Đang cài đặt trợ lý ảo ...");
-      /** Thông tin info */
-      let agent_info = await fetchAgent(ORG_ID);
+    /** ================== Lấy danh sách AGENT ==================== */
+    /** Cập nhật tin nhắn */
+    setLoadingText("Đang cài đặt trợ lý ảo ...");
+    /** Thông tin info */
+    let agent_info = await fetchAgent(ORG_ID);
 
-      /** Nếu không có thống tin trợ lý tin thì Tạo mới */
-      if (!agent_info) {
-        /** Kết quả khởi tạo trợ lý Ảo */
-        const AGENT_CREATE_RESULT = await createAgent(ACCESS_TOKEN, ORG_ID);
+    /** Nếu không có thống tin trợ lý tin thì Tạo mới */
+    if (!agent_info) {
+      /** Kết quả khởi tạo trợ lý Ảo */
+      const AGENT_CREATE_RESULT = await createAgent(ACCESS_TOKEN, ORG_ID);
 
-        /** Nếu createAgent trả về true hoặc không có ID => fetch lại agent_info */
-        if (AGENT_CREATE_RESULT) {
-          /** Lấy thông tin trợ lý ảo */
-          agent_info = await fetchAgent(ORG_ID);
+      /** Nếu createAgent trả về true hoặc không có ID => fetch lại agent_info */
+      if (AGENT_CREATE_RESULT) {
+        /** Lấy thông tin trợ lý ảo */
+        agent_info = await fetchAgent(ORG_ID);
 
-          if (!agent_info) {
-            return handleError(
-              "Tạo trợ lý ảo thành công nhưng lấy thông tin thất bại!"
-            );
-          }
+        if (!agent_info) {
+          return handleError(
+            "Tạo trợ lý ảo thành công nhưng lấy thông tin thất bại!"
+          );
         }
       }
-      /** ================== Cập nhật Setting ==================== */
-      /** Cập nhật text */
-      setLoadingText("Đang cập nhật Thiết lập trợ lý ảo ...");
-      /** Cập nhật Setting  */
-      await updateSettingPage({
-        ACCESS_TOKEN,
-        PAGE_ID,
-        AGENT_ID: agent_info,
-      });
+    }
+    /** ================== Cập nhật Setting ==================== */
+    /** Cập nhật text */
+    setLoadingText("Đang cập nhật Thiết lập trợ lý ảo ...");
+    /** Cập nhật Setting  */
+    await updateSettingPage({
+      ACCESS_TOKEN,
+      PAGE_ID,
+      AGENT_ID: agent_info,
+    });
 
-      /** ========== Tải lên file tài liệu ===========*/
-      /** Update text */
-      setLoadingText("Tải lên tài liệu ...");
-      /** Gọi hàm upload tài liệu */
-      const UPLOAD_DATA = await uploadData(ORG_ID, ACCESS_TOKEN, agent_info);
-      /** Kiểm tra thông tin lỗi */
+    /** ========== Tải lên file tài liệu ===========*/
+    /** Update text */
+    setLoadingText("Tải lên tài liệu ...");
+    /** Gọi hàm upload tài liệu */
+    const UPLOAD_DATA = await uploadData(ACCESS_TOKEN, ORG_ID, agent_info);
+    /** Kiểm tra thông tin lỗi */
 
-      /** ================ Thêm tài liệu cho Trợ lý ảo ============= */
-      /** Cập nhật text */
-      setLoadingText("Thêm tài liệu cho trợ lý ảo ...");
-      /** Gọi hàm add knowledge */
-      await addKnowledge(ACCESS_TOKEN, ORG_ID, agent_info, UPLOAD_DATA);
+    /** ================ Thêm tài liệu cho Trợ lý ảo ============= */
+    /** Cập nhật text */
+    setLoadingText("Thêm tài liệu cho trợ lý ảo ...");
+    /** Gọi hàm add knowledge */
+    await addKnowledge(ACCESS_TOKEN, ORG_ID, agent_info, UPLOAD_DATA);
 
-      /** Cập nhật text message */
+    /** Cập nhật text message */
 
-      setLoadingText("Cài đặt Chatbox thành công!");
+    setLoadingText("Cài đặt Chatbox thành công!");
+  };
 
-      /** ================== Kết nối với Merchant ==================== */
-      /** Cập nhật text */
+  const handleConnectToMerchant = async (
+    ORG_ID: string,
+    PAGE_ID: string,
+    ACCESS_TOKEN: string
+  ) => {
+    /** Cập nhật Loading Text */
+    setLoadingText("Đang kết nối với Merchant");
+    /** Gọi hàm lấy Token Partner */
+    const PARTNER_TOKEN = await fetchTokenPartner(
+      ACCESS_TOKEN,
+      ORG_ID,
+      PAGE_ID
+    );
 
-      /** Tải lên kiến thức */
+    setPartnerToken(PARTNER_TOKEN);
+    /** Gọi hàm lấy Token merchant */
+    const TOKEN_MERCHANT = await fetchTokenMerchant(PARTNER_TOKEN, PAGE_ID);
+    setTokenMerchant(TOKEN_MERCHANT);
+
+    /** Tạo sản phẩm đồng bộ sang Merchant */
+    setLoadingText("Đang đồng bộ sản phẩm với Merchant");
+    /** GỌi hàm Tạo sản phẩm Merchant */
+    await createAllProducts(TOKEN_MERCHANT, PAGE_ID);
+  };
+
+  /** Function chính
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param ACCESS_TOKEN
+   */
+  const mainFunction = async (
+    ORG_ID: string,
+    PAGE_ID: string,
+    ACCESS_TOKEN: string
+  ) => {
+    try {
+      await handleConnectToChatBox(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+      await handleConnectToMerchant(ORG_ID, PAGE_ID, ACCESS_TOKEN);
     } catch (error) {
-      console.log(error, "checkkkkkkkkkkkkkkkk");
+      /** Hiện lỗi */
+      handleErrorByCode(error, handleError);
+    }
+  };
 
-      /** Trạng Thái đạt giới hạn gọi sử dụng */
-      if (error === "REACH_QUOTA.PAGE") {
-        /** Gọi hàm handle error */
+  /** Hàm xử lý Error
+   * @param error
+   * @param handleError
+   */
+  function handleErrorByCode(
+    error: any,
+    handleError: (msg: string) => void
+  ): void {
+    /** Nếu không có lỗi báo lỗi không xác định */
+    if (!error) {
+      handleError("Đã xảy ra lỗi không xác định.");
+      return;
+    }
+
+    const ERROR =
+      typeof error === "string" ? error : error?.code || error?.message;
+
+    switch (ERROR) {
+      case "REACH_QUOTA.PAGE":
         handleError(
           "Đã đạt giới hạn Trang trong Tổ chức, thêm Trang không thành công!"
         );
+        break;
 
-        return;
-      }
+      case "LIMIT_DOCUMENT":
+        handleError(
+          "Đã đạt giới hạn Tải lên tài liệu của Tổ chức, Thêm tài liệu không thành công!"
+        );
+        break;
+
+      case "LIMIT_SIZE":
+        handleError(
+          "Dung lượng file tải lên quá lớn, Thêm tài liệu không thành công!"
+        );
+        break;
+
+      case "jwt malformed":
+        handleError("Token không hợp lệ, Kết nối không thành công!");
+        break;
+
+      default:
+        handleError(`Đã xảy ra lỗi: ${error?.message || error}`);
+        break;
     }
-  };
+  }
 
   /**
    * Hàm chọn BM để add Page vào
@@ -483,44 +521,41 @@ const ConnectInstall = () => {
     ORG_ID: string,
     PAGE_ID: string
   ) => {
-    /** Cập nhật text */
-    setLoadingText("Connecting to CRM...");
-    try {
-      /**
-       * Domain add page
-       */
-      const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/get_page_info_to_chat`;
-      /** Khai báo body */
-      const BODY = {
-        org_id: ORG_ID,
-        list_page_id: [PAGE_ID],
-      };
-      /** Khai báo Header */
-      const HEADERS = {
-        Authorization: ACCESS_TOKEN,
-      };
-      /**
-       * fetch Data
-       */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    /** Domain add page */
+    const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/get_page_info_to_chat`;
+    /** Khai báo body */
+    const BODY = {
+      org_id: ORG_ID,
+      list_page_id: [PAGE_ID],
+    };
+    /** Khai báo Header */
+    const HEADERS = {
+      Authorization: ACCESS_TOKEN,
+    };
+    /** fetch Data*/
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
 
-      /** Lấy danh sách các key trong `data` */
-      const DATA_KEYS = keys(DATA.data);
+    /** Throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
+    }
 
-      /**Tìm key nào chứa `partner_token` */
-      const KEY_WITH_PARTNER_TOKEN = find(DATA_KEYS, (key) =>
-        has(DATA.data[key], "partner_token")
-      );
+    /** Lấy danh sách các key trong `data` */
+    const DATA_KEYS = keys(DATA.data);
 
-      /** Nếu tìm thấy `partner_token`, lấy giá trị của nó */
-      const PARTNER_TOKEN = KEY_WITH_PARTNER_TOKEN
-        ? get(DATA, `data.${KEY_WITH_PARTNER_TOKEN}.partner_token`, null)
-        : null;
-      console.log(PARTNER_TOKEN);
+    /**Tìm key nào chứa `partner_token` */
+    const KEY_WITH_PARTNER_TOKEN = find(DATA_KEYS, (key) =>
+      has(DATA.data[key], "partner_token")
+    );
 
-      /**   createProductMerchant(PARTNER_TOKEN, ORG_ID, PAGE_ID); */
-      fetchTokenMerchant(PARTNER_TOKEN, PAGE_ID);
-    } catch (error) {}
+    /** Nếu tìm thấy `partner_token`, lấy giá trị của nó */
+    const PARTNER_TOKEN = KEY_WITH_PARTNER_TOKEN
+      ? get(DATA, `data.${KEY_WITH_PARTNER_TOKEN}.partner_token`, null)
+      : null;
+    console.log(PARTNER_TOKEN);
+    return PARTNER_TOKEN;
+
+    // fetchTokenMerchant(PARTNER_TOKEN, PAGE_ID);
   };
 
   /** Lấy client ID
@@ -528,27 +563,20 @@ const ConnectInstall = () => {
    * @returns
    */
   const fetchClientId = async (page_id: string) => {
-    try {
-      /** Domain Merchant */
-      const DOMAIN = `https://chatbox-public-v2.botbanhang.vn/embed/conversation/init_identify?name=anonymous&page_id=${page_id}`;
+    /** Domain Merchant */
+    const DOMAIN = `https://chatbox-public-v2.botbanhang.vn/embed/conversation/init_identify?name=anonymous&page_id=${page_id}`;
 
-      /** Gọi API */
-      const RESPONSE = await fetch(DOMAIN);
+    /** Gọi API */
+    const RESPONSE = await fetch(DOMAIN);
 
-      /** Kiểm tra lỗi HTTP */
-      if (!RESPONSE.ok) {
-        throw new Error(`Lỗi khi fetch: ${RESPONSE.status}`);
-      }
-
-      /** Parse JSON */
-      const DATA = await RESPONSE.json();
-
-      /** Trả ra client ID */
-      return DATA?.data;
-    } catch (error) {
-      console.error("Lỗi khi lấy client ID:", error);
-      return null; // hoặc throw lại nếu muốn xử lý phía trên
+    /** Parse JSON */
+    const DATA = await RESPONSE.json();
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
     }
+    console.log(DATA, "RESPONSE");
+    /** Trả ra client ID */
+    return DATA?.data;
   };
 
   /**
@@ -560,37 +588,26 @@ const ConnectInstall = () => {
     /** Chat Domain */
     const DOMAIN = `https://api.merchant.vn/v1/public/chatbox/get_config`;
 
-    /**
-     * Khai báo body
-     */
+    /** Khai báo body*/
     const CLIENT_ID = await fetchClientId(PAGE_ID);
 
-    /**
-     * Body
-     */
+    /** Body*/
     const BODY = {
       access_token: ACCESS_TOKEN,
-      //   client_id: "29877270768526767",
       client_id: CLIENT_ID,
-      // client_id: "9907822685912987",
-      //   secret_key: "0cf5516973a145929ff36d3303183e5f",
       secret_key: "6f8b22eebe1d4d93b2f4a618901df020",
     };
-    /**
-     * fetch Data
-     */
+    /** fetch Data*/
     const DATA = await fetchApi(DOMAIN, "POST", BODY, {});
-    /**
-     * Token merchatn
-     */
-    const TOKEN_MERCHANT = DATA?.data?.access_token;
 
-    setTokenMerchant(TOKEN_MERCHANT);
-    /**
-     * Tạo sản phẩm
-     */
-    createAllProducts(TOKEN_MERCHANT, PAGE_ID);
-    console.log(DATA, "data");
+    /** Throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
+    }
+    /** Token merchatn*/
+    const TOKEN_MERCHANT = DATA?.data?.access_token;
+    /** Return Token  */
+    return TOKEN_MERCHANT;
   };
   /** Hàm gọi API
    * @param ACCESS_TOKEN
@@ -607,76 +624,63 @@ const ConnectInstall = () => {
       cost: number;
     }
   ) => {
-    try {
-      /** Domain Tạo sản phẩm */
-      const DOMAIN = `https://api-product.merchant.vn/product/create_product`;
+    /** Domain Tạo sản phẩm */
+    const DOMAIN = `https://api-product.merchant.vn/product/create_product`;
 
-      /** Khai báo body */
-      const BODY = {
-        name: product.name, // Thay tên sản phẩm
-        // images: [product.product_image], // Thay ảnh
-        images: [
-          ["", null, undefined, "undefined"].includes(product.product_image)
-            ? "https://i.imgur.com/Lh2vKTL.png"
-            : product.product_image,
+    /** Khai báo body */
+    const BODY = {
+      name: product.name, // Thay tên sản phẩm
+      images: [
+        ["", null, undefined, "undefined"].includes(product.product_image)
+          ? "https://i.imgur.com/Lh2vKTL.png"
+          : product.product_image,
+      ],
+      price: product.price,
+      cost: product?.cost || product?.price, // Thay giá gốc
+      wholesale_price: 0,
+      max_inventory_quantity: 0,
+      min_inventory_quantity: 0,
+      status: "ACTIVE",
+      type: "product",
+      sold_when_quantity_runs_out: false,
+      weight: 0,
+      length: 0,
+      width: 0,
+      height: 0,
+      vat: 0,
+      custom_fields: {
+        revenue_allocation: false,
+        commission_allocation: false,
+        departments_allocated_commissions: [
+          {
+            department_id: "",
+            commission: 0,
+            commission_type: "percentage",
+            max_commission: 0,
+          },
         ],
-        price: product.price,
-        cost: product?.cost || product?.price, // Thay giá gốc
-        wholesale_price: 0,
-        max_inventory_quantity: 0,
-        min_inventory_quantity: 0,
-        status: "ACTIVE",
-        type: "product",
-        sold_when_quantity_runs_out: false,
-        weight: 0,
-        length: 0,
-        width: 0,
-        height: 0,
-        vat: 0,
-        custom_fields: {
-          revenue_allocation: false,
-          commission_allocation: false,
-          departments_allocated_commissions: [
-            {
-              department_id: "",
-              commission: 0,
-              commission_type: "percentage",
-              max_commission: 0,
-            },
-          ],
-          calculate_commission_for_marketing: false,
-          value_gradually_decreases: null,
-        },
-        description: "SP Test",
-        service_fee: null,
-      };
+        calculate_commission_for_marketing: false,
+        value_gradually_decreases: null,
+      },
+      description: "SP Test",
+      service_fee: null,
+    };
 
-      /** Khai báo Header */
-      const HEADERS = {
-        "token-business": ACCESS_TOKEN,
-        accept: "application/json, text/plain, */*",
-      };
+    /** Khai báo Header */
+    const HEADERS = {
+      "token-business": ACCESS_TOKEN,
+      accept: "application/json, text/plain, */*",
+    };
 
-      /** fetch API */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-      console.log(`✅ Tạo sản phẩm ${product.name} thành công`, DATA);
-    } catch (error) {
-      console.error(`❌ Lỗi khi tạo sản phẩm ${product.name}`, error);
-    } finally {
-      // /** Tắt loading */
-      // // setLoading(false);
-      // /**
-      //  * Hiển thị text tiền trình
-      //  */
-      // setLoadingText("The product has been created successfully!");
-      // /**
-      //  * Xoá text sau 5s
-      //  */
-      // // setTimeout(() => {
-      // //   setLoadingText("");
-      // // }, 5000);
-      // setFinishInstalling(true);
-    }
+    /** fetch API */
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    console.log(DATA, "DATA");
+    /** Throw lỗi */
+    // if (DATA?.code !== 200) {
+    //   throw DATA?.message;
+    // }
+
+    console.log(`✅ Tạo sản phẩm ${product.name} thành công`, DATA);
   };
 
   /** Hàm xử lý gọi API cho toàn bộ danh sách sản phẩm
@@ -691,16 +695,16 @@ const ConnectInstall = () => {
       )
     );
     /** update message đã tạo sản phẩm thành công */
-    setLoadingText("Created all products!");
-
+    setLoadingText("Đồng bộ sản phẩm thành công");
+    /** Tắt loading */
+    setLoading(false);
     /**
      * Xoá text sau 5s
      */
     setTimeout(() => {
       setLoadingText("");
-      setLoading(false);
       setFinishInstalling(true);
-    }, 5000);
+    }, 2000);
 
     // fetchListPages(ACCESS_TOKEN, PAGE_ID);
     // console.log("🎉 Hoàn tất tạo tất cả sản phẩm!");
@@ -941,7 +945,6 @@ const ConnectInstall = () => {
    * Tạo Agent
    * @param ACCESS_TOKEN
    * @param ORG_ID
-   * @param PAGE_ID
    */
   const createAgent = async (ACCESS_TOKEN: string, ORG_ID: string) => {
     /** Domain add page*/
@@ -973,11 +976,11 @@ const ConnectInstall = () => {
     /** Bắt đầu loading */
     setLoading(true);
     /** Hiện text tiến trình */
-    setLoadingText("Start installing...");
+    setLoadingText("Bắt đầu cài đặt");
 
     /**================== Login =================== */
     /** Cập nhạt Text tiến trình */
-    setLoadingText("Installing...");
+    setLoadingText("Đang cài đặt");
     /**  */
     const ACCESS_TOKEN = await onLogin(PAGE_ID);
     /** Kiểm tra token được return */
@@ -990,7 +993,7 @@ const ConnectInstall = () => {
     /** Lưu token và state */
     setChatboxToken(ACCESS_TOKEN);
     /** ======================= Lấy danh sách page Retion ======================== */
-    setLoadingText("Fetching organization...");
+    setLoadingText("Đang lấy dữ liệu tổ chức");
     /** Danh sách Tổ chức */
     const LIST_ORG = await fetchListOrg(ACCESS_TOKEN);
     /** Nếu không có Tổ chức, hoặc lỗi error */
@@ -1002,7 +1005,7 @@ const ConnectInstall = () => {
 
       return;
     }
-
+    /** Lưu danh sách Tổ chức */
     setOrganization(LIST_ORG);
   };
 
@@ -1055,12 +1058,7 @@ const ConnectInstall = () => {
                 key={org?.org_id}
                 className="flex items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
                 onClick={() => {
-                  console.log(org, "checkkk", chatbox_token);
-                  handleConnectToChatBox(
-                    org?.org_id,
-                    selected_page,
-                    chatbox_token
-                  );
+                  mainFunction(org?.org_id, selected_page, chatbox_token);
                   setOrganization([]);
                 }}
               >
@@ -1096,7 +1094,7 @@ const ConnectInstall = () => {
             <p className="text-lg text-green-500">Kết nối thành công!</p>
             <a
               // href="https://m.me/414786618395170"
-              href={`https://merchant.vn/login?chat_access_token=${chatbox_token}&redirect=https://merchant.vn/a/product`}
+              href={`https://merchant.vn/login?chat_access_token=${partner_token}&redirect=https://merchant.vn/a/product`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-white px-4 py-2 rounded-md bg-blue-500"
