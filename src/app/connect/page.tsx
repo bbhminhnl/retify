@@ -317,7 +317,9 @@ const ConnectInstall = () => {
     ACCESS_TOKEN: string
   ) => {
     try {
+      /** Kết nối Chatbox */
       await handleConnectToChatBox(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+      /** Kết nối Merchant */
       await handleConnectToMerchant(ORG_ID, PAGE_ID, ACCESS_TOKEN);
     } catch (error) {
       /** Hiện lỗi */
@@ -338,10 +340,10 @@ const ConnectInstall = () => {
       handleError("Đã xảy ra lỗi không xác định.");
       return;
     }
-
+    /** Kiểm tra loại lỗi */
     const ERROR =
       typeof error === "string" ? error : error?.code || error?.message;
-
+    /** Hiện thông tin lỗi */
     switch (ERROR) {
       case "REACH_QUOTA.PAGE":
         handleError(
