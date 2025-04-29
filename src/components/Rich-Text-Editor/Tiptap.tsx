@@ -4,6 +4,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { useCallback, useEffect, useState } from "react";
 
 import Highlight from "@tiptap/extension-highlight";
+import Loading from "../loading/Loading";
 import { MOCK_DATA } from "@/utils/data";
 import { Markdown } from "tiptap-markdown";
 import MenuBar from "./MenuBar";
@@ -45,6 +46,8 @@ const Tiptap = () => {
   const [show_connect, setShowConnect] = useState(false);
   /** Access token */
   const [access_token, setAccessToken] = useState("");
+  /** Loading */
+  const [loading, setLoading] = useState(false);
 
   /** Debounce hàm save để tránh gọi API quá nhiều lần
    *
@@ -217,12 +220,17 @@ const Tiptap = () => {
         setShowConnect(false);
         return;
       }
+
+      setLoading(true);
       await fetch("/api/documents", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(MD),
       });
-      setShowConnect(true);
+      setTimeout(() => {
+        setShowConnect(true);
+        setLoading(false);
+      }, 1000);
     }
   };
 
@@ -276,6 +284,7 @@ const Tiptap = () => {
             className="h-10 px-4 flex-shrink-0 bg-blue-500 text-white rounded-md flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-600"
           >
             <span className="text-sm font-semibold">Lưu</span>
+            {loading && <Loading color_white />}
           </button>
         </div>
 

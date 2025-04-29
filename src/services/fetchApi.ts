@@ -9,7 +9,7 @@ export const fetchApi = async (
   url: string,
   method = "POST",
   body: {},
-  headers: {}
+  headers?: {}
 ) => {
   /**
    * fetch data

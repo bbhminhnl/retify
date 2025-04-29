@@ -254,21 +254,75 @@ const ConnectInstall = () => {
     PAGE_ID: string,
     ACCESS_TOKEN: string
   ) => {
-    /** ===================== Thêm page vào Chatbox ======================== */
-    setLoadingText("Đang thêm Trang vào Tổ chức");
-    /** Kiểm tra page đã tồn tại chưa */
-    const IS_EXIST_PAGE = await checkExistPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
-    /** Nếu chưa tồn tại thì thêm page */
-    if (!IS_EXIST_PAGE) {
-      const ADD_PAGE_STATUS = await addPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
-      /** Trạng thái Add page */
-      if (!ADD_PAGE_STATUS) {
-        /** Gọi hàm handle error */
-        handleError("Đã xảy ra lỗi, thêm Trang không thành công!");
-        return;
+    try {
+      /** ===================== Thêm page vào Chatbox ======================== */
+      setLoadingText("Đang thêm Trang vào Tổ chức");
+      /** Kiểm tra page đã tồn tại chưa */
+      const IS_EXIST_PAGE = await checkExistPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+      /** Nếu chưa tồn tại thì thêm page */
+      if (!IS_EXIST_PAGE) {
+        await addPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
       }
+
+      /** ================== Lấy danh sách AGENT ==================== */
+      /** Cập nhật tin nhắn */
+      setLoadingText("Đang cài đặt trợ lý ảo ...");
+      /** Thông tin info */
+      let agent_info = await fetchAgent(ORG_ID);
+
+      /** Nếu không có thống tin trợ lý tin thì Tạo mới */
+      if (!agent_info) {
+        /** Kết quả khởi tạo trợ lý Ảo */
+        const AGENT_CREATE_RESULT = await createAgent(ACCESS_TOKEN, ORG_ID);
+
+        /** Nếu createAgent trả về true hoặc không có ID => fetch lại agent_info */
+        if (AGENT_CREATE_RESULT) {
+          /** Lấy thông tin trợ lý ảo */
+          agent_info = await fetchAgent(ORG_ID);
+
+          if (!agent_info) {
+            return handleError(
+              "Tạo trợ lý ảo thành công nhưng lấy thông tin thất bại!"
+            );
+          }
+        }
+      }
+      /** ================== Cập nhật Setting ==================== */
+      /** Cập nhật text */
+      setLoadingText("Đang cập nhật Thiết lập trợ lý ảo ...");
+      /** Cập nhật Setting  */
+      await updateSettingPage({
+        ACCESS_TOKEN,
+        PAGE_ID,
+        AGENT_ID: agent_info,
+      });
+
+      /** ========== Tải lên file tài liệu ===========*/
+      /** Update text */
+      setLoadingText("Tải lên tài liệu ...");
+      /** Gọi hàm upload tài liệu */
+      const UPLOAD_DATA = await uploadData(ORG_ID, ACCESS_TOKEN, agent_info);
+      /** Kiểm tra thông tin lỗi */
+
+      /** ================ Thêm tài liệu cho Trợ lý ảo ============= */
+      /** Cập nhật text */
+      setLoadingText("Thêm tài liệu cho trợ lý ảo ...");
+      /** Gọi hàm add knowledge */
+      await addKnowledge(ACCESS_TOKEN, ORG_ID, agent_info, UPLOAD_DATA);
+
+      /** Cập nhật text message */
+
+      setLoadingText("Cài đặt Chatbox thành công!");
+
+      /** ================== Kết nối với Merchant ==================== */
+      /** Cập nhật text */
+
+      /** Tải lên kiến thức */
+    } catch (error) {
+      console.log(error, "checkkkkkkkkkkkkkkkk");
+
       /** Trạng Thái đạt giới hạn gọi sử dụng */
-      if (ADD_PAGE_STATUS === "REACH_QUOTA.PAGE") {
+      if (error === "REACH_QUOTA.PAGE") {
         /** Gọi hàm handle error */
         handleError(
           "Đã đạt giới hạn Trang trong Tổ chức, thêm Trang không thành công!"
@@ -277,47 +331,6 @@ const ConnectInstall = () => {
         return;
       }
     }
-
-    /** ================== Lấy danh sách AGENT ==================== */
-    /** Cập nhật tin nhắn */
-    setLoadingText("Đang cài đặt trợ lý ảo ...");
-    /** Thông tin info */
-    let agent_info = await fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-    /** Kiểm tra thông tin trả về */
-    if (agent_info === "error") {
-      return handleError("Đã xảy ra lỗi, lấy thông tin trợ lý ảo thất bại!");
-    }
-    /** Nếu không có thống tin trợ lý tin thì Tạo mới */
-    if (!agent_info) {
-      /** Kết quả khởi tạo trợ lý Ảo */
-      const AGENT_CREATE_RESULT = await createAgent(
-        ACCESS_TOKEN,
-        ORG_ID,
-        PAGE_ID
-      );
-      /** Nếu lỗi thì hiển thị lỗi */
-      if (!AGENT_CREATE_RESULT || AGENT_CREATE_RESULT === "error") {
-        return handleError("Đã xảy ra lỗi, Tạo trợ lý ảo không thành công!");
-      }
-
-      /** Nếu createAgent trả về true hoặc không có ID => fetch lại agent_info */
-      if (AGENT_CREATE_RESULT === true) {
-        agent_info = await fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-
-        if (!agent_info || agent_info === "error") {
-          return handleError(
-            "Tạo trợ lý ảo thành công nhưng lấy thông tin thất bại!"
-          );
-        }
-      }
-    }
-    /** ================== Cập nhật Setting ==================== */
-    /** Cập nhật Setting  */
-    updateSettingPage(ORG_ID, PAGE_ID, ACCESS_TOKEN, agent_info);
-
-    /** Tải lên kiến thức */
-
-    uploadData(ORG_ID, ACCESS_TOKEN, agent_info);
   };
 
   /**
@@ -331,33 +344,29 @@ const ConnectInstall = () => {
     PAGE_ID: string,
     ACCESS_TOKEN: string
   ) => {
-    try {
-      /**
-       * Domain add page
-       */
-      const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/read_page`;
-      /** Khai báo body */
-      const BODY = {
-        org_id: ORG_ID,
-      };
-      /** Khai báo Header */
-      const HEADERS = {
-        Authorization: ACCESS_TOKEN,
-      };
-      /** Thêm page vào Tổ chức */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-
-      const EXISTS = DATA?.data.some(
-        (item: IPageProps) => item.page_id === PAGE_ID
-      );
-      return EXISTS;
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách Pages:", error);
-      return false;
-    } finally {
-      //   setLoading(false);
-      //   setLoadingText("");
+    /**
+     * Domain add page
+     */
+    const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/read_page`;
+    /** Khai báo body */
+    const BODY = {
+      org_id: ORG_ID,
+    };
+    /** Khai báo Header */
+    const HEADERS = {
+      Authorization: ACCESS_TOKEN,
+    };
+    /** Thêm page vào Tổ chức */
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    /** Throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
     }
+    /** Check Tồn tại page */
+    const EXISTS = DATA?.data.some(
+      (item: IPageProps) => item.page_id === PAGE_ID
+    );
+    return EXISTS;
   };
   /**
    * Hàm chọn BM để add Page vào
@@ -370,101 +379,54 @@ const ConnectInstall = () => {
     PAGE_ID: string,
     ACCESS_TOKEN: string
   ) => {
-    /** Cập nhật text */
-    setLoadingText("Installing virtual assistant...");
-    try {
-      /**
-       * Domain add page
-       */
-      const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
-      /** Khai báo body */
-      const BODY = {
-        page_id: PAGE_ID,
-        org_id: ORG_ID,
-      };
-      /** Khai báo Header */
-      const HEADERS = {
-        Authorization: ACCESS_TOKEN,
-      };
-      /** Thêm page vào Tổ chức */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    /**
+     * Domain add page
+     */
+    const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
+    /** Khai báo body */
+    const BODY = {
+      page_id: PAGE_ID,
+      org_id: ORG_ID,
+    };
+    /** Khai báo Header */
+    const HEADERS = {
+      Authorization: ACCESS_TOKEN,
+    };
+    /** Thêm page vào Tổ chức */
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
 
-      if (DATA?.code === 200) {
-        return true;
-      } else {
-        return DATA?.message;
-      }
-
-      /**
-       * Parse data
-       */
-      // if (DATA?.code === 200) {
-      //   /** Lấy danh sách page */
-      //   fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-      // }
-      //   }
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách Pages:", error);
-      return false;
-    } finally {
-      //   setLoading(false);
-      //   setLoadingText("");
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
     }
+    return true;
   };
 
   /**
    * Fetch Agent
-   * @param ACCESS_TOKEN
    * @param ORG_ID
-   * @param PAGE_ID
    */
-  const fetchAgent = async (
-    ACCESS_TOKEN: string,
-    ORG_ID: string,
-    PAGE_ID: string
-  ) => {
-    /** Cập nhật text */
-    setLoadingText("Creating Virtual Assistant...");
-    try {
-      /**
-       * Domain add page
-       */
-      const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/get_agent`;
-      /** Khai báo body */
-      const BODY = {
-        org_id: ORG_ID,
-      };
-      /** Khai báo Header */
-      const HEADERS = {
-        Authorization: "ACCESS_TOKEN",
-      };
-      /** Call API lấy danh sách agent */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-      /**
-       *  Parse data
-       */
-      console.log(DATA, "Data");
-      if (DATA?.data?.length === 0) {
-        /** Tạo agent */
-        // createAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-        return false;
-      } else {
-        /** Nếu có rồi thì chọn agent 1 và thêm kiến kiến thức */
-        console.log("Có agent rồi");
-        const AGENT_ID = DATA?.data[0]?.fb_page_id;
-        return AGENT_ID;
-        /** Bật trợ lý ảo và chọn Trợ lý ảo cho page */
-        updateSettingPage(ACCESS_TOKEN, ORG_ID, PAGE_ID, AGENT_ID);
+  const fetchAgent = async (ORG_ID: string) => {
+    /** Domain add page*/
+    const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/get_agent`;
+    /** Khai báo body */
+    const BODY = {
+      org_id: ORG_ID,
+    };
 
-        /**
-         * Upload kiến thức
-         */
-        uploadData(ACCESS_TOKEN, ORG_ID, AGENT_ID);
-      }
-      console.log(DATA);
-    } catch (error) {
-      console.error("Loi khi lay danh sach Pages:", error);
-      return "error";
+    /** Call API lấy danh sách agent */
+    const DATA = await fetchApi(DOMAIN, "POST", BODY);
+    /** Throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
+    }
+    if (DATA?.data?.length === 0) {
+      /** Tạo agent */
+
+      return false;
+    } else {
+      /** Nếu có rồi thì chọn agent 1 và thêm kiến kiến thức */
+      const AGENT_ID = DATA?.data[0]?.fb_page_id;
+      return AGENT_ID;
     }
   };
   /** Cập nhật setting page Bật trợ lý ảo và chọn Trợ lý ảo mới tạo
@@ -473,54 +435,47 @@ const ConnectInstall = () => {
    * @param PAGE_ID
    * @param AGENT_ID
    */
-  const updateSettingPage = async (
-    ACCESS_TOKEN: string,
-    ORG_ID: string,
-    PAGE_ID: string,
-    AGENT_ID: string
-  ) => {
-    /** Cập nhật text */
-    setLoadingText("Setting up the virtual assistant...");
-    try {
-      /**
-       * Domain add page
-       */
-      const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/update_page_setting`;
-      /** Khai báo body */
-      const BODY = {
-        page_id: PAGE_ID,
-        ai_agent_id: AGENT_ID,
-        is_active_ai_agent: true,
-        ai_agent_working_hour_answer: {
-          in_working_hour: {
-            type: "SEND_DIRECTLY",
-            time: 900000,
-          },
-          out_working_hour: {
-            type: "SEND_DIRECTLY",
-            time: 0,
-          },
+  const updateSettingPage = async ({
+    ACCESS_TOKEN,
+    PAGE_ID,
+    AGENT_ID,
+  }: {
+    ACCESS_TOKEN: string;
+    PAGE_ID: string;
+    AGENT_ID: string;
+  }) => {
+    /** Domain add page*/
+    const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/update_page_setting`;
+    /** Khai báo body */
+    const BODY = {
+      page_id: PAGE_ID,
+      ai_agent_id: AGENT_ID,
+      is_active_ai_agent: true,
+      ai_agent_working_hour_answer: {
+        in_working_hour: {
+          type: "SEND_DIRECTLY",
+          time: 900000,
         },
-      };
-      /** Khai báo Header */
-      const HEADERS = {
-        Authorization: ACCESS_TOKEN,
-      };
-      /**
-       * Gọi thông tin UPdate Setting
-       */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-    } catch (error) {
-      console.error("Loi khi lay danh sach Pages:", error);
-    } finally {
-      //   setLoading(false);
-      /** Kết nối với chatbox thành công */
-      setLoadingText("ChatBot setup complete!");
-      /** Sau 1s thì gọi API lấy token Partner */
-      setTimeout(() => {
-        fetchTokenPartner(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-      }, 1000);
+        out_working_hour: {
+          type: "SEND_DIRECTLY",
+          time: 0,
+        },
+      },
+    };
+    /** Khai báo Header */
+    const HEADERS = {
+      Authorization: ACCESS_TOKEN,
+    };
+    /**
+     * Gọi thông tin UPdate Setting
+     */
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    /** Throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
     }
+    /** return true */
+    return true;
   };
 
   const fetchTokenPartner = async (
@@ -889,7 +844,7 @@ const ConnectInstall = () => {
 
   const fetchDocument = async () => {
     const RESPONSE = await fetch("/api/documents");
-    console.log(RESPONSE, "response");
+
     const DATA = await RESPONSE.json();
     console.log(DATA, "DATA");
     return DATA?.document;
@@ -906,20 +861,7 @@ const ConnectInstall = () => {
     ORG_ID: string,
     AGENT_ID: string
   ) => {
-    /** Định dạng dữ liệu sản phẩm */
-    const FORMATTED_DATA = products
-      .map(
-        (product) =>
-          `${product.name}: ${product.price.toLocaleString("vi-VN")} đ`
-      )
-      .join("\n");
-
-    /** Giả sử MOCK_DATA đã có dữ liệu trước đó */
-    const EXISTING_DATA = typeof MOCK_DATA === "string" ? MOCK_DATA : "";
-
-    /** Ghép dữ liệu cũ và mới */
-    const UPDATED_DATA = EXISTING_DATA + "\n" + FORMATTED_DATA;
-
+    /** Lấy FILE Document từ API */
     const RESULT = await fetchDocument();
     console.log(RESULT, "RESULT");
     /** Tạo mock data file mới với dữ liệu đã cập nhật */
@@ -931,67 +873,30 @@ const ConnectInstall = () => {
       }
     );
 
-    /**
-     * Đường dẫn API upload file
-     */
+    /** Đường dẫn API upload file*/
     const END_POINT = `app/document/upload?org_id=${ORG_ID}`;
+    /** Tạo thành Form Data */
     const FORM_DATA = new FormData();
-
+    /** Thêm data vào form */
     FORM_DATA.append("file", MOCK_DATA_FILE);
-    /**
-     * Fetch API
-     */
-    try {
-      /**
-       * Fetch API
-       */
-      const RES = await fetch(
-        `https://chatbox-llm.botbanhang.vn/${END_POINT}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: ACCESS_TOKEN,
-          },
-          body: FORM_DATA,
-        }
-      );
 
-      /**
-       * Chuyển dữ liệu trả về thành JSON
-       */
+    /** Fetch API */
+    const RES = await fetch(`https://chatbox-llm.botbanhang.vn/${END_POINT}`, {
+      method: "POST",
+      headers: {
+        Authorization: ACCESS_TOKEN,
+      },
+      body: FORM_DATA,
+    });
 
-      const DATA = await RES.json();
-      console.log(DATA, "RES");
-      /**
-       * Nếu có lỗi thì throw data
-       */
-      if (DATA?.code !== 200) throw DATA.mean;
-      /** Thêm kiến kiến thức cho Trợ lý ảo*/
-      addKnowledge(
-        ACCESS_TOKEN,
-        ORG_ID,
-        AGENT_ID,
-        DATA?.data?.d_embedding_path
-      );
-      console.log(DATA, "DATA");
-    } catch (error) {
-      console.log(error);
-      if (error === "LIMIT_SIZE") {
-        /**
-         * Hiển thị toast lỗi
-         */
-      } else if (error === "LIMIT_DOCUMENT") {
-        /**
-         * Hiển thị toast lỗi
-         */
-      } else {
-        /**
-         * Hiển thị toast lỗi
-         */
-      }
-    } finally {
-    }
+    /** Chuyển dữ liệu trả về thành JSON */
+    const DATA = await RES.json();
+    /** Nếu có lỗi thì throw data*/
+    if (DATA?.code !== 200) throw DATA.message;
+    /** Trả về path của tài liệu */
+    return DATA?.data?.d_embedding_path;
   };
+
   /** Thêm kiến thức cho Trợ lý ảo
    * @param ACCESS_TOKEN User access token
    * @param ORG_ID Org id
@@ -1004,45 +909,33 @@ const ConnectInstall = () => {
     AGENT_ID: string,
     FILE_NAME: string
   ) => {
+    /** Engpoint */
     const END_POINT = `https://chatbox-llm.botbanhang.vn/app/config/proxy/workspace/${AGENT_ID}/update-embeddings?org_id=${ORG_ID}`;
 
+    /** Gọi API cập nhật embedding */
+
     /**
-     * Gọi API cập nhật embedding
+     *  Gọi API cập nhật embedding
      */
-    try {
-      /**
-       *  Gọi API cập nhật embedding
-       */
-      const RES = await fetch(END_POINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: ACCESS_TOKEN,
-        },
-        body: JSON.stringify({
-          adds: [FILE_NAME],
-        }),
-      });
-      /**
-       * Data RESPONSE
-       */
-      const DATA = await RES.json();
-      console.log(DATA, "DATA");
-      /**
-       * Hiển thị toast thông báo thành công
-       */
-      /**
-       * Xem xét thêm Sản phẩm ở vị trí và kết nối với Merchant
-       */
-      /**
-       * Gọi hàm fetchAndFilterData
-       */
-    } catch (error) {
-      console.error("Error updating embeddings:", error);
-      /**
-       * Hiển thị toast thông báo lỗi
-       */
-    }
+    const RES = await fetch(END_POINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: ACCESS_TOKEN,
+      },
+      body: JSON.stringify({
+        adds: [FILE_NAME],
+      }),
+    });
+    /**
+     * Data RESPONSE
+     */
+    const DATA = await RES.json();
+    console.log(DATA, "DATA");
+    /** Throw lỗi */
+    if (DATA?.code !== 200) throw DATA.message;
+    /** Return true */
+    return true;
   };
   /**
    * Tạo Agent
@@ -1050,48 +943,25 @@ const ConnectInstall = () => {
    * @param ORG_ID
    * @param PAGE_ID
    */
-  const createAgent = async (
-    ACCESS_TOKEN: string,
-    ORG_ID: string,
-    PAGE_ID: string
-  ) => {
-    try {
-      /**
-       * Domain add page
-       */
-      const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/create_agent?org_id=${ORG_ID}`;
-      /**
-       *  Body
-       */
-      const BODY = {
-        ai_agent_name: "Agent 1",
-        description: "Agent 1",
-      };
-      /**
-       * Header
-       */
-      const HEADERS = {
-        Authorization: ACCESS_TOKEN,
-      };
-      /**
-       * Fetch data
-       */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-
-      console.log(DATA, "DATA");
-
-      if (DATA?.code === 200) {
-        return true;
-      } else {
-        return false;
-      }
-
-      /** Lấy thông tin AGENT */
-      // fetchAgent(ACCESS_TOKEN, ORG_ID, PAGE_ID);
-    } catch (error) {
-      console.error("Loi khi lay danh sach Pages:", error);
-      return "error";
+  const createAgent = async (ACCESS_TOKEN: string, ORG_ID: string) => {
+    /** Domain add page*/
+    const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/create_agent?org_id=${ORG_ID}`;
+    /**  Body */
+    const BODY = {
+      ai_agent_name: "Agent 1",
+      description: "Agent 1",
+    };
+    /** Header */
+    const HEADERS = {
+      Authorization: ACCESS_TOKEN,
+    };
+    /** Fetch data*/
+    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    /** Nếu code !== 200 thì throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
     }
+    return true;
   };
 
   /**
