@@ -5,9 +5,8 @@ import { find, get, has, keys } from "lodash";
 
 import ConnectHandler from "../components/ConnectHandler";
 import Loading from "@/components/loading/Loading";
-import { MOCK_DATA } from "@/utils/data";
 import { UserProfile } from "@/types";
-import { fetchApi } from "@/services/fetchApi";
+import { apiCommon } from "@/services/fetchApi";
 
 /**
  * Interface Product
@@ -130,7 +129,7 @@ const ConnectInstall = () => {
        */
       if (DATA.data) {
         /** Lấy danh sách page */
-        setPages(DATA.data);
+        // setPages(DATA.data);
       }
     } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
@@ -147,14 +146,19 @@ const ConnectInstall = () => {
       /**
        * Domain login
        */
-      const DOMAIN =
-        "https://chatbox-service-v3.botbanhang.vn/public/oauth/facebook/login";
+      const END_POINT = "public/oauth/facebook/login";
       /** Body */
       const BODY = { access_token: access_token };
       /** Header */
       const HEADERS = {};
       /** RES */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+      const DATA = await apiCommon({
+        end_point: END_POINT,
+        method: "POST",
+        body: BODY,
+        headers: HEADERS,
+        service_type: "setting",
+      });
 
       console.log(DATA, "DATA");
 
@@ -184,18 +188,19 @@ const ConnectInstall = () => {
       /**
        * DOmain org
        */
-      const ORG_DOMAIN = `https://chatbox-billing.botbanhang.vn/app/organization/read_org`;
+      const ORG_END_POINT = `app/organization/read_org`;
       /**
        * Lay danh sach org
        */
-      const ORG_DATA = await fetchApi(
-        ORG_DOMAIN,
-        "POST",
-        {},
-        {
+      const ORG_DATA = await apiCommon({
+        end_point: ORG_END_POINT,
+        method: "POST",
+
+        headers: {
           Authorization: ACCESS_TOKEN,
-        }
-      );
+        },
+        service_type: "billing",
+      });
       /**
        * Parse data
        */
@@ -387,7 +392,7 @@ const ConnectInstall = () => {
     /**
      * Domain add page
      */
-    const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/read_page`;
+    const END_POINT = `app/owner_ship/read_page`;
     /** Khai báo body */
     const BODY = {
       org_id: ORG_ID,
@@ -397,7 +402,13 @@ const ConnectInstall = () => {
       Authorization: ACCESS_TOKEN,
     };
     /** Thêm page vào Tổ chức */
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "billing",
+    });
     /** Throw lỗi */
     if (DATA?.code !== 200) {
       throw DATA?.message;
@@ -422,7 +433,7 @@ const ConnectInstall = () => {
     /**
      * Domain add page
      */
-    const DOMAIN = `https://chatbox-billing.botbanhang.vn/app/owner_ship/add_page`;
+    const END_POINT = `app/owner_ship/add_page`;
     /** Khai báo body */
     const BODY = {
       page_id: PAGE_ID,
@@ -433,8 +444,14 @@ const ConnectInstall = () => {
       Authorization: ACCESS_TOKEN,
     };
     /** Thêm page vào Tổ chức */
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
-
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "billing",
+    });
+    /** Throw lỗi */
     if (DATA?.code !== 200) {
       throw DATA?.message;
     }
@@ -447,14 +464,20 @@ const ConnectInstall = () => {
    */
   const fetchAgent = async (ORG_ID: string) => {
     /** Domain add page*/
-    const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/get_agent`;
+    const END_POINT = `app/agent/get_agent`;
     /** Khai báo body */
     const BODY = {
       org_id: ORG_ID,
     };
 
     /** Call API lấy danh sách agent */
-    const DATA = await fetchApi(DOMAIN, "POST", BODY);
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      service_type: "llm_no_proxy",
+    });
+
     /** Throw lỗi */
     if (DATA?.code !== 200) {
       throw DATA?.message;
@@ -485,7 +508,7 @@ const ConnectInstall = () => {
     AGENT_ID: string;
   }) => {
     /** Domain add page*/
-    const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/update_page_setting`;
+    const END_POINT = `app/page/update_page_setting`;
     /** Khai báo body */
     const BODY = {
       page_id: PAGE_ID,
@@ -509,7 +532,13 @@ const ConnectInstall = () => {
     /**
      * Gọi thông tin UPdate Setting
      */
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "service",
+    });
     /** Throw lỗi */
     if (DATA?.code !== 200) {
       throw DATA?.message;
@@ -524,7 +553,7 @@ const ConnectInstall = () => {
     PAGE_ID: string
   ) => {
     /** Domain add page */
-    const DOMAIN = `https://chatbox-service-v3.botbanhang.vn/app/page/get_page_info_to_chat`;
+    const DOMAIN = `app/page/get_page_info_to_chat`;
     /** Khai báo body */
     const BODY = {
       org_id: ORG_ID,
@@ -535,7 +564,13 @@ const ConnectInstall = () => {
       Authorization: ACCESS_TOKEN,
     };
     /** fetch Data*/
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    const DATA = await apiCommon({
+      end_point: DOMAIN,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "service",
+    });
 
     /** Throw lỗi */
     if (DATA?.code !== 200) {
@@ -566,19 +601,20 @@ const ConnectInstall = () => {
    */
   const fetchClientId = async (page_id: string) => {
     /** Domain Merchant */
-    const DOMAIN = `https://chatbox-public-v2.botbanhang.vn/embed/conversation/init_identify?name=anonymous&page_id=${page_id}`;
+    const DOMAIN = `embed/conversation/init_identify?name=anonymous&page_id=${page_id}`;
 
-    /** Gọi API */
-    const RESPONSE = await fetch(DOMAIN);
-
-    /** Parse JSON */
-    const DATA = await RESPONSE.json();
-    if (DATA?.code !== 200) {
-      throw DATA?.message;
+    const RES = await apiCommon({
+      end_point: DOMAIN,
+      method: "GET",
+      service_type: "public",
+    });
+    /** Nếu code không bằng 200 thiết lập lỗi */
+    if (RES?.code !== 200) {
+      throw RES?.message;
     }
-    console.log(DATA, "RESPONSE");
+    console.log(RES, "RESPONSE");
     /** Trả ra client ID */
-    return DATA?.data;
+    return RES?.data;
   };
 
   /**
@@ -588,7 +624,7 @@ const ConnectInstall = () => {
    */
   const fetchTokenMerchant = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
     /** Chat Domain */
-    const DOMAIN = `https://api.merchant.vn/v1/public/chatbox/get_config`;
+    const END_POINT = `v1/public/chatbox/get_config`;
 
     /** Khai báo body*/
     const CLIENT_ID = await fetchClientId(PAGE_ID);
@@ -600,7 +636,12 @@ const ConnectInstall = () => {
       secret_key: "6f8b22eebe1d4d93b2f4a618901df020",
     };
     /** fetch Data*/
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, {});
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      service_type: "merchant",
+    });
 
     /** Throw lỗi */
     if (DATA?.code !== 200) {
@@ -627,7 +668,7 @@ const ConnectInstall = () => {
     }
   ) => {
     /** Domain Tạo sản phẩm */
-    const DOMAIN = `https://api-product.merchant.vn/product/create_product`;
+    const END_POINT = `product/create_product`;
 
     /** Khai báo body */
     const BODY = {
@@ -675,7 +716,13 @@ const ConnectInstall = () => {
     };
 
     /** fetch API */
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "merchant_product",
+    });
     console.log(DATA, "DATA");
     /** Throw lỗi */
     // if (DATA?.code !== 200) {
@@ -722,7 +769,7 @@ const ConnectInstall = () => {
       /**
        * Domain
        */
-      const DOMAIN = `https://api.merchant.vn/v1/apps/facebook/pages`;
+      const END_POINT = `v1/apps/facebook/pages`;
       /**
        * Header
        */
@@ -733,7 +780,12 @@ const ConnectInstall = () => {
       /**
        * fetch Data
        */
-      const DATA = await fetchApi(DOMAIN, "POST", {}, HEADERS);
+      const DATA = await apiCommon({
+        end_point: END_POINT,
+        method: "POST",
+        headers: HEADERS,
+        service_type: "merchant",
+      });
       /**
        * Page
        */
@@ -772,7 +824,7 @@ const ConnectInstall = () => {
     /**
      * Domain
      */
-    const DOMAIN = `https://api.merchant.vn/v1/apps/facebook/create_state`;
+    const DOMAIN = `v1/apps/facebook/create_state`;
     /**
      * Header
      */
@@ -791,7 +843,13 @@ const ConnectInstall = () => {
     /**
      * fetch Data
      */
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    const DATA = await apiCommon({
+      end_point: DOMAIN,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "merchant",
+    });
     console.log(DATA, "DATA");
   };
 
@@ -809,7 +867,7 @@ const ConnectInstall = () => {
       /**
        * Domain
        */
-      const DOMAIN = `https://api-product.merchant.vn/product/sync_product_facebook`;
+      const DOMAIN = `product/sync_product_facebook`;
       /** Header */
       const HEADERS = {
         "token-business": ACCESS_TOKEN,
@@ -823,7 +881,13 @@ const ConnectInstall = () => {
       /**
        * fetch Data
        */
-      const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+      const DATA = await apiCommon({
+        end_point: DOMAIN,
+        method: "POST",
+        body: BODY,
+        headers: HEADERS,
+        service_type: "merchant_product",
+      });
       console.log(DATA, "DATA");
     } catch (error) {
       console.log(error);
@@ -916,30 +980,25 @@ const ConnectInstall = () => {
     FILE_NAME: string
   ) => {
     /** Engpoint */
-    const END_POINT = `https://chatbox-llm.botbanhang.vn/app/config/proxy/workspace/${AGENT_ID}/update-embeddings?org_id=${ORG_ID}`;
+    const END_POINT = `workspace/${AGENT_ID}/update-embeddings?org_id=${ORG_ID}`;
 
     /** Gọi API cập nhật embedding */
 
     /**
      *  Gọi API cập nhật embedding
      */
-    const RES = await fetch(END_POINT, {
+    const RES = await apiCommon({
+      end_point: END_POINT,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: ACCESS_TOKEN,
-      },
-      body: JSON.stringify({
+      body: {
         adds: [FILE_NAME],
-      }),
+      },
+      service_type: "llm_ai",
     });
-    /**
-     * Data RESPONSE
-     */
-    const DATA = await RES.json();
-    console.log(DATA, "DATA");
+
+    console.log(RES, "RES");
     /** Throw lỗi */
-    if (DATA?.code !== 200) throw DATA.message;
+    if (RES?.code !== 200) throw RES.message;
     /** Return true */
     return true;
   };
@@ -950,7 +1009,7 @@ const ConnectInstall = () => {
    */
   const createAgent = async (ACCESS_TOKEN: string, ORG_ID: string) => {
     /** Domain add page*/
-    const DOMAIN = `https://chatbox-llm.botbanhang.vn/app/agent/create_agent?org_id=${ORG_ID}`;
+    const END_POINT = `app/agent/create_agent?org_id=${ORG_ID}`;
     /**  Body */
     const BODY = {
       ai_agent_name: "Agent 1",
@@ -961,7 +1020,12 @@ const ConnectInstall = () => {
       Authorization: ACCESS_TOKEN,
     };
     /** Fetch data*/
-    const DATA = await fetchApi(DOMAIN, "POST", BODY, HEADERS);
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      service_type: "llm_no_proxy",
+      body: BODY,
+    });
     /** Nếu code !== 200 thì throw lỗi */
     if (DATA?.code !== 200) {
       throw DATA?.message;
@@ -1025,7 +1089,7 @@ const ConnectInstall = () => {
 
       {access_token && !loading && !loading_text && !finish_installing && (
         <div className="h-full">
-          <h2>Select Page</h2>
+          <h2>Chọn Trang của bạn</h2>
           <div className="flex flex-col gap-y-2">
             {pages.map((page: UserProfile) => (
               <div
@@ -1048,6 +1112,14 @@ const ConnectInstall = () => {
                 </div>
               </div>
             ))}
+            {pages.length === 0 && (
+              <div className="flex flex-col gap-y-2 w-full items-center py-4">
+                <h3>Không tìm thấy trang</h3>
+                <p>
+                  Bạn cần tạo một trang Facebook trước khi tiếp tục thiết lập.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

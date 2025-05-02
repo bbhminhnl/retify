@@ -55,10 +55,18 @@ export async function POST(req: NextRequest) {
     LoggerService.logReceivedWebhook(WEBHOOK_DATA);
     /** Kiểm tra dữ liệu webhook */
     if (WEBHOOK_DATA?.event === "message.update") {
-      LoggerService.logError(
-        new Error("Webhook event is message.update, ignoring...")
+      /** Khai báo lỗi */
+      const ERROR = "Webhook event is message.update, ignoring...";
+      /** Log lỗi */
+      LoggerService.logError(ERROR as any);
+      /** Bỏ qua event message.update */
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Webhook event is message.update, ignoring...",
+        },
+        { status: 403 }
       );
-      return;
     }
     /** Xử lý dữ liệu webhook */
     const IMAGE_URL = await WebhookService.processWebhookData(WEBHOOK_DATA);
@@ -100,12 +108,13 @@ export async function POST(req: NextRequest) {
      * - Đường dẫn đến menu được tạo bằng cách kết hợp client_id và message_id
      * - Ví dụ: https://example.com/template/template_id=client_id_message_id
      */
-    generateTemplateMessage({
+    const GENERATE_TEMPLATE_MESSAGE = await generateTemplateMessage({
       client_id: WEBHOOK_DATA.client_id,
       message_id: WEBHOOK_DATA.message.message_id,
       menu_title: WEBHOOK_DATA.message.message_attachments[0].title,
       page_id: WEBHOOK_DATA.page_id,
     });
+    console.log(GENERATE_TEMPLATE_MESSAGE, "generateTemplateMessage");
     /** Trả về response thành công */
     return NextResponse.json({
       status: "success",

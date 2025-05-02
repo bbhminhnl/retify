@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Selling page",
-  description: "Demo of converting menus from paper to virtual",
+  title: "Retify",
+  description: "A simple way to generate your menu",
 };
 
 export default function RootLayout({
