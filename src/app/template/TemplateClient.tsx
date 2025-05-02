@@ -273,12 +273,12 @@ export default function TemplateClient({
     const NEW_PRODUCT = data.map((product: any) => ({
       id: product.id,
       name: product.name,
-      price: Number(product.price),
+      price: Number(product.price) || product.price,
       product_image: `${product.image_url}`,
       type: "product",
       unit: product.unit,
     }));
-
+    console.log(NEW_PRODUCT, "NEW_PRODUCT");
     try {
       /** Xóa hết dữ liệu sản phẩm */
       // const deleteRes = await fetch("/api/products", {
@@ -303,7 +303,7 @@ export default function TemplateClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
       });
-
+      console.log(PRODUCT_RES, "PRODUCT_RES");
       if (!PRODUCT_RES.ok) {
         return;
       }
