@@ -147,7 +147,12 @@ export default function TemplateClient({
       /** Lưu giá trị raw data
        * Đoạn này giả định rằng rawData đã là JSON
        */
-      const PARSED_MENU = rawData;
+      const PARSED_MENU = rawData.map((item: any, index: number) => ({
+        ...item,
+        id: item.id || `product-${index}`, // Nếu đã có id thì giữ nguyên, nếu chưa thì thêm id tạm
+      }));
+      console.log(PARSED_MENU, "PARSED_MENU");
+
       /** Set luôn data = raw data, bỏ qua bước xử lý ảnh */
       setData(PARSED_MENU);
       /** Tắt loading */
@@ -365,15 +370,15 @@ export default function TemplateClient({
                   //     {item.price} {item.unit}
                   //   </p>
                   // </div>
-                  <div key={index} className="bg-white p-4 rounded shadow-md">
-                    <ProductItemCustom
-                      key={index}
-                      name={item.name}
-                      price={item.price}
-                      product_image={item.image_url}
-                      unit={item?.unit}
-                    />
-                  </div>
+                  // <div key={index} className="bg-red-50 p-4 rounded shadow-sm">
+                  <ProductItemCustom
+                    key={index}
+                    name={item.name}
+                    price={item.price}
+                    product_image={item.image_url}
+                    unit={item?.unit}
+                  />
+                  // </div>
                 ))
               ) : (
                 <div className="p-4 text-gray-500">Dữ liệu trống.</div>

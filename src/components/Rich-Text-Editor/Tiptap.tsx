@@ -3,6 +3,7 @@
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useCallback, useEffect, useState } from "react";
 
+import FacebookLoginButton from "../FacebookLoginButton";
 import Highlight from "@tiptap/extension-highlight";
 import Loading from "../loading/Loading";
 import { MOCK_DATA } from "@/utils/data";
@@ -11,7 +12,8 @@ import MenuBar from "./MenuBar";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import { debounce } from "lodash";
-import { useRouter } from "next/navigation";
+
+// import { useRouter } from "next/navigation";
 
 /**
  * type sản phẩm
@@ -297,7 +299,7 @@ const Tiptap = () => {
         <h2 className="font-bold">Tài liệu hiển thị:</h2>
         <pre className="text-sm whitespace-pre-wrap">{markdown}</pre>
       </div>
-      {show_connect && (
+      {/* {show_connect && (
         <div className="flex items-center justify-center h-12 w-full sticky bottom-0">
           <div className="h-10 w-80">
             <iframe
@@ -308,7 +310,10 @@ const Tiptap = () => {
             ></iframe>
           </div>
         </div>
-      )}
+      )} */}
+      <div className="p-4">
+        <FacebookLoginButton />
+      </div>
     </div>
   );
 };
