@@ -129,7 +129,7 @@ const ConnectInstall = () => {
        */
       if (DATA.data) {
         /** Lấy danh sách page */
-        // setPages(DATA.data);
+        setPages(DATA.data);
       }
     } catch (error) {
       console.error("Lỗi khi lấy danh sách Pages:", error);
