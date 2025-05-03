@@ -35,7 +35,7 @@ const FacebookLoginButton = () => {
         // appId: "945623877734350", // 👉 Thay bằng App ID thật
         cookie: true,
         xfbml: false,
-        version: "v19.0",
+        version: "v20.0",
       });
       setSdkLoaded(true);
     };

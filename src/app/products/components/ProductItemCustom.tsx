@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
+import { Trash } from "lucide-react";
 import { formatCurrency } from "@/utils";
 
 /** Interface Product */
 interface ProductItemProps {
+  /** ID sản phẩm */
+  id?: string;
   /** Tên sản phẩm */
   name?: string;
   /** Giá sản phẩm */
@@ -14,37 +17,78 @@ interface ProductItemProps {
   type?: string;
   /** Đơn vi tìm giá */
   unit?: string;
+  /** Update data */
+  onUpdate?: (product: ProductItemProps) => void;
+  /** Delete data */
+  onDelete?: (id: string) => void;
 }
 
-const ProductItemCustom = (props: ProductItemProps) => {
+const ProductItemCustom = ({
+  id,
+  name,
+  price,
+  product_image,
+  type = "product",
+  unit,
+  onUpdate,
+  onDelete,
+}: ProductItemProps) => {
   /** Trạng thái edit */
   const [is_editing, setIsEditing] = useState(false);
   /** Sản phẩm */
-  const [product, setProduct] = useState<ProductItemProps>(props);
+  const [product, setProduct] = useState<ProductItemProps>({
+    id,
+    name,
+    price,
+    product_image,
+    type,
+    unit,
+  });
 
-  /** Hàm xử lý sự kiện khi thay đổi input
-   * @param e Sự kiện thay đổi input
-   */
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProduct((prev) => ({ ...prev, [name]: value }));
-  };
   /**
    *  Hàm xử lý sự kiện khi nhấn nút edit
    * @returns void
    */
-  const toggleEdit = () => setIsEditing(!is_editing);
+  const toggleEdit = () => {
+    /** Khi ấn lưu sẽ lưu lại giá trị product */
+    if (onUpdate) {
+      onUpdate(product);
+    }
+  };
+  /** Khi tên, giá, hình anh, loại, đơn vi tìm giá thay đổi */
+  useEffect(() => {
+    setProduct({
+      id,
+      name,
+      price,
+      product_image,
+      type,
+      unit,
+    });
+  }, [name, price, product_image, type, unit]);
 
   return (
-    <div className="relative group flex flex-col items-center w-full max-w-[200px] p-2 rounded shadow-sm">
-      {/* Nút Edit (hiện khi hover hoặc luôn hiện ở mobile) */}
-      <button
-        onClick={toggleEdit}
-        className="absolute top-0 right-0 text-xs px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 
-                    group-hover:block block md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:cursor-pointer"
-      >
-        {is_editing ? "Lưu" : "Sửa"}
-      </button>
+    <div className="relative group flex flex-col items-center w-full max-w-[200px] p-2 rounded shadow-md">
+      <div className="absolute top-0 right-0 flex gap-x-2">
+        {/* Nút Edit (hiện khi hover hoặc luôn hiện ở mobile) */}
+        <button
+          onClick={toggleEdit}
+          className=" text-xs px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 
+        group-hover:block block md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
+        >
+          {/* {is_editing ? "Lưu" : "Sửa"} */}
+          Sửa
+        </button>
+
+        {/* Nút Xoa (hiện khi hover hoặc luôn hiện ở mobile) */}
+        <button
+          onClick={() => onDelete?.(id || "")}
+          className=" text-xs px-2 py-1 rounded bg-red-500 text-white hover:bg-red-600 
+        group-hover:block block md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
+        >
+          <Trash className="size-4" />
+        </button>
+      </div>
 
       {/* Ảnh sản phẩm */}
       <div className="w-full aspect-square bg-gray-200 flex items-center justify-center overflow-hidden rounded">
@@ -59,39 +103,10 @@ const ProductItemCustom = (props: ProductItemProps) => {
 
       {/* Thông tin sản phẩm */}
       <div className="w-full mt-2">
-        {is_editing ? (
-          <>
-            <input
-              className="text-sm border rounded w-full px-1 py-0.5 mb-1"
-              name="name"
-              value={product.name}
-              onChange={handleChange}
-              placeholder="Tên sản phẩm"
-            />
-            <input
-              className="text-sm border rounded w-full px-1 py-0.5 mb-1"
-              name="price"
-              value={product.price}
-              onChange={handleChange}
-              placeholder="Giá sản phẩm"
-              type="number"
-            />
-            <input
-              className="text-sm border rounded w-full px-1 py-0.5 mb-1"
-              name="unit"
-              value={product.unit}
-              onChange={handleChange}
-              placeholder="Đơn vị"
-            />
-          </>
-        ) : (
-          <>
-            <h1 className="text-sm font-medium truncate">{product?.name}</h1>
-            <p className="text-sm font-semibold">
-              {formatCurrency(product?.price)} {product?.unit || "đ"}
-            </p>
-          </>
-        )}
+        <h1 className="text-sm font-medium truncate">{product?.name}</h1>
+        <p className="text-sm font-semibold">
+          {formatCurrency(product?.price)} {product?.unit || "đ"}
+        </p>
       </div>
     </div>
   );

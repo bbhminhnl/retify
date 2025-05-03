@@ -27,3 +27,18 @@ export type UserProfile = {
   /** ảnh */
   picture: Picture;
 };
+/** Interface Product */
+export type IProductItem = {
+  /** ID sản phẩm */
+  id?: string;
+  /** Tên sản phẩm */
+  name?: string;
+  /** Giá sản phẩm */
+  price?: number | string | undefined;
+  /** Hình anh sản phẩm */
+  product_image?: string;
+  /** Loại sản phẩm */
+  type?: string;
+  /** Đơn vi tìm giá */
+  unit?: string;
+};

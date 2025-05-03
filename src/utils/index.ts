@@ -46,3 +46,10 @@ export const MENU_PATTERNS = {
   /** Phát hiện đơn vị trong menu */
   UNIT: /\b(đĩa|plate|phần|serving|người|person|suất)\b/i,
 };
+
+/** Hàm sinh ra UUID ngẫu nhiên
+ * @returns {string} - UUID ngẫu nhiên
+ */
+export function simpleUUID(): string {
+  return Math.random().toString(36).substring(2, 10);
+}

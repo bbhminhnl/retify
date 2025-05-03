@@ -3,9 +3,14 @@
 import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
 import { useEffect, useState } from "react";
 
+import AddProductModal from "@/components/AddProductModal";
+import DeleteProduct from "@/components/DeleteProduct";
+import { IProductItem } from "@/types";
 import Loading from "@/components/loading/Loading";
 import ProductItemCustom from "../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
+import { isEmpty } from "lodash";
+import { simpleUUID } from "@/utils";
 import { useRouter } from "next/navigation";
 
 export default function TemplateClient({
@@ -21,9 +26,16 @@ export default function TemplateClient({
   const [error, setError] = useState<string | null>(null);
   /** Loading */
   const [loading, setLoading] = useState<boolean>(false);
-  /**
-   * ROuter
-   */
+  /** Mở modal */
+  const [is_modal_open, setIsModalOpen] = useState(false);
+  /** Edit Product */
+  const [edit_product, setEditProduct] = useState<IProductItem | null>(null);
+  /** Modal close */
+  const [is_modal_delete, setIsModalDelete] = useState(false);
+  /** Id Delete */
+  const [id_delete, setIdDelete] = useState<string | null>(null);
+
+  /** Router*/
   const ROUTER = useRouter();
   /**
    * Thêm ảnh mô tả cho sản phẩm
@@ -133,7 +145,7 @@ export default function TemplateClient({
       }
     });
   };
-
+  /** Lấy dữ liệu từ Redis */
   useEffect(() => {
     const fetchData = () => {
       /** Kiểm tra dữ liệu raw data*/
@@ -149,7 +161,7 @@ export default function TemplateClient({
        */
       const PARSED_MENU = rawData.map((item: any, index: number) => ({
         ...item,
-        id: item.id || `product-${index}`, // Nếu đã có id thì giữ nguyên, nếu chưa thì thêm id tạm
+        id: item.id || simpleUUID(), // Nếu đã có id thì giữ nguyên, nếu chưa thì thêm id tạm
       }));
       console.log(PARSED_MENU, "PARSED_MENU");
 
@@ -209,7 +221,9 @@ export default function TemplateClient({
   const [input, setInput] = useState(``);
   /** Image */
   const [image, setImage] = useState<string | null>(null);
-  /** Hàm gọi API tạo ảnh từ prompt */
+  /** Hàm gọi API tạo ảnh từ prompt
+   * @param prompt Prompt tạo ảnh
+   */
   const handleGenerateImage = async (prompt: string) => {
     try {
       const RES = await fetch("/api/google-generate-img", {
@@ -232,7 +246,7 @@ export default function TemplateClient({
   /**
    * Hàm gọi API tạo ảnh từ prompt
    */
-  const searchShopInfo = async (query: string) => {
+  const searchShopInfo = async (query: string, data: any) => {
     setLoadingShop(true);
     /** Key word search */
     let key_word = query
@@ -246,22 +260,23 @@ export default function TemplateClient({
         "Content-Type": "application/json",
       },
     });
-    // const RES = await fetch("/api/web-info", {
-    //   method: "POST",
-    //   body: JSON.stringify({ query: key_word }),
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    // });
 
     const DATA_STORE = await RES.json();
-    console.log(DATA_STORE, "checkkkkkkk");
+
     /** gọi hàm update tài liệu */
     handleAddDocument(data, DATA_STORE);
+    /** Tắt loading */
     setLoadingShop(false);
 
     return;
   };
+
+  /**
+   *  Hàm gọi API tạo ảnh từ prompt
+   * @param data
+   * @param results
+   * @returns
+   */
   const handleAddDocument = async (data: any, results: any) => {
     /** Ensure sessionId is a string (fall back to a default string if undefined) */
     let session_id: string = getSessionId() ?? generateSessionId(); // Fallback to generateSessionId if undefined
@@ -285,23 +300,6 @@ export default function TemplateClient({
     }));
     console.log(NEW_PRODUCT, "NEW_PRODUCT");
     try {
-      /** Xóa hết dữ liệu sản phẩm */
-      // const deleteRes = await fetch("/api/products", {
-      //   method: "DELETE",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ sessionId }), // Send sessionId
-      // });
-
-      // if (!deleteRes.ok) {
-      //   console.error("❌ Lỗi khi xóa sản phẩm");
-      //   return;
-      // }
-
-      // console.log("✅ Đã gửi yêu cầu xoá sản phẩm cũ");
-
-      // /** Chờ 1 giây trước khi add lại */
-      // await delay(1000);
-
       /** Gửi sản phẩm mới */
       const PRODUCT_RES = await fetch("/api/products", {
         method: "POST",
@@ -309,6 +307,7 @@ export default function TemplateClient({
         body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
       });
       console.log(PRODUCT_RES, "PRODUCT_RES");
+      /** Nếu không thành cong */
       if (!PRODUCT_RES.ok) {
         return;
       }
@@ -321,6 +320,7 @@ export default function TemplateClient({
           method: "PUT",
           body: JSON.stringify({ session_id, content: results.content }),
         });
+        /** Kiem tra ket qua */
         if (SHOP_INFO_RES.ok) {
           console.log("✅ Cập nhật thông tin cửa hàng thành công");
         } else {
@@ -339,16 +339,33 @@ export default function TemplateClient({
     }
   };
 
+  /**
+   *  Thêm sản phẩm mới
+   * @param product Sản phẩm mới
+   */
+  const handleAddProduct = (product: IProductItem) => {
+    setData((prevData) => [...prevData, product]);
+  };
   return (
     <main className="px-3 py-2 max-w-3xl w-full mx-auto space-y-6 relative">
+      <div className="flex md:flex-row flex-col items-center justify-between bg-white sticky top-0 z-10 py-2 w-full">
+        <h1 className="md:text-2xl md:font-bold  text-xl font-medium ">
+          Xem trước Menu và Cập nhật sản phẩm
+        </h1>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded text-sm"
+        >
+          Thêm sản phẩm
+        </button>
+      </div>
       <div>
-        <h1 className="text-2xl font-bold">Menu</h1>
         {error ? (
           <div className="p-4 bg-yellow-100 text-yellow-800 rounded">
             ⚠️ {error}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {loading && (
               <div className="p-4 bg-gray-100 text-gray-500 rounded">
                 <Loading size="lg" />
@@ -357,28 +374,23 @@ export default function TemplateClient({
             {!loading &&
               (data && data.length > 0 ? (
                 data.map((item, index) => (
-                  // <div key={index} className="bg-white p-4 rounded shadow-md">
-                  //   <img
-                  //     src={item.image_url || "./imgs/no_img.jpg"}
-                  //     alt={item.name}
-                  //     className="w-full h-48 object-cover rounded"
-                  //   />
-                  //   <h2 className="text-xl font-semibold mt-4 truncate">
-                  //     {item.name}
-                  //   </h2>
-                  //   <p className="text-gray-500">
-                  //     {item.price} {item.unit}
-                  //   </p>
-                  // </div>
-                  // <div key={index} className="bg-red-50 p-4 rounded shadow-sm">
                   <ProductItemCustom
-                    key={index}
+                    id={item.id}
+                    key={item.id}
                     name={item.name}
                     price={item.price}
                     product_image={item.image_url}
                     unit={item?.unit}
+                    type="product"
+                    onUpdate={(product) => {
+                      setIsModalOpen(true);
+                      setEditProduct(product);
+                    }}
+                    onDelete={(id) => {
+                      setIsModalDelete(true);
+                      setIdDelete(id);
+                    }}
                   />
-                  // </div>
                 ))
               ) : (
                 <div className="p-4 text-gray-500">Dữ liệu trống.</div>
@@ -390,7 +402,7 @@ export default function TemplateClient({
         <div className="flex w-full justify-center items-center sticky bottom-0 p-1">
           <button
             onClick={() => {
-              searchShopInfo(input);
+              searchShopInfo(input, data);
             }}
             disabled={loading_shop}
             className="bg-blue-500 text-white px-4 py-2 font-medium rounded hover:bg-blue-700 cursor-pointer flex gap-x-2 items-center"
@@ -402,6 +414,36 @@ export default function TemplateClient({
           </button>
         </div>
       )}
+      <AddProductModal
+        open={is_modal_open}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditProduct(null);
+        }}
+        onSubmit={(product: IProductItem) => {
+          /** Nếu có sản phẩm -> Case Edit */
+          if (!isEmpty(edit_product)) {
+            setData((prev) =>
+              prev.map((p) => (p.id === product.id ? product : p))
+            );
+          } else {
+            handleAddProduct(product);
+          }
+          /** Tắt modal và reset sản phẩm edit */
+          setIsModalOpen(false);
+          setEditProduct(null);
+        }}
+        product={edit_product || {}}
+        type={isEmpty(edit_product) ? "add" : "edit"}
+      />
+      <DeleteProduct
+        open={is_modal_delete} /* open={is_delete_modal_open} */
+        onClose={() => setIsModalDelete(false)}
+        onSubmit={() => {
+          setIsModalDelete(false);
+          setData((prev) => prev.filter((p) => p.id !== id_delete));
+        }}
+      />
     </main>
   );
 }

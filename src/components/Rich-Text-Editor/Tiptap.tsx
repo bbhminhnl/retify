@@ -12,8 +12,7 @@ import MenuBar from "./MenuBar";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import { debounce } from "lodash";
-
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 /**
  * type sản phẩm
