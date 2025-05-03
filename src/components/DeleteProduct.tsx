@@ -1,11 +1,3 @@
-import { useEffect, useRef, useState } from "react";
-
-import { IProductItem } from "@/types";
-import InputField from "./InputField";
-import { X } from "lucide-react";
-import { on } from "events";
-import { simpleUUID } from "@/utils";
-
 /** Kiểu dữ liệu */
 interface AddProductModalProps {
   /** Trạng thái open */

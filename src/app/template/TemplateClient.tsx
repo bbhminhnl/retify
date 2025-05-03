@@ -11,14 +11,17 @@ import ProductItemCustom from "../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
 import { isEmpty } from "lodash";
 import { simpleUUID } from "@/utils";
+import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 export default function TemplateClient({
   template_id,
   rawData,
+  address,
 }: {
   template_id: string;
   rawData: any;
+  address: string;
 }) {
   /** Dữ liệu hiển thị */
   const [data, setData] = useState<any[]>([]);
@@ -218,7 +221,10 @@ export default function TemplateClient({
     fetchData();
   }, [rawData, template_id]);
   /** Input propmt*/
-  const [input, setInput] = useState(``);
+  const [input, setInput] = useState(address);
+
+  console.log(address, "address");
+  console.log(input, "input");
   /** Image */
   const [image, setImage] = useState<string | null>(null);
   /** Hàm gọi API tạo ảnh từ prompt
@@ -249,10 +255,7 @@ export default function TemplateClient({
   const searchShopInfo = async (query: string, data: any) => {
     setLoadingShop(true);
     /** Key word search */
-    let key_word = query
-      ? query
-      : // : "Buffet hải sản Cửu Vân Long - Số 10 Trần Phú - Hà Đông - Hà Nội";
-        "Haidilao Vincom Trần Duy Hưng";
+    let key_word = query ? query : "Haidilao Vincom Trần Duy Hưng";
     const RES = await fetch("/api/store-knowledge", {
       method: "POST",
       body: JSON.stringify({ query: key_word }),
@@ -262,7 +265,7 @@ export default function TemplateClient({
     });
 
     const DATA_STORE = await RES.json();
-
+    console.log(DATA_STORE, "DATA_STORE");
     /** gọi hàm update tài liệu */
     handleAddDocument(data, DATA_STORE);
     /** Tắt loading */
@@ -313,9 +316,9 @@ export default function TemplateClient({
       }
 
       console.log("✅ Sản phẩm đã được thêm");
-
       /** Gửi thông tin cửa hàng (nếu có) */
       if (results?.content) {
+        toast.success("Tìm kiếm thông tin cửa hàng thành công!");
         const SHOP_INFO_RES = await fetch("/api/shop-info", {
           method: "PUT",
           body: JSON.stringify({ session_id, content: results.content }),
@@ -327,9 +330,28 @@ export default function TemplateClient({
           console.warn("⚠️ Không thể cập nhật thông tin cửa hàng");
         }
       }
+      /** Trường hợp không có content */
+      if (!results?.content) {
+        /** Hiển thị lỗi */
+        toast.error("Không tìm thấy thống tin cửa hàng");
+        /** Lưu thông tin cửa hàng */
+        const SHOP_INFO_RES = await fetch("/api/shop-info", {
+          method: "PUT",
+          body: JSON.stringify({
+            session_id,
+            content: "Không tìm thấy thông tin cửa hàng",
+          }),
+        });
 
+        /** Kiem tra ket qua */
+        if (SHOP_INFO_RES.ok) {
+          console.log("✅ Cập nhật thông tin cửa hàng thành công");
+        } else {
+          console.warn("⚠️ Không thể cập nhật thông tin cửa hàng");
+        }
+      }
       /** Sau khi thành công, chờ 500ms rồi chuyển trang */
-      await delay(500);
+      await delay(1500);
       /** Chuyển trang */
       ROUTER.push("/editor"); // Custom router navigation (not using next/router)
     } catch (error) {
@@ -346,6 +368,7 @@ export default function TemplateClient({
   const handleAddProduct = (product: IProductItem) => {
     setData((prevData) => [...prevData, product]);
   };
+
   return (
     <main className="px-3 py-2 max-w-3xl w-full mx-auto space-y-6 relative">
       <div className="flex md:flex-row flex-col items-center justify-between bg-white sticky top-0 z-10 py-2 w-full">

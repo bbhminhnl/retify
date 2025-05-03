@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       }
       /** Lưu lại đúng format upload lên Merchant */
       return {
-        id: index + 1, // Bạn có thể sử dụng cách xác định id khác nếu cần
+        id: product.id,
         name: product.name,
         price: product.price,
         product_image: product.product_image,

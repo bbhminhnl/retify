@@ -48,74 +48,182 @@ class LoggerService {
 }
 
 /** 4. Controller xử lý route */
+// export async function POST(req: NextRequest) {
+//   try {
+//     /** Nhận dữ liệu webhook */
+//     const WEBHOOK_DATA = await req.json();
+//     LoggerService.logReceivedWebhook(WEBHOOK_DATA);
+//     /** Kiểm tra dữ liệu webhook */
+//     if (WEBHOOK_DATA?.event === "message.update") {
+//       /** Khai báo lỗi */
+//       const ERROR = "Webhook event is message.update, ignoring...";
+//       /** Log lỗi */
+//       LoggerService.logError(ERROR as any);
+//       /** Bỏ qua event message.update */
+//       return NextResponse.json(
+//         {
+//           status: "error",
+//           message: "Webhook event is message.update, ignoring...",
+//         },
+//         { status: 403 }
+//       );
+//     }
+//     /** Text address */
+//     const TEXT_ADDRESS =
+//       WEBHOOK_DATA?.message?.message_type === "client" &&
+//       typeof WEBHOOK_DATA?.message?.message_text === "string"
+//         ? WEBHOOK_DATA.message.message_text
+//         : null;
+//     /** TNeesu có text Address thì lưu lại */
+//     if (TEXT_ADDRESS) {
+//       const ADDRESS_KEY = `${WEBHOOK_DATA?.client_id}__store_address`;
+//       await saveMenuToRedis(ADDRESS_KEY, JSON.stringify(TEXT_ADDRESS));
+//       console.log(ADDRESS_KEY, "STORE_ADDRESS_KEY");
+//     }
+
+//     /** Xử lý dữ liệu webhook */
+//     const IMAGE_URL = await WebhookService.processWebhookData(WEBHOOK_DATA);
+//     if (!IMAGE_URL) {
+//       throw new Error("No image URL found in webhook data");
+//     }
+//     LoggerService.logImageUrl(IMAGE_URL);
+//     /** Tạo Storage key lưu giá trị JSON MENU */
+//     const STORAGE_KEY = `${WEBHOOK_DATA?.client_id}__${WEBHOOK_DATA?.message?.message_id}`;
+
+//     /** Gọi API xử lý hình ảnh */
+//     const VISION_RESULT = await VisionApiService.processImage(IMAGE_URL);
+//     LoggerService.logApiResult(VISION_RESULT);
+//     /** Tạo lại danh sách món ăn, chuẩn có tên, giá, đơn vị */
+//     const DATA_PROCESS = await processMenuText(VISION_RESULT.texts);
+//     LoggerService.logApiResult(DATA_PROCESS);
+
+//     console.log(VISION_RESULT, "VISION_RESULT");
+//     console.log(DATA_PROCESS, "DATA_PROCESS");
+
+//     /** Thêm ảnh mô tả cho từng món ăn */
+//     // const UPDATED_MENU = await addImageDescription(DATA_PROCESS);
+//     // LoggerService.logApiResult(UPDATED_MENU);
+//     console.log(STORAGE_KEY, "STORAGE_KEY");
+//     /** Lưu vào Redis */
+//     saveMenuToRedis(STORAGE_KEY, JSON.stringify(DATA_PROCESS));
+//     /** Lưu vào Redis thành công */
+//     // console.log("Menu data saved to Redis successfully");
+//     /**
+//      * Gọi API để gửi tin nhắn đến Facebook Messenger
+//      * @param {string} client_id - ID của client
+//      * @param {string} message_id - ID của tin nhắn
+//      * @param {string} menu_title - Tiêu đề của menu
+//      * @param {string} page_id - ID của trang
+//      * @description
+//      * - Gọi API để gửi tin nhắn đến Facebook Messenger
+//      * - Sử dụng template message để hiển thị menu
+//      * - Sử dụng đường dẫn đến menu đã được tạo
+//      * - Đường dẫn đến menu được tạo bằng cách kết hợp client_id và message_id
+//      * - Ví dụ: https://example.com/template/template_id=client_id_message_id
+//      */
+//     const GENERATE_TEMPLATE_MESSAGE = await generateTemplateMessage({
+//       client_id: WEBHOOK_DATA.client_id,
+//       message_id: WEBHOOK_DATA.message.message_id,
+//       menu_title: WEBHOOK_DATA.message.message_attachments[0].title,
+//       page_id: WEBHOOK_DATA.page_id,
+//     });
+//     console.log(GENERATE_TEMPLATE_MESSAGE, "generateTemplateMessage");
+//     /** Trả về response thành công */
+//     return NextResponse.json({
+//       status: "success",
+//       message: "Webhook processed by external API",
+//       vision_result: DATA_PROCESS,
+//     });
+//   } catch (error) {
+//     LoggerService.logError(error as Error);
+//     return NextResponse.json(
+//       {
+//         status: "error",
+//         message: error instanceof Error ? error.message : "Unknown error",
+//       },
+//       { status: 500 }
+//     );
+//   }
+// }
 export async function POST(req: NextRequest) {
   try {
-    /** Nhận dữ liệu webhook */
     const WEBHOOK_DATA = await req.json();
     LoggerService.logReceivedWebhook(WEBHOOK_DATA);
-    /** Kiểm tra dữ liệu webhook */
+
     if (WEBHOOK_DATA?.event === "message.update") {
-      /** Khai báo lỗi */
       const ERROR = "Webhook event is message.update, ignoring...";
-      /** Log lỗi */
       LoggerService.logError(ERROR as any);
-      /** Bỏ qua event message.update */
       return NextResponse.json(
         {
           status: "error",
-          message: "Webhook event is message.update, ignoring...",
+          message: ERROR,
         },
         { status: 403 }
       );
     }
-    /** Xử lý dữ liệu webhook */
+
+    /** ✅ CASE 1: Tin nhắn từ client (có địa chỉ) */
+    const IS_CLIENT_TEXT =
+      WEBHOOK_DATA?.message?.message_type === "client" &&
+      typeof WEBHOOK_DATA?.message?.message_text === "string";
+    /** Nếu là text thì lưu theo luồng Text */
+    if (IS_CLIENT_TEXT) {
+      /** Lưu địa chỉ */
+      const TEXT_ADDRESS = WEBHOOK_DATA.message.message_text;
+      /** Tạo key */
+      const ADDRESS_KEY = `${WEBHOOK_DATA.client_id}__store_address`;
+      /** Lưu vào Redis */
+      await saveMenuToRedis(ADDRESS_KEY, JSON.stringify(TEXT_ADDRESS));
+      console.log("STORE_ADDRESS_KEY:", ADDRESS_KEY);
+
+      /** Trả về ngay — không xử lý ảnh nữa */
+      return NextResponse.json({
+        status: "success",
+        message: "Store address saved successfully.",
+      });
+    }
+
+    /** ✅ CASE 2: Tin nhắn dạng ảnh (menu) */
     const IMAGE_URL = await WebhookService.processWebhookData(WEBHOOK_DATA);
+    /** Nếu không có ảnh báo lỗi */
     if (!IMAGE_URL) {
       throw new Error("No image URL found in webhook data");
     }
+    /**
+     * Log URL hình ảnh
+     */
     LoggerService.logImageUrl(IMAGE_URL);
-    /** Tạo Storage key lưu giá trị JSON MENU */
-    const STORAGE_KEY = `${WEBHOOK_DATA?.client_id}__${WEBHOOK_DATA?.message?.message_id}`;
-
-    /** Gọi API xử lý hình ảnh */
+    /**
+     * Tạo Storage key lưu giá trị JSON MENU
+     */
+    const STORAGE_KEY = `${WEBHOOK_DATA.client_id}__${WEBHOOK_DATA.message?.message_id}`;
+    /**
+     * Xử lý ảnh bằng Vision API
+     */
     const VISION_RESULT = await VisionApiService.processImage(IMAGE_URL);
     LoggerService.logApiResult(VISION_RESULT);
-    /** Tạo lại danh sách món ăn, chuẩn có tên, giá, đơn vị */
+    /**
+     * Tạo lại danh sách món ăn, chuẩn có tên, giá, đơn vị
+     */
     const DATA_PROCESS = await processMenuText(VISION_RESULT.texts);
     LoggerService.logApiResult(DATA_PROCESS);
-
-    console.log(VISION_RESULT, "VISION_RESULT");
-    console.log(DATA_PROCESS, "DATA_PROCESS");
-
-    /** Thêm ảnh mô tả cho từng món ăn */
-    // const UPDATED_MENU = await addImageDescription(DATA_PROCESS);
-    // LoggerService.logApiResult(UPDATED_MENU);
-    console.log(STORAGE_KEY, "STORAGE_KEY");
-    /** Lưu vào Redis */
-    saveMenuToRedis(STORAGE_KEY, JSON.stringify(DATA_PROCESS));
-    /** Lưu vào Redis thành công */
-    // console.log("Menu data saved to Redis successfully");
     /**
-     * Gọi API để gửi tin nhắn đến Facebook Messenger
-     * @param {string} client_id - ID của client
-     * @param {string} message_id - ID của tin nhắn
-     * @param {string} menu_title - Tiêu đề của menu
-     * @param {string} page_id - ID của trang
-     * @description
-     * - Gọi API để gửi tin nhắn đến Facebook Messenger
-     * - Sử dụng template message để hiển thị menu
-     * - Sử dụng đường dẫn đến menu đã được tạo
-     * - Đường dẫn đến menu được tạo bằng cách kết hợp client_id và message_id
-     * - Ví dụ: https://example.com/template/template_id=client_id_message_id
+     * Lưu menu vào Redis
      */
+    await saveMenuToRedis(STORAGE_KEY, JSON.stringify(DATA_PROCESS));
+    console.log("STORAGE_KEY:", STORAGE_KEY);
+
     const GENERATE_TEMPLATE_MESSAGE = await generateTemplateMessage({
       client_id: WEBHOOK_DATA.client_id,
       message_id: WEBHOOK_DATA.message.message_id,
-      menu_title: WEBHOOK_DATA.message.message_attachments[0].title,
+      menu_title:
+        WEBHOOK_DATA.message.message_attachments?.[0]?.title || "Menu",
       page_id: WEBHOOK_DATA.page_id,
     });
-    console.log(GENERATE_TEMPLATE_MESSAGE, "generateTemplateMessage");
-    /** Trả về response thành công */
+    console.log("generateTemplateMessage:", GENERATE_TEMPLATE_MESSAGE);
+    /**
+     * Trả về response thành cong
+     */
     return NextResponse.json({
       status: "success",
       message: "Webhook processed by external API",
@@ -321,6 +429,7 @@ async function generateTemplateMessage(params: TemplateParams) {
           buttons: [
             {
               type: "web_url",
+              // url: `https://192.168.1.198:8000/template?template_id=${params.client_id}__${params.message_id}`,
               url: LINK,
               title: "Preview",
             },

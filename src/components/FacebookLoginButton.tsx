@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 declare global {
@@ -55,7 +56,7 @@ const FacebookLoginButton = () => {
   const handleFacebookLogin = () => {
     /** Kiem tra xem SDK da load chua */
     if (!window.FB) {
-      alert("Facebook SDK chưa sẵn sàng.");
+      toast.error("Facebook SDK chưa sẵn sàng.");
       return;
     }
     /**
@@ -70,7 +71,7 @@ const FacebookLoginButton = () => {
           /** 👉 Chuyển hướng hoặc xử lý tiếp với token */
           ROUTER.push("/connect?access_token=" + accessToken);
         } else {
-          alert("Đăng nhập Facebook thất bại hoặc bị hủy.");
+          toast.error("Đăng nhập Facebook thất bại hoặc bị hủy.");
         }
       },
       {

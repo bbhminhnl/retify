@@ -76,7 +76,6 @@ const ProductItemCustom = ({
           className=" text-xs px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 
         group-hover:block block md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
         >
-          {/* {is_editing ? "Lưu" : "Sửa"} */}
           Sửa
         </button>
 

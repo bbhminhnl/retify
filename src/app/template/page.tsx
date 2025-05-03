@@ -32,6 +32,9 @@ export default async function TemplatePage({ searchParams }: PageProps) {
   /** Khai báo data */
   let data: any[] = [];
 
+  /** khai báo địa chỉ */
+  let address: string = "";
+
   try {
     /** Lấy dữ liệu từ Redis */
     const RAW = await redis.get(template_id);
@@ -43,6 +46,11 @@ export default async function TemplatePage({ searchParams }: PageProps) {
         </p>
       );
     }
+    /** Client ID */
+    const CLIENT_ID = template_id.split("__")[0];
+    /** Lưu lại địa chỉ trong redis */
+    address = (await redis.get(CLIENT_ID + "__store_address")) || "";
+
     /** Chuyển đổi dữ liệu từ Redis về định dạng JSON */
     const PARSED = JSON.parse(RAW);
     /** Kiểm tra dữ liệu */
@@ -58,5 +66,11 @@ export default async function TemplatePage({ searchParams }: PageProps) {
     );
   }
 
-  return <TemplateClient rawData={data} template_id={template_id} />;
+  return (
+    <TemplateClient
+      rawData={data}
+      template_id={template_id}
+      address={address}
+    />
+  );
 }
