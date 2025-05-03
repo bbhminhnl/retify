@@ -75,7 +75,7 @@ const FacebookLoginButton = () => {
           setAccessToken(accessToken);
 
           /** 👉 Chuyển hướng hoặc xử lý tiếp với token */
-          // ROUTER.push("/connect?access_token=" + accessToken);
+          ROUTER.push("/connect?access_token=" + accessToken);
         } else {
           toast.error("Đăng nhập Facebook thất bại hoặc bị hủy.");
         }
