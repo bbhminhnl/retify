@@ -65,7 +65,7 @@ const MainLayout = () => {
       try {
         const DATA = JSON.parse(event.data);
         console.log("Data from mobile:", DATA);
-        toast.success(DATA.payload + " " + DATA.type + "kkkkkkkkkkkk");
+        toast.success(DATA.payload + "test " + DATA.type + DATA?.accessToken);
 
         // Xử lý tùy theo loại message
         if (DATA.type === "page.loginFB") {
