@@ -31,7 +31,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="flex-grow min-h-0 h-screen w-screen">
-          {children} <ToastProvider />
+          <ToastProvider />
+          {children}
         </div>
       </body>
     </html>

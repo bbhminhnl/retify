@@ -2,11 +2,26 @@
 import React, { useState } from "react";
 /** Company size */
 const SIZES = [
-  "Solo",
-  "2 – 10 employees",
-  "11 – 50 employees",
-  "51 – 100 employees",
-  "Above 100 employees",
+  {
+    key: "Solo",
+    value: "SOLO",
+  },
+  {
+    key: "2 – 10 employees",
+    value: "2to10",
+  },
+  {
+    key: "11 – 50 employees",
+    value: "11to50",
+  },
+  {
+    key: "51 – 100 employees",
+    value: "51to100",
+  },
+  {
+    key: "Above 100 employees",
+    value: "above100",
+  },
 ];
 
 /**
@@ -42,18 +57,18 @@ const CompanySizeSelector: React.FC<Props> = ({ onSelect, defaultValue }) => {
   };
 
   return (
-    <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="w-full flex flex-col gap-4">
       {SIZES.map((size) => (
         <div
-          key={size}
-          onClick={() => handleSelect(size)}
+          key={size.value}
+          onClick={() => handleSelect(size.value)}
           className={`cursor-pointer border rounded-lg p-3 gap-2.5 text-left font-medium transition text-sm ${
-            selected === size
+            selected === size.value
               ? "bg-blue-700 text-white border-blue-700 shadow"
               : "bg-white hover:border-blue-400"
           }`}
         >
-          {size}
+          {size.key}
         </div>
       ))}
     </div>
