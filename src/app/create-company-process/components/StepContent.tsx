@@ -18,6 +18,10 @@ type Props = {
   company_size: string;
   /** fixed menu */
   fixed_menu: string;
+  /** Connect to Channel */
+  handleConnectChannel: () => void;
+  /** Loading */
+  loading?: boolean;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -26,6 +30,8 @@ const StepContent: React.FC<Props> = ({
   onSelectMenu,
   company_size,
   fixed_menu,
+  handleConnectChannel,
+  loading,
 }) => {
   return (
     <div className="rounded w-full text-center">
@@ -54,7 +60,14 @@ const StepContent: React.FC<Props> = ({
           <p>Iframe Shop Merchant</p>
         </div>
       )}
-      {step === 4 && <LaunchAI />}
+      {step === 4 && (
+        <LaunchAI
+          onConnect={() => {
+            handleConnectChannel();
+          }}
+          loading={loading}
+        />
+      )}
     </div>
   );
 };

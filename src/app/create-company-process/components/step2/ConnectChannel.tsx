@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Loading from "@/components/loading/Loading";
 import React from "react";
 import Shopify from "@/assets/icons/shopify.svg";
 
@@ -12,8 +13,20 @@ interface Props {
   onConnect?: () => void;
   /** Icon */
   Icon?: React.ElementType;
+  /**
+   * loading
+   */
+  loading?: boolean;
+  /** Selected */
+  selected?: boolean;
 }
-const ConnectChannel = ({ name, onConnect, Icon }: Props) => {
+const ConnectChannel = ({
+  name,
+  onConnect,
+  Icon,
+  loading,
+  selected,
+}: Props) => {
   return (
     <div className="flex items-center justify-between p-3 gap-x-2.5 rounded-lg border border-slate-200">
       <div className="flex items-center gap-2.5">
@@ -29,9 +42,14 @@ const ConnectChannel = ({ name, onConnect, Icon }: Props) => {
       </div>
       <div
         onClick={() => onConnect && onConnect()}
-        className="py-2 px-10 border border-blue-700 rounded-md gap-1 text-sm font-semibold text-blue-700 bg-blue-100 cursor-pointer hover:bg-blue-200"
+        className="flex gap-x-2 py-2 px-10 border border-blue-700 rounded-md gap-1 text-sm font-semibold text-blue-700 bg-blue-100 cursor-pointer hover:bg-blue-200"
       >
         Connect
+        {selected && loading && (
+          <div className="">
+            <Loading size="sm" />
+          </div>
+        )}
       </div>
     </div>
   );

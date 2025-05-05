@@ -1,15 +1,18 @@
-import Clover from "@/assets/icons/clover.svg";
 import ConnectChannel from "../step2/ConnectChannel";
 import Download from "./Download";
 import Facebook from "@/assets/icons/facebook.svg";
+import IFacebook from "@/assets/icons/IFacebook.svg";
+import IInstagram from "@/assets/icons/IInstagram.svg";
+import ITiktok from "@/assets/icons/ITiktok.svg";
+import IWhatsapp from "@/assets/icons/IWhatsapp.svg";
 import Instagram from "@/assets/icons/instagram.svg";
 import QR from "@/assets/icons/QR.svg";
-import React from "react";
-import Shopify from "@/assets/icons/shopify.svg";
 import Tiktok from "@/assets/icons/tiktok.svg";
 import Website from "@/assets/icons/website.svg";
 import Whatsapp from "@/assets/icons/whatsapp.svg";
+import { set } from "lodash";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 /**
  * Dư liệu POS
@@ -18,22 +21,22 @@ const POS_OPTION = [
   {
     value: "Facebook",
     label: "Facebook",
-    Icon: Facebook,
+    Icon: IFacebook,
   },
   {
     value: "Instagram",
     label: "Instagram",
-    Icon: Instagram,
+    Icon: IInstagram,
   },
   {
     value: "Tiktok",
     label: "Tiktok",
-    Icon: Tiktok,
+    Icon: ITiktok,
   },
   {
     value: "Whatsapp",
     label: "Whatsapp",
-    Icon: Whatsapp,
+    Icon: IWhatsapp,
   },
   {
     value: "Website",
@@ -46,7 +49,21 @@ const POS_OPTION = [
     Icon: QR,
   },
 ];
-const LaunchAI = () => {
+
+/**
+ * Kiểu dữ liệu connect channel
+ */
+interface ConnectChannelProps {
+  /** Hàm két nối với channel */
+  onConnect?: () => void;
+  /** Loading */
+  loading?: boolean;
+}
+
+const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
+  /** select channel */
+  const [selected_channel, setSelectedChannel] = useState<string>("");
+
   return (
     <div>
       <div className="flex flex-col gap-3">
@@ -60,8 +77,15 @@ const LaunchAI = () => {
                   name={option.value}
                   Icon={option.Icon}
                   onConnect={() => {
-                    toast.warn("Tính năng này đang phát triển");
+                    if (option.value === "Facebook") {
+                      onConnect?.();
+                      setSelectedChannel(option.value);
+                    } else {
+                      toast.warn("Tính năng này đang phát triển");
+                    }
                   }}
+                  loading={loading}
+                  selected={selected_channel === option.value}
                 />
               )}
               {option.value === "QR" && (
