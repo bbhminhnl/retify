@@ -68,7 +68,7 @@ const MainLayout = () => {
         toast.success(DATA.payload + " " + DATA.type + "kkkkkkkkkkkk");
 
         // Xử lý tùy theo loại message
-        if (DATA.type === "greeting") {
+        if (DATA.type === "page.loginFB") {
           alert(DATA.payload); // "Hello from mobile!"
         }
       } catch (error) {
