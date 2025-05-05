@@ -7,6 +7,7 @@ import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
+import { join } from "path";
 import { toast } from "react-toastify";
 
 /**
@@ -69,7 +70,7 @@ const MainLayout = () => {
 
         // Xử lý tùy theo loại message
         if (DATA.type === "page.loginFB") {
-          alert(DATA.payload); // "Hello from mobile!"
+          alert(JSON.stringify(DATA)); // "Hello from mobile!"
         }
       } catch (error) {
         console.error("Invalid JSON from mobile:", event.data);
