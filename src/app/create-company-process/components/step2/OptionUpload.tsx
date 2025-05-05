@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 /** Kiểu dữ liệu */
 type IOptionUpload = {
   /** Callback function */
-  onSelect: (value: string) => void;
+  onSelect: (value: any) => void;
   /** Default value */
   defaultValue?: string;
 };
@@ -13,7 +13,7 @@ const OptionUpload = ({ onSelect, defaultValue }: IOptionUpload) => {
    */
   const FILE_INPUT_REF = useRef<HTMLInputElement | null>(null);
   /** Preview Ảnh */
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<any | null>(null);
 
   useEffect(() => {
     if (defaultValue) {
@@ -38,13 +38,11 @@ const OptionUpload = ({ onSelect, defaultValue }: IOptionUpload) => {
     if (FILE) {
       /** Tạo URL cho ảnh */
       const IMAGE_URL = URL.createObjectURL(FILE);
-      /**
-       * Cap nhật preview
-       */
+      /** Cap nhật preview*/
       setPreview(IMAGE_URL);
 
       /** Truy xuat URL ảnh */
-      onSelect(IMAGE_URL);
+      onSelect(FILE);
     }
   };
 

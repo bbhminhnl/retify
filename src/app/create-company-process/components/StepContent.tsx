@@ -14,7 +14,7 @@ type Props = {
   /** onSelect Company size */
   onSelectCompanySize: (value: string) => void;
   /** onSelect Menu */
-  onSelectMenu: (value: string) => void;
+  onSelectMenu: (value: any) => void;
   /** company size */
   company_size: string;
   /** fixed menu */
@@ -23,6 +23,12 @@ type Props = {
   handleConnectChannel: () => void;
   /** Loading */
   loading?: boolean;
+  /** data menu */
+  rawData: any;
+  /** template id */
+  template_id: string;
+  /** address */
+  address: string;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -33,6 +39,9 @@ const StepContent: React.FC<Props> = ({
   fixed_menu,
   handleConnectChannel,
   loading,
+  rawData,
+  template_id,
+  address,
 }) => {
   return (
     <div className="rounded w-full text-center">
@@ -59,7 +68,11 @@ const StepContent: React.FC<Props> = ({
 
       {step === 3 && (
         <div>
-          <TemplateClient />
+          <TemplateClient
+            rawData={rawData}
+            template_id="user_id_test"
+            address=""
+          />
         </div>
       )}
 

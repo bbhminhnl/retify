@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import {
+  saveMenuToRedis,
+  saveMenuToRedisClient,
+} from "../api/connect-webhook/route";
 
 import ConnectDone from "./components/step5/ConnectDone";
 import Progress from "./components/Progress";
@@ -8,6 +12,8 @@ import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
 import { join } from "path";
+import { set } from "lodash";
+import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
 
 /**
@@ -31,7 +37,7 @@ const MainLayout = () => {
   /** Tổng số Step */
   const TOTAL_STEPS = 5;
   /** Step hiện tại */
-  const [step, setStep] = useState(5);
+  const [step, setStep] = useState(2);
 
   /** company size */
   const [company_size, setCompanySize] = useState("");
@@ -43,6 +49,16 @@ const MainLayout = () => {
 
   /**Loading */
   const [loading, setLoading] = useState(false);
+  /** Image url */
+  const [image_url, setImage] = useState("");
+  /** File ảnh đã upload */
+  const [file_image, setFileImage] = useState<File | null>(null);
+  /**
+   * raw data
+   */
+  const [raw_data, setRawData] = useState<any>(null);
+  /** user_id */
+  const [user_id, setUserId] = useState("user_id_test");
 
   /** Disable next button */
   const checkDisableNextButton = () => {
@@ -55,7 +71,7 @@ const MainLayout = () => {
     /**
      * Bước 2: Chọn menu
      */
-    if (step === 2 && fixed_menu === "") {
+    if (step === 2 && !file_image) {
       return true;
     }
     return false;
@@ -85,6 +101,112 @@ const MainLayout = () => {
       window.removeEventListener("message", handleMessage);
     };
   }, []);
+  /**
+   * Hàm xử lý upload ảnh lên server
+   * @param FILE Luồng base64 của ảnh
+   * @returns Promise trả về đường dẫn ảnh đã lưu
+   */
+  const fetchUploadImage = async (FILE: any): Promise<string> => {
+    return new Promise((resolve) => {
+      try {
+        // /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
+        // const MIME_TYPE = "image/png";
+        // /** Convert base64 → binary → File */
+        // const BYTE_STRING = atob(value);
+        // /**
+        //  * Chuyển đổi base64 thành Uint8Array
+        //  */
+        // const BYTE_ARRAY = new Uint8Array(BYTE_STRING.length);
+        // /**
+        //  * Chuyển đổi base64 thành Uint8Array
+        //  */
+        // for (let i = 0; i < BYTE_STRING.length; i++) {
+        //   BYTE_ARRAY[i] = BYTE_STRING.charCodeAt(i);
+        // }
+        // /**
+        //  * Tạo đối tượng File từ Uint8Array
+        //  */
+        // const FILE = new File([BYTE_ARRAY], "image.png", { type: MIME_TYPE });
+        /**
+         * Đưa vào FormData
+         */
+        const FORM_DATA = new FormData();
+        FORM_DATA.append("file", FILE);
+        /** Upload ảnh lên merchant */
+        fetch(
+          "https://api.merchant.vn/v1/internals/attachment/upload?path=&label=&folder_id=&root_file_id=",
+          {
+            method: "POST",
+            body: FORM_DATA,
+            headers: {
+              "token-business":
+                process.env.NEXT_PUBLIC_MERCHANT_TOKEN_BUSINESS || "",
+            },
+          }
+        )
+          .then((res) => res.json())
+          .then((result) => {
+            const FILE_PATH = result?.data?.file_path || "";
+            resolve(FILE_PATH);
+
+            // setImage(FILE_PATH);
+          })
+          .catch((error) => {
+            console.error("Upload failed:", error);
+            resolve("");
+          });
+      } catch (error) {
+        console.error("Upload failed:", error);
+        resolve("");
+      }
+    });
+  };
+
+  const handleProcessProduct = async () => {
+    try {
+      /** Setloading */
+      setLoading(true);
+      /** Upload hình ảnh */
+      const IMAGE_URL = await fetchUploadImage(file_image);
+      console.log(IMAGE_URL, "IMAGE_URL");
+
+      /** api google vision xử lý ảnh */
+      const VISION_RES = await fetch("/api/vision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: IMAGE_URL }),
+      });
+      /** parse json kết quả  */
+      const VISION_DATA = await VISION_RES.json();
+
+      /** Xử lý tổng hợp thông tin món ăn */
+      const CLEAN_MENU = await fetch("/api/clean-menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawText: VISION_DATA?.texts.join("\n") }),
+      });
+      /**
+       * Kết quả trả về từ API
+       */
+      const { menuItems } = await CLEAN_MENU.json();
+
+      /** Bước 2: Tách tên và giá */
+      const PARSED_MENU = menuItems.map((item: string) => {
+        /** Tách tên và giá , đơn vị*/
+        const [name, price, unit] = item.split(" - ");
+        return { name, price, unit };
+      });
+      /** Lưu menu về redis */
+      await saveMenuToRedisClient("user_id_test", JSON.stringify(PARSED_MENU));
+      setRawData(PARSED_MENU);
+      /** Next step */
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
@@ -102,8 +224,11 @@ const MainLayout = () => {
               onSelectMenu={(value) => {
                 /** callback function */
                 setFixedMenu(value);
+                // console.log(value, "valueee");
+                // fetchUploadImage(value);'
+                setFileImage(value);
               }}
-              fixed_menu={fixed_menu}
+              fixed_menu={image_url}
               handleConnectChannel={() => {
                 console.log("Connect channel");
                 setLoading(true);
@@ -116,15 +241,26 @@ const MainLayout = () => {
                 }, 2000);
               }}
               loading={loading}
+              rawData={raw_data}
+              template_id={user_id}
+              address={"Haidilao Vincom Trần Duy Hưng"}
             />
           </div>
           <StepNavigator
             step={step}
             maxSteps={TOTAL_STEPS}
-            onNext={() => setStep((s) => Math.min(s + 1, TOTAL_STEPS))}
+            onNext={() => {
+              if (step === 2) {
+                handleProcessProduct();
+                // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+              } else {
+                setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+              }
+            }}
             onBack={() => setStep((s) => Math.max(s - 1, 1))}
             disabledNext={checkDisableNextButton()}
             disabledBack={step === 1}
+            loading={loading}
           />
         </div>
       )}

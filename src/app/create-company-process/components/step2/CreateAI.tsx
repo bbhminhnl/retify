@@ -14,7 +14,7 @@ type Props = {
    * @param value Size selected
    * @returns
    */
-  onSelect: (value: string) => void;
+  onSelect: (value: any) => void;
   /**
    * Giá trị mặc định
    */
@@ -22,13 +22,6 @@ type Props = {
 };
 
 const CreateAI: React.FC<Props> = ({ onSelect, defaultValue }) => {
-  /** Selected */
-  const [selected, setSelected] = useState<string | null>(defaultValue || null);
-  /**
-   * Hàm xuất lý khi chọn size
-   * @param size Size selected
-   */
-
   return (
     <div className="w-full grid gap-4">
       <OptionUpload onSelect={onSelect} defaultValue={defaultValue} />

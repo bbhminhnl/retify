@@ -372,14 +372,12 @@ export default function TemplateClient({
   return (
     <main className="px-3 py-2 max-w-3xl w-full mx-auto space-y-6 relative">
       <div className="flex md:flex-row flex-col items-center justify-between bg-white sticky top-0 z-10 py-2 w-full">
-        <h1 className="md:text-2xl md:font-bold  text-xl font-medium ">
-          Xem trước Menu và Cập nhật sản phẩm
-        </h1>
+        <h1 className="md:text-2xl md:font-bold  text-xl font-medium ">Menu</h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded text-sm"
         >
-          Thêm sản phẩm
+          Add Product
         </button>
       </div>
       <div>
@@ -388,7 +386,7 @@ export default function TemplateClient({
             ⚠️ {error}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 gap-8">
             {loading && (
               <div className="p-4 bg-gray-100 text-gray-500 rounded">
                 <Loading size="lg" />

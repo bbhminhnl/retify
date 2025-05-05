@@ -463,13 +463,42 @@ async function generateTemplateMessage(params: TemplateParams) {
 /**
  * Xử lý add vào redis
  */
-const saveMenuToRedis = async (key: string, value: any) => {
+export const saveMenuToRedis = async (key: string, value: any) => {
   try {
     /** Lưu vào Redis với key: client_id__message_id */
     /** Parse JSON */
     const JSON_INPUT = JSON.parse(value);
     /** Gửi request lưu vào Redis */
     const RES = await fetch(`${DOMAIN}/api/json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, value: JSON_INPUT }), // gửi key và value
+    });
+    /** Kết quả sau khi parse json */
+    const RESULT = await RES.json();
+
+    console.log(RESULT, "RESULT");
+    /** Kiểm tra kết quả */
+    if (RESULT.success) {
+      console.log("Lưu thành công vào Redis");
+    } else {
+      alert("Lưu thất bại!");
+    }
+  } catch (error) {
+    console.error("Error saving to Redis:", error);
+    return false;
+  }
+};
+/**
+ * Xử lý add vào redis
+ */
+export const saveMenuToRedisClient = async (key: string, value: any) => {
+  try {
+    /** Lưu vào Redis với key: client_id__message_id */
+    /** Parse JSON */
+    const JSON_INPUT = JSON.parse(value);
+    /** Gửi request lưu vào Redis */
+    const RES = await fetch(`/api/json`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key, value: JSON_INPUT }), // gửi key và value
