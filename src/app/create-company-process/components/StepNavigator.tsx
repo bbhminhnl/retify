@@ -43,16 +43,18 @@ const StepNavigator: React.FC<Props> = ({
       >
         Back
       </button>
-      <button
-        onClick={() => {
-          if (disabledNext) return;
-          onNext();
-        }}
-        disabled={step === maxSteps || disabledNext}
-        className={`px-10 py-2 bg-blue-700 text-white rounded-md disabled:bg-blue-200 disabled:text-blue-700 text-sm font-semibold cursor-pointer`}
-      >
-        Next
-      </button>
+      {step !== maxSteps && (
+        <button
+          onClick={() => {
+            if (disabledNext) return;
+            onNext();
+          }}
+          disabled={step === maxSteps || disabledNext}
+          className={`px-10 py-2 bg-blue-700 text-white rounded-md disabled:bg-blue-200 disabled:text-blue-700 text-sm font-semibold cursor-pointer`}
+        >
+          Next
+        </button>
+      )}
     </div>
   );
 };

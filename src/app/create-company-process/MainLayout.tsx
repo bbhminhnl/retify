@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import ConnectDone from "./components/step5/ConnectDone";
 import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
+import { toast } from "react-toastify";
 
 /**
  * Interface Props
@@ -58,6 +59,29 @@ const MainLayout = () => {
     }
     return false;
   };
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const DATA = JSON.parse(event.data);
+        console.log("Data from mobile:", DATA);
+        toast.success(DATA.payload);
+
+        // Xử lý tùy theo loại message
+        if (DATA.type === "greeting") {
+          alert(DATA.payload); // "Hello from mobile!"
+        }
+      } catch (error) {
+        console.error("Invalid JSON from mobile:", event.data);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
 
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
-import Clover from "@/assets/icons/clover.svg";
+import Clover from "@/assets/images/Clover.png";
 import ConnectChannel from "./ConnectChannel";
-import Shopify from "@/assets/icons/shopify.svg";
+import Shopify from "@/assets/icons/icons8-shopify.svg";
 import { toast } from "react-toastify";
 
 const SelectPOS: React.FC = () => {

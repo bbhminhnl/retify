@@ -5,10 +5,11 @@ import IFacebook from "@/assets/icons/IFacebook.svg";
 import IInstagram from "@/assets/icons/IInstagram.svg";
 import ITiktok from "@/assets/icons/ITiktok.svg";
 import IWhatsapp from "@/assets/icons/IWhatsapp.svg";
-import Instagram from "@/assets/icons/instagram.svg";
+import Instagram from "@/assets/icons/icons8-instagram-logo.svg";
 import QR from "@/assets/icons/QR.svg";
 import Tiktok from "@/assets/icons/tiktok.svg";
-import Website from "@/assets/icons/website.svg";
+// import Website from "@/assets/icons/website.svg";
+import Website from "@/assets/images/Website.png";
 import Whatsapp from "@/assets/icons/whatsapp.svg";
 import { set } from "lodash";
 import { toast } from "react-toastify";
@@ -26,7 +27,7 @@ const POS_OPTION = [
   {
     value: "Instagram",
     label: "Instagram",
-    Icon: IInstagram,
+    Icon: Instagram,
   },
   {
     value: "Tiktok",
