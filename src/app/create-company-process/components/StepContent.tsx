@@ -3,6 +3,7 @@ import CreateAI from "./step2/CreateAI";
 import LaunchAI from "./step4/LaunchAI";
 // components/StepContent.tsx
 import React from "react";
+import TemplateClient from "@/app/template/TemplateClient";
 
 /**
  * Interface Props
@@ -55,12 +56,19 @@ const StepContent: React.FC<Props> = ({
           defaultValue={fixed_menu}
         />
       )}
+
       {step === 3 && (
+        <div>
+          <TemplateClient />
+        </div>
+      )}
+
+      {step === 4 && (
         <div>
           <p>Iframe Shop Merchant</p>
         </div>
       )}
-      {step === 4 && (
+      {step === 5 && (
         <LaunchAI
           onConnect={() => {
             handleConnectChannel();

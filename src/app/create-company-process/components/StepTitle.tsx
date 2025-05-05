@@ -16,8 +16,10 @@ const StepTitle: React.FC<Props> = ({ step }) => {
       case 2:
         return "Create Your AI Assistant & Sales Page";
       case 3:
-        return "Preview Selling Page & AI";
+        return "Editing and Customizing Documents";
       case 4:
+        return "Preview Selling Page & AI";
+      case 5:
         return "Launch AI Assistant and Storefront";
       default:
         return "";

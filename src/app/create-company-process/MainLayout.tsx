@@ -29,9 +29,9 @@ declare global {
 
 const MainLayout = () => {
   /** Tổng số Step */
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = 5;
   /** Step hiện tại */
-  const [step, setStep] = useState(4);
+  const [step, setStep] = useState(5);
 
   /** company size */
   const [company_size, setCompanySize] = useState("");
@@ -62,23 +62,25 @@ const MainLayout = () => {
   };
 
   useEffect(() => {
+    /** Handle message from mobile
+     * @param event
+     */
     const handleMessage = (event: MessageEvent) => {
       try {
+        /** Lấy data */
         const DATA = JSON.parse(event.data);
-        console.log("Data from mobile:", DATA);
-        toast.success(DATA.payload + "test " + DATA.type + DATA?.accessToken);
 
-        // Xử lý tùy theo loại message
+        /** Xử lý tùy theo loại message */
         if (DATA.type === "page.loginFB") {
-          alert(JSON.stringify(DATA)); // "Hello from mobile!"
+          /** Xử lý thông tin trên mobile */
         }
       } catch (error) {
         console.error("Invalid JSON from mobile:", event.data);
       }
     };
-
+    /** Add event listener */
     window.addEventListener("message", handleMessage);
-
+    /** Remove event listener */
     return () => {
       window.removeEventListener("message", handleMessage);
     };
