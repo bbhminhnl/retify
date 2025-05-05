@@ -81,7 +81,7 @@ const MainLayout = () => {
                 console.log("Connect channel");
                 setLoading(true);
                 window.ReactNativeWebView?.postMessage(
-                  JSON.stringify({ type: "fb.loginFB", message: "" })
+                  JSON.stringify({ type: "page.loginFB", message: "" })
                 );
                 setTimeout(() => {
                   setLoading(false);
