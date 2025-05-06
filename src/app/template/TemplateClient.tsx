@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import AddProductModal from "@/components/AddProductModal";
 import DeleteProduct from "@/components/DeleteProduct";
 import { IProductItem } from "@/types";
+import InputAvatar from "../create-company-process/components/step3/InputAvatar";
+import InputTitle from "../create-company-process/components/step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import ProductItemCustom from "../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
@@ -17,10 +19,29 @@ export default function TemplateClient({
   address,
   handleFinishPreview,
   step,
+  onSelect,
+  defaultValue,
 }: {
+  /** Địa chỉ */
   address: string;
+  /**
+   *  Hàm xuất dữ liệu preview
+   * @param e string
+   * @returns
+   */
   handleFinishPreview?: (e: string) => void;
+  /**
+   * Bước hiện tại
+   */
   step?: number;
+  /**
+   *  Hàm select
+   * @param value
+   * @returns
+   */
+  onSelect?: (value: any) => void;
+  /** Gia tri mac dinh */
+  defaultValue?: string;
 }) {
   /** Dữ liệu hiển thị */
   const [data, setData] = useState<any[]>([]);
@@ -177,17 +198,34 @@ export default function TemplateClient({
     });
   };
 
-  /** Input propmt*/
-  const [input, setInput] = useState(address);
-
   const [loading_shop, setLoadingShop] = useState(false);
   /**
    * Hàm gọi API tạo ảnh từ prompt
    */
   const searchShopInfo = async (query: string, data: any) => {
+    if (!shop_name || !shop_address) {
+      toast.error("Vui lòng nhập tên cửa hàng và địa chỉ cửa hàng.");
+      if (!shop_name) {
+        setErrors((prev) => {
+          return {
+            ...prev,
+            shop_name: "Vui lòng nhập tên cửa hàng.",
+          };
+        });
+      }
+      if (!shop_address) {
+        setErrors((prev) => {
+          return {
+            ...prev,
+            shop_address: "Vui lòng nhập địa chỉ cửa hàng.",
+          };
+        });
+      }
+      return;
+    }
     setLoadingShop(true);
     /** Key word search */
-    let key_word = query ? query : "Haidilao Vincom Trần Duy Hưng";
+    let key_word = query ? query : "";
     /** Tìm kiếm thông tin cửa hàng */
     const RES = await fetch("/api/store-knowledge", {
       method: "POST",
@@ -307,8 +345,53 @@ export default function TemplateClient({
     setData((prevData) => [...prevData, product]);
   };
 
+  /** Avatar Shop */
+  const [avatar_shop, setAvatarShop] = useState<string | null>("");
+  /** Địa chỉ shop */
+  const [shop_address, setShopAddress] = useState<string | null>("");
+  /** Tên cửa hàng */
+  const [shop_name, setShopname] = useState<string | null>("");
+  /** Khai báo lỗi */
+  const [errors, setErrors] = useState<{
+    shop_name: string;
+    shop_address: string;
+  }>({
+    shop_name: "",
+    shop_address: "",
+  });
+
+  /** Hàm Upload Image */
+  const handleOnSelect = () => {};
+
   return (
-    <main className="px-3 py-2 max-w-3xl w-full mx-auto space-y-6 relative">
+    <main className="py-2 px-1 max-w-3xl w-full mx-auto gap-y-4 relative">
+      <div className="flex flex-col gap-y-4 ">
+        <InputTitle
+          value_input={shop_name || ""}
+          setValueInput={(e) => {
+            setShopname(e);
+            setErrors({ ...errors, shop_name: "" });
+          }}
+          title="Shop Name"
+          placeholder="Enter your shop name"
+          error={errors?.shop_name}
+        />
+        <InputTitle
+          value_input={shop_address || ""}
+          setValueInput={(e) => {
+            setShopAddress(e);
+            setErrors({ ...errors, shop_address: "" });
+          }}
+          title="Shop Address"
+          placeholder="Enter your shop address"
+          error={errors?.shop_address}
+        />
+        <InputAvatar
+          onSelect={handleOnSelect}
+          defaultValue={avatar_shop || ""}
+        />
+      </div>
+
       <div className="flex flex-row items-center justify-between bg-white sticky top-0 z-10 py-2 w-full">
         <h1 className="md:text-2xl md:font-bold  text-xl font-medium ">Menu</h1>
         <button
@@ -361,14 +444,14 @@ export default function TemplateClient({
         <div className="flex w-full justify-center items-center sticky bottom-0 p-1">
           <button
             onClick={() => {
-              searchShopInfo(input, data);
+              searchShopInfo(shop_name + " - " + shop_address || "", data);
             }}
             disabled={loading_shop}
             className="bg-blue-500 text-white px-4 py-2 font-medium rounded hover:bg-blue-700 cursor-pointer flex gap-x-2 items-center"
           >
             {loading_shop
-              ? "Đang tìm kiếm thông tin về cửa hàng"
-              : "Tìm kiếm thông tin về cửa hàng"}
+              ? "Searching shop information..."
+              : "Search shop information"}
             <div>{loading_shop && <Loading color_white />}</div>
           </button>
         </div>

@@ -53,7 +53,7 @@ const StepContent: React.FC<Props> = ({
   setTemplatePreview,
 }) => {
   return (
-    <div className="rounded w-full text-center">
+    <div className="rounded w-full text-center h-full">
       {step === 1 && (
         <CompanySizeSelector
           onSelect={(value) => {
@@ -81,6 +81,8 @@ const StepContent: React.FC<Props> = ({
             address=""
             handleFinishPreview={(e) => setTemplatePreview(e)}
             step={step}
+            onSelect={(value) => {}}
+            defaultValue=""
           />
         </div>
       )}
@@ -96,7 +98,7 @@ const StepContent: React.FC<Props> = ({
       )}
 
       {step === 4 && (
-        <div>
+        <div className="h-full">
           <IframeMerchant />
         </div>
       )}

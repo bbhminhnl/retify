@@ -44,8 +44,10 @@ const MainLayout = () => {
 
   /**Loading */
   const [loading, setLoading] = useState(false);
-  /** Image url */
-  const [image_url, setImage] = useState("");
+  /** Image url  - mock link ảnh để test*/
+  const [image_url, setImage] = useState(
+    "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1746516949858.jpeg"
+  );
   /** File ảnh đã upload */
   const [file_image, setFileImage] = useState<File | null>(null);
   /**
@@ -68,7 +70,8 @@ const MainLayout = () => {
     /**
      * Bước 2: Chọn menu
      */
-    if (step === 2 && !file_image) {
+    // if (step === 2 && !file_image ) {
+    if (step === 2 && image_url === "") {
       return true;
     }
 
@@ -82,30 +85,30 @@ const MainLayout = () => {
     return false;
   };
 
-  useEffect(() => {
-    /** Handle message from mobile
-     * @param event
-     */
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        /** Lấy data */
-        const DATA = JSON.parse(event.data);
+  // useEffect(() => {
+  //   /** Handle message from mobile
+  //    * @param event
+  //    */
+  //   const handleMessage = (event: MessageEvent) => {
+  //     try {
+  //       /** Lấy data */
+  //       const DATA = JSON.parse(event.data);
 
-        /** Xử lý tùy theo loại message */
-        if (DATA.type === "page.loginFB") {
-          /** Xử lý thông tin trên mobile */
-        }
-      } catch (error) {
-        console.error("Invalid JSON from mobile:", event.data);
-      }
-    };
-    /** Add event listener */
-    window.addEventListener("message", handleMessage);
-    /** Remove event listener */
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, []);
+  //       /** Xử lý tùy theo loại message */
+  //       if (DATA.type === "page.loginFB") {
+  //         /** Xử lý thông tin trên mobile */
+  //       }
+  //     } catch (error) {
+  //       console.error("Invalid JSON from mobile:", event.data);
+  //     }
+  //   };
+  //   /** Add event listener */
+  //   window.addEventListener("message", handleMessage);
+  //   /** Remove event listener */
+  //   return () => {
+  //     window.removeEventListener("message", handleMessage);
+  //   };
+  // }, []);
   /**
    * Hàm xử lý upload ảnh lên server
    * @param FILE Luồng base64 của ảnh
@@ -172,8 +175,10 @@ const MainLayout = () => {
       /** Setloading */
       setLoading(true);
       /** Upload hình ảnh */
-      const IMAGE_URL = await fetchUploadImage(file_image);
+      // const IMAGE_URL = await fetchUploadImage(file_image);
+      const IMAGE_URL = image_url;
       console.log(IMAGE_URL, "IMAGE_URL");
+
       setImage(IMAGE_URL);
       /** api google vision xử lý ảnh */
       const VISION_RES = await fetch("/api/vision", {
@@ -251,7 +256,7 @@ const MainLayout = () => {
         <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
           <Progress currentStep={step} totalSteps={TOTAL_STEPS} />
           <StepTitle step={step} />
-          <div className="w-full flex-grow min-h-0 overflow-hidden overflow-y-auto">
+          <div className="w-full flex-grow min-h-0  overflow-hidden overflow-y-auto">
             <StepContent
               step={step}
               onSelectCompanySize={(value) => {
