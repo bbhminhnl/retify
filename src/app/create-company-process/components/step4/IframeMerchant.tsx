@@ -158,18 +158,26 @@ const IframeMerchant = ({
   data_input: any;
   step: number;
 }) => {
+  /** Ref */
   const IFRAME_REF = useRef<HTMLIFrameElement | null>(null);
+  /**
+   * Dữ liệu products
+   */
   const [data, setData] = useState<any[]>([]);
+  /** Loading */
   const [loading, setLoading] = useState(false);
-  const [shouldSendData, setShouldSendData] = useState(false);
+  /** Cấp nhật dữ liệu */
+  const [should_send_data, setShouldSendData] = useState(false);
 
-  // Fetch products when step === 4
+  /** Fetch products when step === 4 */
   useEffect(() => {
+    /** Buowsc 4 thì lấy dữ liệu */
     if (step === 4) {
       fetchProducts();
     }
   }, [step]);
 
+  /** Hmaf lấy dữ liệu */
   const fetchProducts = async () => {
     try {
       const RESPONSE = await fetch("/api/products", {
@@ -185,28 +193,30 @@ const IframeMerchant = ({
     }
   };
 
-  // Trigger handleLoad only when data is available and flag is true
+  /**  Trigger handleLoad only when data is available and flag is true*/
   useEffect(() => {
-    if (data.length > 0 && shouldSendData) {
+    if (data.length > 0 && should_send_data) {
       handleLoad();
       setLoading(true);
       setShouldSendData(false); // reset flag
     }
-  }, [data, shouldSendData]);
+  }, [data, should_send_data]);
 
+  /** Hàm xử lý dữ liệu gửi sang Merchant */
   const handleLoad = () => {
+    /** Update dữ liệu store */
     const MOCK_STORE_DATA_UPDATE = {
       ...MOCK_CATEGORIES,
       name: data_input.shop_name,
       address: data_input.shop_address,
       logo: data_input.logo,
     };
-
+    /** Update dữ liệu sản phẩm */
     const MOCK_CATEGORIES_UPDATE = MOCK_CATEGORIES.map((category) => ({
       ...category,
       products: data,
     }));
-
+    /** Check Iframe và gửi dữ liệu post Message */
     if (IFRAME_REF.current?.contentWindow) {
       IFRAME_REF.current.contentWindow.postMessage(
         {
@@ -224,22 +234,29 @@ const IframeMerchant = ({
   };
 
   useEffect(() => {
+    /**
+     *
+     * @param event Sự kiện thay đổi iframe
+     * @returns
+     */
     const handleMessage = (event: MessageEvent) => {
       console.log("Received message from iframe:", event.data);
+      /** Kiểm tra sự kiện từ Merchant */
       if (event.data.type !== "PREVIEW" && event.data.from !== "SELLING_PAGE") {
         return;
       }
-
+      /** Kiểm tra sự kiện từ Merchant */
       if (event.data.data?.type === "get.data") {
         setShouldSendData(true);
       }
-
+      /** Kiểm tra sự kiện từ Merchant success */
       if (event.data.data?.type === "get.data.success") {
         setLoading(false);
       }
     };
-
+    /** Add event listener */
     window.addEventListener("message", handleMessage);
+    /** Remove event listener */
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
