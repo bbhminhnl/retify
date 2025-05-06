@@ -32,7 +32,7 @@ const MainLayout = () => {
   /** Tổng số Step */
   const TOTAL_STEPS = 5;
   /** Step hiện tại */
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
 
   /** company size */
   const [company_size, setCompanySize] = useState("");
@@ -46,7 +46,8 @@ const MainLayout = () => {
   const [loading, setLoading] = useState(false);
   /** Image url  - mock link ảnh để test*/
   const [image_url, setImage] = useState(
-    "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1746516949858.jpeg"
+    ""
+    // "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1746516949858.jpeg"
   );
   /** File ảnh đã upload */
   const [file_image, setFileImage] = useState<File | null>(null);
@@ -59,6 +60,9 @@ const MainLayout = () => {
   /** Trạng thái step 3 */
   const [template_preview, setTemplatePreview] = useState("preview");
 
+  /** Data input */
+  const [data_input, setDataInput] = useState<any>(null);
+
   /** Disable next button */
   const checkDisableNextButton = () => {
     /**
@@ -70,8 +74,8 @@ const MainLayout = () => {
     /**
      * Bước 2: Chọn menu
      */
-    // if (step === 2 && !file_image ) {
-    if (step === 2 && image_url === "") {
+    if (step === 2 && !file_image) {
+      // if (step === 2 && image_url === "") {
       return true;
     }
 
@@ -111,16 +115,16 @@ const MainLayout = () => {
   // }, []);
   /**
    * Hàm xử lý upload ảnh lên server
-   * @param FILE Luồng base64 của ảnh
+   * @param file Luồng base64 của ảnh
    * @returns Promise trả về đường dẫn ảnh đã lưu
    */
-  const fetchUploadImage = async (FILE: any): Promise<string> => {
+  const fetchUploadImage = async (file: any): Promise<string> => {
     return new Promise((resolve) => {
       try {
         // /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
         // const MIME_TYPE = "image/png";
         // /** Convert base64 → binary → File */
-        // const BYTE_STRING = atob(value);
+        // const BYTE_STRING = atob(file);
         // /**
         //  * Chuyển đổi base64 thành Uint8Array
         //  */
@@ -139,7 +143,7 @@ const MainLayout = () => {
          * Đưa vào FormData
          */
         const FORM_DATA = new FormData();
-        FORM_DATA.append("file", FILE);
+        FORM_DATA.append("file", file);
         /** Upload ảnh lên merchant */
         fetch(
           "https://api.merchant.vn/v1/internals/attachment/upload?path=&label=&folder_id=&root_file_id=",
@@ -170,13 +174,17 @@ const MainLayout = () => {
     });
   };
 
+  /**
+   * Hàm xử lý tạo món ăn trên server
+   * @returns void
+   */
   const handleProcessProduct = async () => {
     try {
       /** Setloading */
       setLoading(true);
       /** Upload hình ảnh */
-      // const IMAGE_URL = await fetchUploadImage(file_image);
-      const IMAGE_URL = image_url;
+      const IMAGE_URL = await fetchUploadImage(file_image);
+      // const IMAGE_URL = image_url;
       console.log(IMAGE_URL, "IMAGE_URL");
 
       setImage(IMAGE_URL);
@@ -291,6 +299,8 @@ const MainLayout = () => {
               // }}
               template_preview={template_preview}
               setTemplatePreview={setTemplatePreview}
+              data_input={data_input}
+              setDataInput={setDataInput}
             />
           </div>
           <StepNavigator

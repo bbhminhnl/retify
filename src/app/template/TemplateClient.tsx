@@ -15,12 +15,24 @@ import { isEmpty } from "lodash";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
+type IDataInput = {
+  /**
+   * Tên shop
+   */
+  shop_name?: string;
+  /**Địa chỉ shop */
+  shop_address?: string;
+  /** Avatar shop */
+  shop_avatar?: string;
+};
 export default function TemplateClient({
   address,
   handleFinishPreview,
   step,
   onSelect,
   defaultValue,
+  data_input,
+  setDataInput,
 }: {
   /** Địa chỉ */
   address: string;
@@ -42,6 +54,10 @@ export default function TemplateClient({
   onSelect?: (value: any) => void;
   /** Gia tri mac dinh */
   defaultValue?: string;
+  /** Dữ liệu input */
+  data_input?: IDataInput;
+  /** Hàm set dữ liệu input */
+  setDataInput?: (value: IDataInput) => void;
 }) {
   /** Dữ liệu hiển thị */
   const [data, setData] = useState<any[]>([]);
@@ -57,9 +73,9 @@ export default function TemplateClient({
   const [is_modal_delete, setIsModalDelete] = useState(false);
   /** Id Delete */
   const [id_delete, setIdDelete] = useState<string | null>(null);
-  /**
-   * UseEffect
-   */
+  /** Data Input */
+  const [data_input_local, setDataInputLocal] = useState<IDataInput>({});
+  /** UseEffect*/
   useEffect(() => {
     /** Nếu step 3 */
     if (step === 3) {
@@ -67,6 +83,16 @@ export default function TemplateClient({
       fetchProducts();
     }
   }, [step]);
+
+  /**
+   * UseEffect
+   */
+  useEffect(() => {
+    if (data_input) {
+      setDataInputLocal(data_input);
+    }
+  }, [data_input]);
+
   /** Lấy đata products */
   const fetchProducts = async () => {
     try {
@@ -203,9 +229,9 @@ export default function TemplateClient({
    * Hàm gọi API tạo ảnh từ prompt
    */
   const searchShopInfo = async (query: string, data: any) => {
-    if (!shop_name || !shop_address) {
+    if (!data_input_local?.shop_name || !data_input_local?.shop_address) {
       toast.error("Vui lòng nhập tên cửa hàng và địa chỉ cửa hàng.");
-      if (!shop_name) {
+      if (!data_input_local?.shop_name) {
         setErrors((prev) => {
           return {
             ...prev,
@@ -213,7 +239,7 @@ export default function TemplateClient({
           };
         });
       }
-      if (!shop_address) {
+      if (!data_input_local?.shop_address) {
         setErrors((prev) => {
           return {
             ...prev,
@@ -234,7 +260,7 @@ export default function TemplateClient({
         "Content-Type": "application/json",
       },
     });
-
+    /** Data Store */
     const DATA_STORE = await RES.json();
     console.log(DATA_STORE, "DATA_STORE");
     /** gọi hàm update tài liệu */
@@ -367,9 +393,11 @@ export default function TemplateClient({
     <main className="py-2 px-1 max-w-3xl w-full mx-auto gap-y-4 relative">
       <div className="flex flex-col gap-y-4 ">
         <InputTitle
-          value_input={shop_name || ""}
+          value_input={data_input_local?.shop_name || ""}
           setValueInput={(e) => {
-            setShopname(e);
+            // setShopname(e);
+            setDataInputLocal({ ...data_input_local, shop_name: e });
+            setDataInput && setDataInput({ ...data_input, shop_name: e });
             setErrors({ ...errors, shop_name: "" });
           }}
           title="Shop Name"
@@ -377,9 +405,11 @@ export default function TemplateClient({
           error={errors?.shop_name}
         />
         <InputTitle
-          value_input={shop_address || ""}
+          value_input={data_input_local?.shop_address || ""}
           setValueInput={(e) => {
-            setShopAddress(e);
+            // setShopAddress(e);
+            setDataInputLocal({ ...data_input_local, shop_address: e });
+            setDataInput && setDataInput({ ...data_input, shop_address: e });
             setErrors({ ...errors, shop_address: "" });
           }}
           title="Shop Address"
@@ -444,7 +474,12 @@ export default function TemplateClient({
         <div className="flex w-full justify-center items-center sticky bottom-0 p-1">
           <button
             onClick={() => {
-              searchShopInfo(shop_name + " - " + shop_address || "", data);
+              searchShopInfo(
+                data_input_local?.shop_name +
+                  " - " +
+                  data_input_local?.shop_address || "",
+                data
+              );
             }}
             disabled={loading_shop}
             className="bg-blue-500 text-white px-4 py-2 font-medium rounded hover:bg-blue-700 cursor-pointer flex gap-x-2 items-center"

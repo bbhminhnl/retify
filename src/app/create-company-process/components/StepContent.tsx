@@ -36,6 +36,10 @@ type Props = {
   template_preview: string;
   /** setTemplatePreview */
   setTemplatePreview: (value: string) => void;
+  /** Data input */
+  data_input: any;
+  /** setDataInput */
+  setDataInput: (value: any) => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -51,6 +55,8 @@ const StepContent: React.FC<Props> = ({
   address,
   template_preview,
   setTemplatePreview,
+  data_input,
+  setDataInput,
 }) => {
   return (
     <div className="rounded w-full text-center h-full">
@@ -83,6 +89,8 @@ const StepContent: React.FC<Props> = ({
             step={step}
             onSelect={(value) => {}}
             defaultValue=""
+            data_input={data_input}
+            setDataInput={setDataInput}
           />
         </div>
       )}
@@ -99,7 +107,7 @@ const StepContent: React.FC<Props> = ({
 
       {step === 4 && (
         <div className="h-full">
-          <IframeMerchant />
+          <IframeMerchant data_input={data_input} step={step} />
         </div>
       )}
       {step === 5 && (
