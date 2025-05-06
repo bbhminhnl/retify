@@ -463,7 +463,7 @@ async function generateTemplateMessage(params: TemplateParams) {
 /**
  * Xử lý add vào redis
  */
-export const saveMenuToRedis = async (key: string, value: any) => {
+const saveMenuToRedis = async (key: string, value: any) => {
   try {
     /** Lưu vào Redis với key: client_id__message_id */
     /** Parse JSON */
@@ -492,7 +492,7 @@ export const saveMenuToRedis = async (key: string, value: any) => {
 /**
  * Xử lý add vào redis
  */
-export const saveMenuToRedisClient = async (key: string, value: any) => {
+const saveMenuToRedisClient = async (key: string, value: any) => {
   try {
     /** Lưu vào Redis với key: client_id__message_id */
     /** Parse JSON */

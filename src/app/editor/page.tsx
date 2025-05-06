@@ -6,7 +6,7 @@ export default function EditorPage() {
       <h1 className="text-2xl font-bold">Chỉnh sửa thông tin tài liệu</h1>
       {/* <MarkdownEditor /> */}
       <div className="overflow-hidden overflow-y-auto flex-grow min-h-0 w-full">
-        <Tiptap />
+        <Tiptap handleFinishEditor={() => {}} />
       </div>
     </div>
   );

@@ -1,18 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import {
-  saveMenuToRedis,
-  saveMenuToRedisClient,
-} from "../api/connect-webhook/route";
+import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
+import { useEffect, useState } from "react";
 
-import ConnectDone from "./components/step5/ConnectDone";
+import ConnectDone from "./components/step6/ConnectDone";
 import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
-import { join } from "path";
-import { set } from "lodash";
 import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
 
@@ -59,6 +54,8 @@ const MainLayout = () => {
   const [raw_data, setRawData] = useState<any>(null);
   /** user_id */
   const [user_id, setUserId] = useState("user_id_test");
+  /** Trạng thái step 3 */
+  const [template_preview, setTemplatePreview] = useState("preview");
 
   /** Disable next button */
   const checkDisableNextButton = () => {
@@ -74,6 +71,14 @@ const MainLayout = () => {
     if (step === 2 && !file_image) {
       return true;
     }
+
+    /**
+     * Bước 3: Xây dựng
+     */
+    if (step === 3 && template_preview !== "editor_success") {
+      return true;
+    }
+
     return false;
   };
 
@@ -169,7 +174,7 @@ const MainLayout = () => {
       /** Upload hình ảnh */
       const IMAGE_URL = await fetchUploadImage(file_image);
       console.log(IMAGE_URL, "IMAGE_URL");
-
+      setImage(IMAGE_URL);
       /** api google vision xử lý ảnh */
       const VISION_RES = await fetch("/api/vision", {
         method: "POST",
@@ -197,17 +202,49 @@ const MainLayout = () => {
         return { name, price, unit };
       });
       /** Lưu menu về redis */
-      await saveMenuToRedisClient("user_id_test", JSON.stringify(PARSED_MENU));
+      // await saveMenuToRedisClient("user_id_test", JSON.stringify(PARSED_MENU));
+      /** Ensure sessionId is a string (fall back to a default string if undefined) */
+      let session_id: string = getSessionId() ?? generateSessionId(); // Fallback to generateSessionId if undefined
+
+      /** If sessionId was newly generated, store it in cookies */
+      if (!getSessionId()) {
+        storeSessionId(session_id);
+      }
+
+      console.log(PARSED_MENU, "PARSED_MENU");
+      /** Sản phẩm mới */
+      const NEW_PRODUCT = PARSED_MENU.map((product: any) => ({
+        id: simpleUUID(),
+        name: product.name,
+        price: Number(product.price) || product.price,
+        product_image: product.image_url,
+        type: "product",
+        unit: product.unit,
+      }));
+      /** Gửi sản phẩm mới */
+      const PRODUCT_RES = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
+      });
+      console.log(PRODUCT_RES, "PRODUCT_RES");
+      /** Nếu không thành cong */
+      if (!PRODUCT_RES.ok) {
+        return;
+      }
       setRawData(PARSED_MENU);
       /** Next step */
       setStep((s) => Math.min(s + 1, TOTAL_STEPS));
     } catch (error) {
-      toast.error(error.message);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
       {!on_finish && (
@@ -244,6 +281,11 @@ const MainLayout = () => {
               rawData={raw_data}
               template_id={user_id}
               address={"Haidilao Vincom Trần Duy Hưng"}
+              // handleFinishPreview={(e) => {
+              //   setTemplatePreview(e);
+              // }}
+              template_preview={template_preview}
+              setTemplatePreview={setTemplatePreview}
             />
           </div>
           <StepNavigator
@@ -252,7 +294,9 @@ const MainLayout = () => {
             onNext={() => {
               if (step === 2) {
                 handleProcessProduct();
-                // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+              } else if (step === 3) {
+                setTemplatePreview("preview");
+                setStep((s) => Math.min(s + 1, TOTAL_STEPS));
               } else {
                 setStep((s) => Math.min(s + 1, TOTAL_STEPS));
               }

@@ -10,14 +10,19 @@ import Loading from "@/components/loading/Loading";
 import ProductItemCustom from "../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
 import { isEmpty } from "lodash";
+import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 export default function TemplateClient({
+  template_id,
+  rawData,
   address,
   handleFinishPreview,
   step,
 }: {
+  template_id: string;
+  rawData: any;
   address: string;
   handleFinishPreview?: (e: string) => void;
   step?: number;
@@ -36,13 +41,9 @@ export default function TemplateClient({
   const [is_modal_delete, setIsModalDelete] = useState(false);
   /** Id Delete */
   const [id_delete, setIdDelete] = useState<string | null>(null);
-  /**
-   * UseEffect
-   */
+
   useEffect(() => {
-    /** Nếu step 3 */
     if (step === 3) {
-      /** Lấy dữ liệu products */
       fetchProducts();
     }
   }, [step]);
@@ -176,9 +177,105 @@ export default function TemplateClient({
       }
     });
   };
+  /** Lấy dữ liệu từ Redis */
+  useEffect(() => {
+    const fetchData = () => {
+      /** Kiểm tra dữ liệu raw data*/
+      if (!rawData) {
+        setError("Không tìm thấy dữ liệu hoặc dữ liệu đã quá hạn.");
+        return;
+      }
+      /** Set loading  */
+      setLoading(true);
 
+      /** Lưu giá trị raw data
+       * Đoạn này giả định rằng rawData đã là JSON
+       */
+      const PARSED_MENU = rawData.map((item: any, index: number) => ({
+        ...item,
+        id: item.id || simpleUUID(), // Nếu đã có id thì giữ nguyên, nếu chưa thì thêm id tạm
+      }));
+      console.log(PARSED_MENU, "PARSED_MENU");
+
+      /** Set luôn data = raw data, bỏ qua bước xử lý ảnh */
+      setData(PARSED_MENU);
+      /** Tắt loading */
+      setLoading(false);
+      return;
+
+      // Giả sử rawData đã là JSON
+      /** Kiểm tra danh sách cơ bản có image_url */
+      const HAS_IMAGE_URL = PARSED_MENU.every((item: any) => !!item.image_url);
+      /** Nếu không có image_url thì gọi API để tạo ảnh */
+      if (HAS_IMAGE_URL) {
+        console.log("✅ Dữ liệu đã có image_url, không cần generate.");
+        setData(PARSED_MENU);
+        saveToRedis(PARSED_MENU);
+        setLoading(false);
+        return;
+      }
+
+      /** Sử dụng addImageDescription với Async.js */
+      addImageDescription(PARSED_MENU, (err, updatedMenu) => {
+        if (err) {
+          setError("Dữ liệu bị lỗi hoặc không thể tạo ảnh.");
+          console.error(err);
+          setLoading(false);
+          return;
+        }
+
+        console.log(updatedMenu, "UPDATED_MENU");
+        setData(updatedMenu || []);
+        saveToRedis(updatedMenu || []);
+        setLoading(false);
+      });
+    };
+    /**
+     * Lưu dữ liệu vào Redis
+     * @param updatedMenu Danh sách các món ăn đã được thêm ảnh mô tả
+     */
+    const saveToRedis = (updatedMenu: any[]) => {
+      fetch("/api/json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: template_id,
+          value: updatedMenu,
+        }),
+      })
+        .then((res) => console.log(res, "RES"))
+        .catch((err) => console.error("Error saving to Redis:", err));
+    };
+
+    // fetchData();
+  }, [rawData, template_id]);
   /** Input propmt*/
   const [input, setInput] = useState(address);
+
+  console.log(address, "address");
+  console.log(input, "input");
+  /** Image */
+  const [image, setImage] = useState<string | null>(null);
+  /** Hàm gọi API tạo ảnh từ prompt
+   * @param prompt Prompt tạo ảnh
+   */
+  const handleGenerateImage = async (prompt: string) => {
+    try {
+      const RES = await fetch("/api/google-generate-img", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt }),
+      });
+      const DATA = await RES.json();
+      console.log(DATA, "DATA");
+      setImage(DATA?.image);
+      // const IMG_URL = await fetchUploadImage(DATA?.image);
+      /** Trả về item và thêm image_url */
+      // setImage(IMG_URL);
+    } catch (error) {
+      console.error("Lỗi mạng hoặc server:", error);
+    }
+  };
 
   const [loading_shop, setLoadingShop] = useState(false);
   /**
@@ -288,11 +385,9 @@ export default function TemplateClient({
       /** Chuyển trang */
       // ROUTER.push("/editor"); // Custom router navigation (not using next/router)
 
-      /** Cập nhật trạng thái hoàn thành bước Preview */
       handleFinishPreview && handleFinishPreview("success");
     } catch (error) {
       console.error("Lỗi mạng hoặc server:", error);
-      /** Cập nhật trạng thái báo lỗi*/
       handleFinishPreview && handleFinishPreview("error");
     } finally {
       // setLoading(false);

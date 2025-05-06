@@ -32,7 +32,16 @@ type Product = {
   cost: number;
 };
 
-const Tiptap = () => {
+const Tiptap = ({
+  handleFinishEditor,
+}: {
+  /**
+   *  Hàm xuất lý khi hoàn thành bài viet
+   * @param status "success" | "fail"
+   * @returns
+   */
+  handleFinishEditor: (status: string) => void;
+}) => {
   /** Router */
   const ROUTER = useRouter();
   /** Markdown*/
@@ -93,7 +102,7 @@ const Tiptap = () => {
     editorProps: {
       attributes: {
         class:
-          "overflow-hidden overflow-y-auto px-3 py-2 prose prose-sm m-0 focus:outline-none bg-slate-50",
+          "overflow-hidden overflow-y-auto px-3 py-2 prose prose-sm m-0 focus:outline-none bg-slate-50 text-left",
       },
     },
     /** Hàm update */
@@ -229,7 +238,8 @@ const Tiptap = () => {
         body: JSON.stringify(MD),
       });
       setTimeout(() => {
-        setShowConnect(true);
+        // setShowConnect(true);
+        handleFinishEditor("editor_success");
         setLoading(false);
       }, 1000);
     }
@@ -294,7 +304,7 @@ const Tiptap = () => {
           className="h-80 overflow-y-auto border border-black rounded-md bg-slate-50"
         />
       </div>
-      <div className="hidden md:flex flex-col flex-grow min-h-0 bg-gray-100 overflow-hidden rounded-lg overflow-y-auto p-4">
+      <div className="hidden md:flex flex-col flex-grow min-h-0 bg-gray-100 overflow-hidden rounded-lg overflow-y-auto p-4 text-left">
         <h2 className="font-bold">Tài liệu hiển thị:</h2>
         <pre className="text-sm whitespace-pre-wrap">{markdown}</pre>
       </div>
@@ -310,9 +320,9 @@ const Tiptap = () => {
           </div>
         </div>
       )} */}
-      <div className="p-4">
+      {/* <div className="p-4">
         <FacebookLoginButton />
-      </div>
+      </div> */}
     </div>
   );
 };

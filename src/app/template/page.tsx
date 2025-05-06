@@ -68,8 +68,8 @@ export default async function TemplatePage({ searchParams }: PageProps) {
 
   return (
     <TemplateClient
-      rawData={data}
-      template_id={template_id}
+      // rawData={data}
+      // template_id={template_id}
       address={address}
     />
   );

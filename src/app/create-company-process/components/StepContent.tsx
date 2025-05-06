@@ -1,8 +1,11 @@
+// components/StepContent.tsx
+import React, { useState } from "react";
+
 import CompanySizeSelector from "./step1/CompanySizeSelector";
 import CreateAI from "./step2/CreateAI";
-import LaunchAI from "./step4/LaunchAI";
-// components/StepContent.tsx
-import React from "react";
+import EditorPage from "@/app/editor/EditorPage";
+import IframeMerchant from "./step4/IframeMerchant";
+import LaunchAI from "./step5/LaunchAI";
 import TemplateClient from "@/app/template/TemplateClient";
 
 /**
@@ -29,6 +32,10 @@ type Props = {
   template_id: string;
   /** address */
   address: string;
+  /** Template preview */
+  template_preview: string;
+  /** setTemplatePreview */
+  setTemplatePreview: (value: string) => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -42,6 +49,8 @@ const StepContent: React.FC<Props> = ({
   rawData,
   template_id,
   address,
+  template_preview,
+  setTemplatePreview,
 }) => {
   return (
     <div className="rounded w-full text-center">
@@ -66,19 +75,29 @@ const StepContent: React.FC<Props> = ({
         />
       )}
 
-      {step === 3 && (
+      {step === 3 && template_preview === "preview" && (
         <div>
           <TemplateClient
-            rawData={rawData}
-            template_id="user_id_test"
             address=""
+            handleFinishPreview={(e) => setTemplatePreview(e)}
+            step={step}
+          />
+        </div>
+      )}
+      {((step === 3 && template_preview === "success") ||
+        (step === 3 && template_preview === "editor_success")) && (
+        <div>
+          <EditorPage
+            handleFinishEditor={(e) => {
+              setTemplatePreview(e);
+            }}
           />
         </div>
       )}
 
       {step === 4 && (
         <div>
-          <p>Iframe Shop Merchant</p>
+          <IframeMerchant />
         </div>
       )}
       {step === 5 && (

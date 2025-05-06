@@ -37,7 +37,7 @@ export default function InputField({
 }: InputFieldProps) {
   return (
     <div>
-      <label className="block mb-1 font-medium">{label}</label>
+      <label className="block mb-1 font-medium text-left">{label}</label>
       <input
         type={type}
         className={`w-full border rounded px-2 py-1 ${
