@@ -13,8 +13,11 @@ const IframeMerchant: React.FC = () => {
 
   /** Loading */
   const [loading, setLoading] = useState(false);
+  /** Hàm gửi thông tin đến Merchant */
   const handleLoad = () => {
+    /** Kiểm tra Iframe */
     if (IFRAME_REF.current && IFRAME_REF.current.contentWindow) {
+      /** Gửi thông tin đến Merchant */
       IFRAME_REF.current.contentWindow.postMessage(
         {
           type: "PREVIEW",
@@ -49,24 +52,43 @@ const IframeMerchant: React.FC = () => {
 
   // Nhận message từ iframe gửi lên
   useEffect(() => {
+    /**
+     * Hàm xuất lý sự kiện thay đổi iframe
+     * @param event Sự kiện thay đổi iframe
+     */
     const handleMessage = (event: MessageEvent) => {
       console.log("Received message from iframe:", event.data);
+      /** Kiểm tra sự kiện từ Merchant */
       if (event.data.type !== "PREVIEW" && event.data.from !== "SELLING_PAGE") {
+        /** Tạm thời chưa có Event */
       } else {
+        /**
+         * Nhận event từ Merchant
+         */
         if (event.data.data?.type === "get.data") {
+          /** Gửi data */
           handleLoad();
+          /** Set loading */
           setLoading(true);
         }
+        /**
+         * Nhận data từ Merchant
+         */
         if (event.data.data?.type === "get.data.success") {
           setLoading(false);
         }
       }
     };
-
+    /**
+     * Lisetner sự kiện thay đổi iframe
+     */
     window.addEventListener("message", handleMessage);
+    /**
+     * Xoá lisetner sự kiện thay đổi iframe khi unmount
+     */
     return () => window.removeEventListener("message", handleMessage);
   }, []);
-  console.log(loading, "loading");
+
   return (
     <div className="w-full h-full flex">
       {loading && <Loading size="lg" />}
