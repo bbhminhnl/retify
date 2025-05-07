@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
   //     allowedOrigins: ["*"],
   //   },
   // },
+  i18n: {
+    locales: ["en", "vi"], // Danh sách các ngôn ngữ hỗ trợ
+    defaultLocale: "vi", // Ngôn ngữ mặc định
+  },
+  // experimental: {
+  //   appDir: true,
+  // },
   images: {
     remotePatterns: [
       {

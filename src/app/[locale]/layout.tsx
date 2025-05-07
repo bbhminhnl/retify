@@ -1,6 +1,7 @@
 import "./globals.css";
 
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider, getMessages } from "next-intl";
 
 import type { Metadata } from "next";
 import ToastProvider from "@/components/ToastProvider";
@@ -20,20 +21,29 @@ export const metadata: Metadata = {
   description: "A simple way to generate your menu",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params: { locale },
 }: Readonly<{
   children: React.ReactNode;
+  params: { locale: string };
 }>) {
+  /**
+   * Messages
+   */
+  const messages = await getMessages({ locale: params.locale });
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex-grow min-h-0 h-screen w-screen">
-          <ToastProvider />
-          {children}
-        </div>
+        <NextIntlClientProvider locale={locale} messages={MESSAGES}>
+          <div className="flex-grow min-h-0 h-screen w-screen">
+            <ToastProvider />
+            {children}
+          </div>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

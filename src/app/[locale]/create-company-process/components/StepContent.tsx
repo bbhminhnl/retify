@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 
 import CompanySizeSelector from "./step1/CompanySizeSelector";
-import ConnectToCRM from "@/app/connect/ConnectToCRM";
+import ConnectToCRM from "@/app/[locale]/connect/ConnectToCRM";
 import CreateAI from "./step2/CreateAI";
-import EditorPage from "@/app/editor/EditorPage";
+import EditorPage from "@/app/[locale]/editor/EditorPage";
 import IframeMerchant from "./step4/IframeMerchant";
 import LaunchAI from "./step5/LaunchAI";
-import TemplateClient from "@/app/template/TemplateClient";
+import TemplateClient from "@/app/[locale]/template/TemplateClient";
 
 /**
  * Interface Props
