@@ -75,7 +75,7 @@ const IframeMerchant = ({
       ...MOCK_STORE_DATA,
       name: data_input.shop_name,
       address: data_input.shop_address,
-      logo: data_input.logo,
+      logo: data_input.shop_avatar,
     };
     /** Update dữ liệu sản phẩm */
     const MOCK_CATEGORIES_UPDATE = MOCK_CATEGORIES.map((category) => ({

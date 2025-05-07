@@ -33,15 +33,12 @@ const MainLayout = () => {
   const TOTAL_STEPS = 5;
   /** Step hiện tại */
   const [step, setStep] = useState(1);
-
   /** company size */
   const [company_size, setCompanySize] = useState("");
   /** fixed menu */
   const [fixed_menu, setFixedMenu] = useState("");
-
   /** onFinish */
   const [on_finish, setOnFinish] = useState(false);
-
   /**Loading */
   const [loading, setLoading] = useState(false);
   /** Image url  - mock link ảnh để test*/
@@ -51,18 +48,17 @@ const MainLayout = () => {
   );
   /** File ảnh đã upload */
   const [file_image, setFileImage] = useState<File | null>(null);
-  /**
-   * raw data
-   */
+
+  /** File ảnh đã upload */
+  const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
+  /** raw data*/
   const [raw_data, setRawData] = useState<any>(null);
   /** user_id */
   const [user_id, setUserId] = useState("user_id_test");
   /** Trạng thái step 3 */
   const [template_preview, setTemplatePreview] = useState("preview");
-
   /** Data input */
   const [data_input, setDataInput] = useState<any>(null);
-
   /** Access token */
   const [access_token, setAccessToken] = useState("");
 
@@ -140,6 +136,7 @@ const MainLayout = () => {
           if (DATA.type === "page.loginFB") {
             /** Xử lý thông tin trên mobile */
             console.log(event.data, "event data");
+            setAccessToken(DATA.payload?.accessToken);
           }
         }
       } catch (error) {
@@ -363,9 +360,9 @@ const MainLayout = () => {
                   setLoading(false);
                   // setOnFinish(true);
                   /** Test nên giải lập lấy được accessToken */
-                  setAccessToken(
-                    "EAASOEiugKa0BO9C8wNbZBZCW3JTqmvK8m73CjMBUeFq6SIAQ4Y8bgNhoQykct2KuZAxFIXab5du9zMLIBZCZCXYpasRXYQaFnBAXD1TuGlYaHqD0JasQ7J5eBvFiT6PM0qUbZAriTqIOCVZCnvwZCTlzNYkSO0s5rVMd57Nz0cMAuMVNuNwpdQmnxPykLUDDZCcHds0GySvnOnRymoQZDZD"
-                  );
+                  // setAccessToken(
+                  //   "EAASOEiugKa0BO4U7YFL3ZA3gssEZC9s3XgcFtxOy93tDGrKIgUf0jYADdIy0DKQ1FusGmgECeGSqmGNwjn1vpM97eNc64MXF4ina8csntAwTL2DAZCBwFzXQQ08wDhM28YKdAGP1OeJfM86TBPxwkrGSqjyqZBklApgzmmghUgidTCUzZA3ZCZAZAZCWY48fS90GHEb52UZAuKk4rUpQZDZD"
+                  // );
                 }, 2000);
               }}
               access_token={access_token}
@@ -381,6 +378,9 @@ const MainLayout = () => {
               data_input={data_input}
               setDataInput={setDataInput}
               onFinish={() => setOnFinish(true)}
+              updateLogo={(e) => {
+                // setFileLogoImage(e);
+              }}
             />
           </div>
           <StepNavigator

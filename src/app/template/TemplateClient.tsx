@@ -1,6 +1,7 @@
 "use client";
 
 import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
+import { isEmpty, set } from "lodash";
 import { useEffect, useState } from "react";
 
 import AddProductModal from "@/components/AddProductModal";
@@ -11,7 +12,6 @@ import InputTitle from "../create-company-process/components/step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import ProductItemCustom from "../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
-import { isEmpty } from "lodash";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
@@ -33,6 +33,7 @@ export default function TemplateClient({
   defaultValue,
   data_input,
   setDataInput,
+  onSelectAvatar,
 }: {
   /** Địa chỉ */
   address: string;
@@ -58,6 +59,8 @@ export default function TemplateClient({
   data_input?: IDataInput;
   /** Hàm set dữ liệu input */
   setDataInput?: (value: IDataInput) => void;
+  /** Thêm avatar */
+  onSelectAvatar?: (value: string) => void;
 }) {
   /** Dữ liệu hiển thị */
   const [data, setData] = useState<any[]>([]);
@@ -170,32 +173,32 @@ export default function TemplateClient({
    * @param base64Image Luồng base64 của ảnh
    * @returns Promise trả về đường dẫn ảnh đã lưu
    */
-  const fetchUploadImage = (base64Image: string): Promise<string> => {
+  const fetchUploadImage = (file: any): Promise<string> => {
     return new Promise((resolve) => {
       try {
-        /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
-        const MIME_TYPE = "image/png";
-        /** Convert base64 → binary → File */
-        const BYTE_STRING = atob(base64Image);
-        /**
-         * Chuyển đổi base64 thành Uint8Array
-         */
-        const BYTE_ARRAY = new Uint8Array(BYTE_STRING.length);
-        /**
-         * Chuyển đổi base64 thành Uint8Array
-         */
-        for (let i = 0; i < BYTE_STRING.length; i++) {
-          BYTE_ARRAY[i] = BYTE_STRING.charCodeAt(i);
-        }
-        /**
-         * Tạo đối tượng File từ Uint8Array
-         */
-        const FILE = new File([BYTE_ARRAY], "image.png", { type: MIME_TYPE });
+        // /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
+        // const MIME_TYPE = "image/png";
+        // /** Convert base64 → binary → File */
+        // const BYTE_STRING = atob(base64Image);
+        // /**
+        //  * Chuyển đổi base64 thành Uint8Array
+        //  */
+        // const BYTE_ARRAY = new Uint8Array(BYTE_STRING.length);
+        // /**
+        //  * Chuyển đổi base64 thành Uint8Array
+        //  */
+        // for (let i = 0; i < BYTE_STRING.length; i++) {
+        //   BYTE_ARRAY[i] = BYTE_STRING.charCodeAt(i);
+        // }
+        // /**
+        //  * Tạo đối tượng File từ Uint8Array
+        //  */
+        // const FILE = new File([BYTE_ARRAY], "image.png", { type: MIME_TYPE });
         /**
          * Đưa vào FormData
          */
         const FORM_DATA = new FormData();
-        FORM_DATA.append("file", FILE);
+        FORM_DATA.append("file", file);
         /** Upload ảnh lên merchant */
         fetch(
           "https://api.merchant.vn/v1/internals/attachment/upload?path=&label=&folder_id=&root_file_id=",
@@ -249,6 +252,16 @@ export default function TemplateClient({
       }
       return;
     }
+
+    /** Upload hình ảnh lên Merchant và lấy url*/
+    const IMAGE_URL = await fetchUploadImage(file_logo_image);
+    /** Lưu lại giá trị */
+    setDataInput &&
+      setDataInput({
+        ...data_input,
+        shop_avatar: IMAGE_URL,
+      });
+
     setLoadingShop(true);
     /** Key word search */
     let key_word = query ? query : "";
@@ -389,6 +402,9 @@ export default function TemplateClient({
   /** Hàm Upload Image */
   const handleOnSelect = () => {};
 
+  /** File ảnh đã upload */
+  const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
+
   return (
     <main className="py-2 px-1 max-w-3xl w-full mx-auto gap-y-4 relative">
       <div className="flex flex-col gap-y-4 ">
@@ -417,8 +433,8 @@ export default function TemplateClient({
           error={errors?.shop_address}
         />
         <InputAvatar
-          onSelect={handleOnSelect}
-          defaultValue={avatar_shop || ""}
+          onSelect={(e) => setFileLogoImage(e)}
+          defaultValue={data_input_local?.shop_avatar || ""}
         />
       </div>
 

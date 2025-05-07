@@ -61,7 +61,7 @@ const InputAvatar = ({ onSelect, defaultValue }: IOptionUpload) => {
           <img
             src={preview}
             alt="Preview"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ width: "50%", height: "50%", objectFit: "cover" }}
           />
         ) : (
           "📸 Click to capture"

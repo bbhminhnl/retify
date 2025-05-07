@@ -45,6 +45,8 @@ type Props = {
   access_token: string;
   /** onFinish */
   onFinish?: () => void;
+  /** logo shop */
+  updateLogo: (value: any) => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -64,6 +66,7 @@ const StepContent: React.FC<Props> = ({
   setDataInput,
   access_token,
   onFinish,
+  updateLogo,
 }) => {
   return (
     <div className="rounded w-full text-center h-full">
@@ -98,6 +101,9 @@ const StepContent: React.FC<Props> = ({
             defaultValue=""
             data_input={data_input}
             setDataInput={setDataInput}
+            onSelectAvatar={(value) => {
+              updateLogo(value);
+            }}
           />
         </div>
       )}
