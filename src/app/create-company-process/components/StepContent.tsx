@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 
 import CompanySizeSelector from "./step1/CompanySizeSelector";
+import ConnectToCRM from "@/app/connect/ConnectToCRM";
 import CreateAI from "./step2/CreateAI";
 import EditorPage from "@/app/editor/EditorPage";
 import IframeMerchant from "./step4/IframeMerchant";
@@ -40,6 +41,10 @@ type Props = {
   data_input: any;
   /** setDataInput */
   setDataInput: (value: any) => void;
+  /** Access token */
+  access_token: string;
+  /** onFinish */
+  onFinish?: () => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -57,6 +62,8 @@ const StepContent: React.FC<Props> = ({
   setTemplatePreview,
   data_input,
   setDataInput,
+  access_token,
+  onFinish,
 }) => {
   return (
     <div className="rounded w-full text-center h-full">
@@ -110,13 +117,23 @@ const StepContent: React.FC<Props> = ({
           <IframeMerchant data_input={data_input} step={step} />
         </div>
       )}
-      {step === 5 && (
+      {step === 5 && !access_token && (
         <LaunchAI
           onConnect={() => {
             handleConnectChannel();
           }}
           loading={loading}
         />
+      )}
+      {step === 5 && access_token && (
+        <div>
+          <ConnectToCRM
+            access_token_global={access_token}
+            onFinish={() => {
+              onFinish && onFinish();
+            }}
+          />
+        </div>
       )}
     </div>
   );

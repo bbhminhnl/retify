@@ -63,16 +63,19 @@ const MainLayout = () => {
   /** Data input */
   const [data_input, setDataInput] = useState<any>(null);
 
+  /** Access token */
+  const [access_token, setAccessToken] = useState("");
+
   /** Disable next button */
   const checkDisableNextButton = () => {
     /**
-     * Bước 1: Chọn size
+     * Bước 1: Chọn size, Nếu chưa chọn size thi khóa next button
      */
     if (step === 1 && company_size === "") {
       return true;
     }
     /**
-     * Bước 2: Chọn menu
+     * Bước 2: Chọn menu, Nếu chưa tải file lên thì khóa next button
      */
     if (step === 2 && !file_image) {
       // if (step === 2 && image_url === "") {
@@ -80,39 +83,77 @@ const MainLayout = () => {
     }
 
     /**
-     * Bước 3: Xây dựng
+     * Bước 3: Tạo menu và tài liệu, Nếu chưa hoàn thành thì không cho next
      */
     if (step === 3 && template_preview !== "editor_success") {
       return true;
     }
-
+    /** Mặc định return false */
     return false;
   };
 
-  // useEffect(() => {
-  //   /** Handle message from mobile
-  //    * @param event
-  //    */
-  //   const handleMessage = (event: MessageEvent) => {
-  //     try {
-  //       /** Lấy data */
-  //       const DATA = JSON.parse(event.data);
+  /** Hàm xử lý back */
+  const onBackFn = () => {
+    /** Nếu step 3 */
+    if (step === 3) {
+      /** Set trạng thái preview */
+      setTemplatePreview("preview");
+    }
+    /** nếu step 5 */
+    if (step === 5) {
+      /** Xoá token */
+      setAccessToken("");
+    }
+    /** setStep  */
+    setStep((s) => Math.max(s - 1, 1));
+  };
 
-  //       /** Xử lý tùy theo loại message */
-  //       if (DATA.type === "page.loginFB") {
-  //         /** Xử lý thông tin trên mobile */
-  //       }
-  //     } catch (error) {
-  //       console.error("Invalid JSON from mobile:", event.data);
-  //     }
-  //   };
-  //   /** Add event listener */
-  //   window.addEventListener("message", handleMessage);
-  //   /** Remove event listener */
-  //   return () => {
-  //     window.removeEventListener("message", handleMessage);
-  //   };
-  // }, []);
+  /** Hàm xử lý Next */
+  const onNextFn = () => {
+    /** Bước 2 */
+    if (step === 2) {
+      /** Xử lý tạo món ăn */
+      handleProcessProduct();
+      /** Bước 3 */
+    } else if (step === 3) {
+      /** Set trạng thái preview */
+      setTemplatePreview("preview");
+      /** setStep */
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    } else {
+      /** setStep */
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    }
+  };
+
+  useEffect(() => {
+    /** Nhận Message từ Mobile
+     * @param event
+     */
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        if (step === 5) {
+          /** Lấy data */
+          const DATA = JSON.parse(event.data);
+
+          /** Xử lý tùy theo loại message */
+          if (DATA.type === "page.loginFB") {
+            /** Xử lý thông tin trên mobile */
+            console.log(event.data, "event data");
+          }
+        }
+      } catch (error) {
+        console.error("Invalid JSON from mobile:", event.data);
+      }
+    };
+    /** Add event listener */
+    window.addEventListener("message", handleMessage);
+    /** Remove event listener */
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
   /**
    * Hàm xử lý upload ảnh lên server
    * @param file Luồng base64 của ảnh
@@ -160,8 +201,6 @@ const MainLayout = () => {
           .then((result) => {
             const FILE_PATH = result?.data?.file_path || "";
             resolve(FILE_PATH);
-
-            // setImage(FILE_PATH);
           })
           .catch((error) => {
             console.error("Upload failed:", error);
@@ -175,76 +214,111 @@ const MainLayout = () => {
   };
 
   /**
+   * Hàm xử lý hình ảnh google
+   * @param image_url Url Hình ảnh
+   */
+  const googleVisionAPI = async (image_url: string) => {
+    /** Gọi Hàm google Vision API để xử lý ảnh */
+    const VISION_RES = await fetch("/api/vision", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl: image_url }),
+    });
+    /** parse json kết quả  */
+    const VISION_DATA = await VISION_RES.json();
+    /** Trả về kết quả */
+    return VISION_DATA;
+  };
+
+  /**
+   * Hàm Xử lý Clean Menu
+   * @param raw_text
+   * @returns
+   */
+  const handleCleanMenu = async (raw_text: any) => {
+    /** Xử lý tổng hợp thông tin món ăn */
+    const CLEAN_MENU = await fetch("/api/clean-menu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rawText: raw_text?.join("\n") }),
+    });
+    /**
+     * Kết quả trả về từ API
+     */
+    const { menuItems: MENU_ITEMS } = await CLEAN_MENU.json();
+    return MENU_ITEMS;
+  };
+
+  /** Hàm xử lý lưu sản phẩm
+   * @param menu_items
+   * @returns
+   */
+  const handleSaveProducts = async (menu_items: any) => {
+    /** Bước 2: Tách tên và giá */
+    const PARSED_MENU = menu_items.map((item: string) => {
+      /** Tách tên và giá , đơn vị*/
+      const [name, price, unit] = item.split(" - ");
+      return { name, price, unit };
+    });
+    /** Lưu menu về redis */
+    // await saveMenuToRedisClient("user_id_test", JSON.stringify(PARSED_MENU));
+    /** Lấy sessionId hoặc tạo mới Cookies */
+    let session_id: string = getSessionId() ?? generateSessionId(); // Fallback to generateSessionId if undefined
+
+    /** If sessionId was newly generated, store it in cookies */
+    if (!getSessionId()) {
+      storeSessionId(session_id);
+    }
+
+    /** Tạo sản phẩm mới từ sản phẫm đầu vào*/
+    const NEW_PRODUCT = PARSED_MENU.map((product: any) => ({
+      id: simpleUUID(),
+      name: product.name,
+      price: Number(product.price) || product.price,
+      product_image: product.image_url,
+      type: "product",
+      unit: product.unit,
+    }));
+    /** Gửi sản phẩm mới */
+    const PRODUCT_RES = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
+    });
+    console.log(PRODUCT_RES, "PRODUCT_RES");
+    /** Nếu không thành cong */
+    if (!PRODUCT_RES.ok) {
+      throw new Error("Failed to create products");
+    }
+    /** Trả về danh sách sản phẩm */
+    return PARSED_MENU;
+  };
+
+  /**
    * Hàm xử lý tạo món ăn trên server
    * @returns void
+   * @description
+   * Bước 2: Chọn ảnh, xử lý tạo menu -> lưu lại và chuyển sang bước 3
+   * @description
+   * Bước 3: Tạo món ăn trên server
    */
   const handleProcessProduct = async () => {
     try {
       /** Setloading */
       setLoading(true);
-      /** Upload hình ảnh */
+      /** Upload hình ảnh lên Merchant và lấy url*/
       const IMAGE_URL = await fetchUploadImage(file_image);
       // const IMAGE_URL = image_url;
       console.log(IMAGE_URL, "IMAGE_URL");
-
+      /** Lưu lại URL ảnh */
       setImage(IMAGE_URL);
       /** api google vision xử lý ảnh */
-      const VISION_RES = await fetch("/api/vision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: IMAGE_URL }),
-      });
-      /** parse json kết quả  */
-      const VISION_DATA = await VISION_RES.json();
-
-      /** Xử lý tổng hợp thông tin món ăn */
-      const CLEAN_MENU = await fetch("/api/clean-menu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawText: VISION_DATA?.texts.join("\n") }),
-      });
-      /**
-       * Kết quả trả về từ API
-       */
-      const { menuItems } = await CLEAN_MENU.json();
-
-      /** Bước 2: Tách tên và giá */
-      const PARSED_MENU = menuItems.map((item: string) => {
-        /** Tách tên và giá , đơn vị*/
-        const [name, price, unit] = item.split(" - ");
-        return { name, price, unit };
-      });
-      /** Lưu menu về redis */
-      // await saveMenuToRedisClient("user_id_test", JSON.stringify(PARSED_MENU));
-      /** Ensure sessionId is a string (fall back to a default string if undefined) */
-      let session_id: string = getSessionId() ?? generateSessionId(); // Fallback to generateSessionId if undefined
-
-      /** If sessionId was newly generated, store it in cookies */
-      if (!getSessionId()) {
-        storeSessionId(session_id);
-      }
-
-      console.log(PARSED_MENU, "PARSED_MENU");
-      /** Sản phẩm mới */
-      const NEW_PRODUCT = PARSED_MENU.map((product: any) => ({
-        id: simpleUUID(),
-        name: product.name,
-        price: Number(product.price) || product.price,
-        product_image: product.image_url,
-        type: "product",
-        unit: product.unit,
-      }));
-      /** Gửi sản phẩm mới */
-      const PRODUCT_RES = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
-      });
-      console.log(PRODUCT_RES, "PRODUCT_RES");
-      /** Nếu không thành cong */
-      if (!PRODUCT_RES.ok) {
-        return;
-      }
+      const VISION_DATA = await googleVisionAPI(IMAGE_URL);
+      /** Xử lý clean Menu */
+      const MENU_ITEMS = await handleCleanMenu(VISION_DATA?.texts);
+      /** Xử lý lưu lại Product */
+      const PARSED_MENU = await handleSaveProducts(MENU_ITEMS);
+      /** Lưu giá trị vào state */
       setRawData(PARSED_MENU);
       /** Next step */
       setStep((s) => Math.min(s + 1, TOTAL_STEPS));
@@ -288,8 +362,13 @@ const MainLayout = () => {
                 setTimeout(() => {
                   setLoading(false);
                   // setOnFinish(true);
+                  /** Test nên giải lập lấy được accessToken */
+                  setAccessToken(
+                    "EAASOEiugKa0BO9C8wNbZBZCW3JTqmvK8m73CjMBUeFq6SIAQ4Y8bgNhoQykct2KuZAxFIXab5du9zMLIBZCZCXYpasRXYQaFnBAXD1TuGlYaHqD0JasQ7J5eBvFiT6PM0qUbZAriTqIOCVZCnvwZCTlzNYkSO0s5rVMd57Nz0cMAuMVNuNwpdQmnxPykLUDDZCcHds0GySvnOnRymoQZDZD"
+                  );
                 }, 2000);
               }}
+              access_token={access_token}
               loading={loading}
               rawData={raw_data}
               template_id={user_id}
@@ -301,22 +380,18 @@ const MainLayout = () => {
               setTemplatePreview={setTemplatePreview}
               data_input={data_input}
               setDataInput={setDataInput}
+              onFinish={() => setOnFinish(true)}
             />
           </div>
           <StepNavigator
             step={step}
             maxSteps={TOTAL_STEPS}
             onNext={() => {
-              if (step === 2) {
-                handleProcessProduct();
-              } else if (step === 3) {
-                setTemplatePreview("preview");
-                setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-              } else {
-                setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-              }
+              onNextFn();
             }}
-            onBack={() => setStep((s) => Math.max(s - 1, 1))}
+            onBack={() => {
+              onBackFn();
+            }}
             disabledNext={checkDisableNextButton()}
             disabledBack={step === 1}
             loading={loading}
