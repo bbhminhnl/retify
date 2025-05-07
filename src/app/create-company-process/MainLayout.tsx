@@ -142,7 +142,7 @@ const MainLayout = () => {
       if (data?.type === "page.loginFB") {
         console.log(data, "event data");
         /** Hiệnt toast message */
-        toast.error(data.payload);
+        // toast.error(data.payload);
         /** Set access token */
         setAccessToken(data.payload?.token?.accessToken);
       }
