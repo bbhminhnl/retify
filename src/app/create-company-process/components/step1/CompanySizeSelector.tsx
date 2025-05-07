@@ -1,28 +1,7 @@
-// components/CompanySizeSelector.tsx
 import React, { useState } from "react";
-/** Company size */
-const SIZES = [
-  {
-    key: "Solo",
-    value: "SOLO",
-  },
-  {
-    key: "2 – 10 employees",
-    value: "2to10",
-  },
-  {
-    key: "11 – 50 employees",
-    value: "11to50",
-  },
-  {
-    key: "51 – 100 employees",
-    value: "51to100",
-  },
-  {
-    key: "Above 100 employees",
-    value: "above100",
-  },
-];
+
+// components/CompanySizeSelector.tsx
+import { useTranslations } from "next-intl";
 
 /**
  * Interface Props
@@ -41,6 +20,32 @@ type Props = {
 };
 
 const CompanySizeSelector: React.FC<Props> = ({ onSelect, defaultValue }) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
+  /** Company size */
+  const SIZES = [
+    {
+      key: t("solo"),
+      value: "SOLO",
+    },
+    {
+      key: t("2to10"),
+      value: "2to10",
+    },
+    {
+      key: t("11to50"),
+      value: "11to50",
+    },
+    {
+      key: t("51to100"),
+      value: "51to100",
+    },
+    {
+      key: t("above100"),
+      value: "above100",
+    },
+  ];
+
   /** Selected */
   const [selected, setSelected] = useState<string | null>(defaultValue || null);
   /**

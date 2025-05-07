@@ -1,0 +1,15 @@
+{
+  "greeting": "Hello, World!",
+  "title": "Welcome to my app",
+  "notFound": "Page not found",
+  "step1": "What is your company size?",
+  "step2": "Create Your AI Assistant & Sales Page",
+  "step3": "Editing and Customizing Documents",
+  "step4": "Preview Selling Page & AI",
+  "step5": "Launch AI Assistant and Storefront",
+  "solo": "Solo",
+  "2to10": "2 - 10 employees",
+  "11to50": "11 - 50 employees",
+  "51to100": "51 - 100 employees",
+  "above100": "Above 100 employees"
+}

@@ -1,6 +1,6 @@
 // components/StepTitle.tsx
 import React from "react";
-
+import { useTranslations } from "next-intl";
 /** Interface Props */
 type Props = {
   /** Step hiện tại */
@@ -8,19 +8,20 @@ type Props = {
 };
 
 const StepTitle: React.FC<Props> = ({ step }) => {
+  const t = useTranslations();
   /** Render title cho từng bước */
   const renderTitle = () => {
     switch (step) {
       case 1:
-        return "What is your company size?";
+        return t("step1");
       case 2:
-        return "Create Your AI Assistant & Sales Page";
+        return t("step2");
       case 3:
-        return "Editing and Customizing Documents";
+        return t("step3");
       case 4:
-        return "Preview Selling Page & AI";
+        return t("step4");
       case 5:
-        return "Launch AI Assistant and Storefront";
+        return t("step5");
       default:
         return "";
     }

@@ -1,0 +1,16 @@
+{
+  "greeting": "Xin chào, Thế giới!",
+  "title": "Chào mừng đến với ứng dụng của tôi",
+  "notFound": "Trang không tìm thấy",
+
+  "step1": "Quy mô công ty của bạn?",
+  "step2": "Tạo Trợ Lý AI & Trang Bán Hàng của Bạn",
+  "step3": "Chỉnh sửa và Tùy chỉnh Tài liệu",
+  "step4": "Xem trước Trang Bán Hàng & Trợ Lý AI",
+  "step5": "Khởi chạy Trợ Lý AI và Cửa hàng Trực tuyến",
+  "solo": "Cá nhân",
+  "2to10": "2 - 10 nhân viên",
+  "11to50": "11 - 50 nhân viên",
+  "51to100": "51 - 100 nhân viên",
+  "above100": "Trên 100 nhân viên"
+}

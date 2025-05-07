@@ -73,7 +73,6 @@ const StepContent: React.FC<Props> = ({
       {step === 1 && (
         <CompanySizeSelector
           onSelect={(value) => {
-            console.log("Chọn:", value);
             /** callback function */
             onSelectCompanySize && onSelectCompanySize(value);
           }}
