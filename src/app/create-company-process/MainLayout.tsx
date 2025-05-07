@@ -144,7 +144,7 @@ const MainLayout = () => {
         /** Hiệnt toast message */
         toast.error(data.payload);
         /** Set access token */
-        setAccessToken(data.payload?.accessToken);
+        setAccessToken(data.payload?.token?.accessToken);
       }
     };
 
