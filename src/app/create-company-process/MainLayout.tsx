@@ -127,13 +127,14 @@ const MainLayout = () => {
     const handleMessage = (event: MessageEvent) => {
       /** Tạo biến data */
       let data: any;
-
+      toast.error(event.data);
       try {
         /**  Cố gắng parse nếu là JSON */
         data =
           typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       } catch (error) {
         console.warn("Không phải JSON, bỏ qua:", event.data);
+        toast.error("Không phải JSON, bỏ qua: " + event.data);
         return;
       }
 
