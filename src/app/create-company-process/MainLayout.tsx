@@ -123,36 +123,38 @@ const MainLayout = () => {
   };
 
   useEffect(() => {
-    /** Nhận Message từ Mobile
-     * @param event
-     */
+    /** Nhận Message từ Mobile */
     const handleMessage = (event: MessageEvent) => {
+      /** Tạo biến data */
+      let data: any;
+
       try {
-        if (step === 5) {
-          /** Lấy data */
-          const DATA = JSON.parse(event.data);
-
-          /** Xử lý tùy theo loại message */
-          if (DATA.type === "page.loginFB") {
-            /** Xử lý thông tin trên mobile */
-            console.log(event.data, "event data");
-
-            toast.error(DATA.payload);
-
-            setAccessToken(DATA.payload?.accessToken);
-          }
-        }
+        /**  Cố gắng parse nếu là JSON */
+        data =
+          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       } catch (error) {
-        console.error("Invalid JSON from mobile:", event.data);
+        console.warn("Không phải JSON, bỏ qua:", event.data);
+        return;
+      }
+
+      /** Đảm bảo đã parse xong và có định dạng đúng */
+      if (data?.type === "page.loginFB") {
+        console.log(data, "event data");
+        /** Hiệnt toast message */
+        toast.error(data.payload);
+        /** Set access token */
+        setAccessToken(data.payload?.accessToken);
       }
     };
+
     /** Add event listener */
     window.addEventListener("message", handleMessage);
+
     /** Remove event listener */
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, []);
+  }, [step]);
 
   /**
    * Hàm xử lý upload ảnh lên server
