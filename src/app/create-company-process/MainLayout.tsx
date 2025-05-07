@@ -127,7 +127,7 @@ const MainLayout = () => {
     const handleMessage = (event: MessageEvent) => {
       /** Tạo biến data */
       let data: any;
-      toast.error(event.data);
+      // toast.error(event.data);
       try {
         /**  Cố gắng parse nếu là JSON */
         data =
