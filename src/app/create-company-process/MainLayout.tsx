@@ -136,6 +136,9 @@ const MainLayout = () => {
           if (DATA.type === "page.loginFB") {
             /** Xử lý thông tin trên mobile */
             console.log(event.data, "event data");
+
+            toast.error(DATA.payload);
+
             setAccessToken(DATA.payload?.accessToken);
           }
         }
