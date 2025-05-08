@@ -1,5 +1,12 @@
 {
-  "rewrites": [],
+  "rewrites": [
+    {
+      "source": "/((?!api|_next|favicon.ico|images|.*\\.(?:png|jpg|jpeg|gif|svg|ico|css|js)).*)",
+      "destination": "/"
+    }
+  ],
+  "cleanUrls": false,
+  "trailingSlash": false,
 
   "functions": {
     "app/api/detect/route.js": {

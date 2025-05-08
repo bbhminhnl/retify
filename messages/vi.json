@@ -53,7 +53,7 @@
   "confirm_delete_product": "Xác nhận xoá sản phẩm, Hành động này không thể hoàn tác",
   "enter_store_name_and_address": "Vui lòng nhập tên cửa hàng và địa chỉ cửa hàng.",
   "enter_store_name": "Vui lòng nhập tên cửa hàng.",
-  "entter_store_address": "Vui lòng nhập địa chỉ cửa hàng.",
+  "enter_store_address": "Vui lòng nhập địa chỉ cửa hàng.",
   "store_info_found": "Tìm kiếm thông tin cửa hàng thành công!",
   "store_info_not_found": "Không tìm thấy thông tin cửa hàng",
   "content_required_before_save": "Vui lòng nhập nội dung trước khi lưu",
@@ -95,5 +95,7 @@
   "fetching_organization_data": "Đang lấy dữ liệu tổ chức",
   "awesome": "Tuyệt vời!",
   "setup_complete": "Cài đặt hoàn tất, hãy để chúng tôi giúp bạn đưa cửa hàng của bạn lên và chạy với Retify.AI!",
-  "go_live": "Trực tuyến"
+  "go_live": "Trực tuyến",
+  "not_JSON": "Không phải JSON, bỏ qua: ",
+  "cannot_detect_text": "Không thể nhận diện văn bản từ hình ảnh. Vui lòng kiểm tra lại hình hoặc nhập thủ công."
 }

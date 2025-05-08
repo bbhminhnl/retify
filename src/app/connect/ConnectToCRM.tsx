@@ -43,7 +43,7 @@ const ConnectToCRM = ({
   onFinish,
 }: {
   access_token_global: string;
-  onFinish?: () => void;
+  onFinish?: (page_id: string, org_id: string) => void;
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -65,6 +65,8 @@ const ConnectToCRM = ({
   const [loading_text, setLoadingText] = useState("");
   /** Chọn Tổ chức để thêm page vào*/
   const [organization, setOrganization] = useState([]);
+  /** Chọn Tổ chức */
+  const [selected_organization, setSelectedOrganization] = useState("");
 
   /** Finish Installing */
   const [finish_installing, setFinishInstalling] = useState(false);
@@ -766,7 +768,7 @@ const ConnectToCRM = ({
     setTimeout(() => {
       // setLoadingText("");
       // setFinishInstalling(true);
-      onFinish && onFinish();
+      onFinish && onFinish(selected_page, selected_organization);
     }, 2000);
 
     // fetchListPages(ACCESS_TOKEN, PAGE_ID);
@@ -1149,6 +1151,7 @@ const ConnectToCRM = ({
                 className="flex w-full items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
                 onClick={() => {
                   mainFunction(org?.org_id, selected_page, chatbox_token);
+                  setSelectedOrganization(org?.org_id);
                   setOrganization([]);
                 }}
               >

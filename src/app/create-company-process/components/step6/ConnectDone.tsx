@@ -2,7 +2,13 @@ import Firework from "@/assets/images/Firework.png";
 import Image from "next/image";
 import React from "react";
 import { useTranslations } from "next-intl";
-const ConnectDone = () => {
+const ConnectDone = ({
+  page_id,
+  org_id,
+}: {
+  page_id: string;
+  org_id: string;
+}) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
   return (
@@ -14,7 +20,18 @@ const ConnectDone = () => {
       </h4>
       <div className="p-8 w-full">
         <button
-          onClick={() => {}}
+          onClick={() => {
+            window.ReactNativeWebView?.postMessage(
+              JSON.stringify({
+                type: "page.loginFB",
+                message: {
+                  final: true,
+                  page_id: page_id,
+                  org_id: org_id,
+                },
+              })
+            );
+          }}
           className="py-3 px-6 w-full text-white rounded-full gap-1 text-sm font-semibold bg-blue-700 cursor-pointer hover:bg-blue-500"
         >
           {t("go_live")}

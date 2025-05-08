@@ -53,7 +53,7 @@
   "confirm_delete_product": "Confirm delete product, this action cannot be undone",
   "enter_store_name_and_address": "Please enter store name and store address.",
   "enter_store_name": "Please enter store name.",
-  "entter_store_address": "Please enter store address.",
+  "enter_store_address": "Please enter store address.",
   "store_info_found": "Store information found successfully!",
   "store_info_not_found": "Store information not found",
   "content_required_before_save": "Please enter content before saving",
@@ -95,5 +95,6 @@
   "fetching_organization_data": "Fetching organization data",
   "awesome": "Awesome!",
   "setup_complete": "Setup complete, let's get your store up and running with Retify.AI!",
-  "go_live": "Go Live"
+  "go_live": "Go Live",
+  "not_JSON": "Not a JSON, skipped: "
 }

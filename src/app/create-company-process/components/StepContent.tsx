@@ -44,7 +44,7 @@ type Props = {
   /** Access token */
   access_token: string;
   /** onFinish */
-  onFinish?: () => void;
+  onFinish?: (page_id: string, org_id: string) => void;
   /** logo shop */
   updateLogo: (value: any) => void;
 };
@@ -134,8 +134,8 @@ const StepContent: React.FC<Props> = ({
         <div>
           <ConnectToCRM
             access_token_global={access_token}
-            onFinish={() => {
-              onFinish && onFinish();
+            onFinish={(selected_page, selected_organization) => {
+              onFinish && onFinish(selected_page, selected_organization);
             }}
           />
         </div>

@@ -10,6 +10,7 @@ import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
 import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 /**
  * Interface Props
@@ -29,6 +30,8 @@ declare global {
 }
 
 const MainLayout = () => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** Tổng số Step */
   const TOTAL_STEPS = 5;
   /** Step hiện tại */
@@ -61,6 +64,11 @@ const MainLayout = () => {
   const [data_input, setDataInput] = useState<any>(null);
   /** Access token */
   const [access_token, setAccessToken] = useState("");
+
+  /** selected page */
+  const [selected_page, setSelectedPage] = useState("");
+  /** selected organization */
+  const [selected_organization, setSelectedOrganization] = useState("");
 
   /** Disable next button */
   const checkDisableNextButton = () => {
@@ -134,7 +142,7 @@ const MainLayout = () => {
           typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       } catch (error) {
         console.warn("Không phải JSON, bỏ qua:", event.data);
-        toast.error("Không phải JSON, bỏ qua: " + event.data);
+        toast.error(t("not_JSON") + event.data);
         return;
       }
 
@@ -229,6 +237,11 @@ const MainLayout = () => {
     });
     /** parse json kết quả  */
     const VISION_DATA = await VISION_RES.json();
+
+    /** Kiểm tra kết quả */
+    if (!VISION_RES.ok) {
+      throw new Error(`Vision API failed with status ${VISION_RES.status}`);
+    }
     /** Trả về kết quả */
     return VISION_DATA;
   };
@@ -245,6 +258,13 @@ const MainLayout = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rawText: raw_text?.join("\n") }),
     });
+
+    /** Kiểm tra kết quả */
+    if (!CLEAN_MENU.ok) {
+      throw new Error(
+        `Cleaned Menu API failed with status ${CLEAN_MENU.status}`
+      );
+    }
     /**
      * Kết quả trả về từ API
      */
@@ -315,8 +335,20 @@ const MainLayout = () => {
       // console.log(IMAGE_URL, "IMAGE_URL");
       /** Lưu lại URL ảnh */
       setImage(IMAGE_URL);
-      /** api google vision xử lý ảnh */
-      const VISION_DATA = await googleVisionAPI(IMAGE_URL);
+
+      /** Xử lý tạo menu */
+      // const VISION_DATA = await googleVisionAPI(IMAGE_URL);
+      /** Biến VISION_DATA */
+      let VISION_DATA = null;
+      /** Không gây break luồng */
+      try {
+        VISION_DATA = await googleVisionAPI(IMAGE_URL);
+      } catch (visionError) {
+        console.error("Google Vision API error:", visionError);
+        /** Hiện toast message  */
+        toast.warning(t("cannot_detect_text"));
+      }
+
       /** Xử lý clean Menu */
       const MENU_ITEMS = await handleCleanMenu(VISION_DATA?.texts);
       /** Xử lý lưu lại Product */
@@ -327,9 +359,11 @@ const MainLayout = () => {
       setStep((s) => Math.min(s + 1, TOTAL_STEPS));
     } catch (error) {
       if (error instanceof Error) {
+        /** Hiện toast */
         toast.error(error.message);
       } else {
-        toast.error("An unexpected error occurred.");
+        /** Hiện toast lỗi không xác định*/
+        toast.error(t("unknown_error_occurred"));
       }
     } finally {
       setLoading(false);
@@ -375,7 +409,7 @@ const MainLayout = () => {
               loading={loading}
               rawData={raw_data}
               template_id={user_id}
-              address={"Haidilao Vincom Trần Duy Hưng"}
+              address={""}
               // handleFinishPreview={(e) => {
               //   setTemplatePreview(e);
               // }}
@@ -383,7 +417,14 @@ const MainLayout = () => {
               setTemplatePreview={setTemplatePreview}
               data_input={data_input}
               setDataInput={setDataInput}
-              onFinish={() => setOnFinish(true)}
+              onFinish={(
+                selected_page: string,
+                selected_organization: string
+              ) => {
+                setOnFinish(true);
+                setSelectedPage(selected_page);
+                setSelectedOrganization(selected_organization);
+              }}
               updateLogo={(e) => {
                 // setFileLogoImage(e);
               }}
@@ -406,7 +447,7 @@ const MainLayout = () => {
       )}
       {on_finish && (
         <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
-          <ConnectDone />
+          <ConnectDone page_id={selected_page} org_id={selected_organization} />
         </div>
       )}
     </main>
