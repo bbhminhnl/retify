@@ -1,32 +1,70 @@
 "use client";
 
 import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
+import { isEmpty, set } from "lodash";
 import { useEffect, useState } from "react";
 
 import AddProductModal from "@/components/AddProductModal";
 import DeleteProduct from "@/components/DeleteProduct";
 import { IProductItem } from "@/types";
+import InputAvatar from "../../create-company-process/components/step3/InputAvatar";
+import InputTitle from "../../create-company-process/components/step3/InputTitle";
 import Loading from "@/components/loading/Loading";
-import ProductItemCustom from "../products/components/ProductItemCustom";
+import ProductItemCustom from "../../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
-import { isEmpty } from "lodash";
-import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
+type IDataInput = {
+  /**
+   * Tên shop
+   */
+  shop_name?: string;
+  /**Địa chỉ shop */
+  shop_address?: string;
+  /** Avatar shop */
+  shop_avatar?: string;
+};
 export default function TemplateClient({
-  template_id,
-  rawData,
   address,
   handleFinishPreview,
   step,
+  onSelect,
+  defaultValue,
+  data_input,
+  setDataInput,
+  onSelectAvatar,
 }: {
-  template_id: string;
-  rawData: any;
+  /** Địa chỉ */
   address: string;
+  /**
+   *  Hàm xuất dữ liệu preview
+   * @param e string
+   * @returns
+   */
   handleFinishPreview?: (e: string) => void;
+  /**
+   * Bước hiện tại
+   */
   step?: number;
+  /**
+   *  Hàm select
+   * @param value
+   * @returns
+   */
+  onSelect?: (value: any) => void;
+  /** Gia tri mac dinh */
+  defaultValue?: string;
+  /** Dữ liệu input */
+  data_input?: IDataInput;
+  /** Hàm set dữ liệu input */
+  setDataInput?: (value: IDataInput) => void;
+  /** Thêm avatar */
+  onSelectAvatar?: (value: string) => void;
 }) {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** Dữ liệu hiển thị */
   const [data, setData] = useState<any[]>([]);
   /** Error */
@@ -41,12 +79,26 @@ export default function TemplateClient({
   const [is_modal_delete, setIsModalDelete] = useState(false);
   /** Id Delete */
   const [id_delete, setIdDelete] = useState<string | null>(null);
-
+  /** Data Input */
+  const [data_input_local, setDataInputLocal] = useState<IDataInput>({});
+  /** UseEffect*/
   useEffect(() => {
+    /** Nếu step 3 */
     if (step === 3) {
+      /** Lấy dữ liệu products */
       fetchProducts();
     }
   }, [step]);
+
+  /**
+   * UseEffect
+   */
+  useEffect(() => {
+    if (data_input) {
+      setDataInputLocal(data_input);
+    }
+  }, [data_input]);
+
   /** Lấy đata products */
   const fetchProducts = async () => {
     try {
@@ -124,32 +176,32 @@ export default function TemplateClient({
    * @param base64Image Luồng base64 của ảnh
    * @returns Promise trả về đường dẫn ảnh đã lưu
    */
-  const fetchUploadImage = (base64Image: string): Promise<string> => {
+  const fetchUploadImage = (file: any): Promise<string> => {
     return new Promise((resolve) => {
       try {
-        /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
-        const MIME_TYPE = "image/png";
-        /** Convert base64 → binary → File */
-        const BYTE_STRING = atob(base64Image);
-        /**
-         * Chuyển đổi base64 thành Uint8Array
-         */
-        const BYTE_ARRAY = new Uint8Array(BYTE_STRING.length);
-        /**
-         * Chuyển đổi base64 thành Uint8Array
-         */
-        for (let i = 0; i < BYTE_STRING.length; i++) {
-          BYTE_ARRAY[i] = BYTE_STRING.charCodeAt(i);
-        }
-        /**
-         * Tạo đối tượng File từ Uint8Array
-         */
-        const FILE = new File([BYTE_ARRAY], "image.png", { type: MIME_TYPE });
+        // /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
+        // const MIME_TYPE = "image/png";
+        // /** Convert base64 → binary → File */
+        // const BYTE_STRING = atob(base64Image);
+        // /**
+        //  * Chuyển đổi base64 thành Uint8Array
+        //  */
+        // const BYTE_ARRAY = new Uint8Array(BYTE_STRING.length);
+        // /**
+        //  * Chuyển đổi base64 thành Uint8Array
+        //  */
+        // for (let i = 0; i < BYTE_STRING.length; i++) {
+        //   BYTE_ARRAY[i] = BYTE_STRING.charCodeAt(i);
+        // }
+        // /**
+        //  * Tạo đối tượng File từ Uint8Array
+        //  */
+        // const FILE = new File([BYTE_ARRAY], "image.png", { type: MIME_TYPE });
         /**
          * Đưa vào FormData
          */
         const FORM_DATA = new FormData();
-        FORM_DATA.append("file", FILE);
+        FORM_DATA.append("file", file);
         /** Upload ảnh lên merchant */
         fetch(
           "https://api.merchant.vn/v1/internals/attachment/upload?path=&label=&folder_id=&root_file_id=",
@@ -177,114 +229,45 @@ export default function TemplateClient({
       }
     });
   };
-  /** Lấy dữ liệu từ Redis */
-  useEffect(() => {
-    const fetchData = () => {
-      /** Kiểm tra dữ liệu raw data*/
-      if (!rawData) {
-        setError("Không tìm thấy dữ liệu hoặc dữ liệu đã quá hạn.");
-        return;
-      }
-      /** Set loading  */
-      setLoading(true);
-
-      /** Lưu giá trị raw data
-       * Đoạn này giả định rằng rawData đã là JSON
-       */
-      const PARSED_MENU = rawData.map((item: any, index: number) => ({
-        ...item,
-        id: item.id || simpleUUID(), // Nếu đã có id thì giữ nguyên, nếu chưa thì thêm id tạm
-      }));
-      console.log(PARSED_MENU, "PARSED_MENU");
-
-      /** Set luôn data = raw data, bỏ qua bước xử lý ảnh */
-      setData(PARSED_MENU);
-      /** Tắt loading */
-      setLoading(false);
-      return;
-
-      // Giả sử rawData đã là JSON
-      /** Kiểm tra danh sách cơ bản có image_url */
-      const HAS_IMAGE_URL = PARSED_MENU.every((item: any) => !!item.image_url);
-      /** Nếu không có image_url thì gọi API để tạo ảnh */
-      if (HAS_IMAGE_URL) {
-        console.log("✅ Dữ liệu đã có image_url, không cần generate.");
-        setData(PARSED_MENU);
-        saveToRedis(PARSED_MENU);
-        setLoading(false);
-        return;
-      }
-
-      /** Sử dụng addImageDescription với Async.js */
-      addImageDescription(PARSED_MENU, (err, updatedMenu) => {
-        if (err) {
-          setError("Dữ liệu bị lỗi hoặc không thể tạo ảnh.");
-          console.error(err);
-          setLoading(false);
-          return;
-        }
-
-        console.log(updatedMenu, "UPDATED_MENU");
-        setData(updatedMenu || []);
-        saveToRedis(updatedMenu || []);
-        setLoading(false);
-      });
-    };
-    /**
-     * Lưu dữ liệu vào Redis
-     * @param updatedMenu Danh sách các món ăn đã được thêm ảnh mô tả
-     */
-    const saveToRedis = (updatedMenu: any[]) => {
-      fetch("/api/json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          key: template_id,
-          value: updatedMenu,
-        }),
-      })
-        .then((res) => console.log(res, "RES"))
-        .catch((err) => console.error("Error saving to Redis:", err));
-    };
-
-    // fetchData();
-  }, [rawData, template_id]);
-  /** Input propmt*/
-  const [input, setInput] = useState(address);
-
-  console.log(address, "address");
-  console.log(input, "input");
-  /** Image */
-  const [image, setImage] = useState<string | null>(null);
-  /** Hàm gọi API tạo ảnh từ prompt
-   * @param prompt Prompt tạo ảnh
-   */
-  const handleGenerateImage = async (prompt: string) => {
-    try {
-      const RES = await fetch("/api/google-generate-img", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt }),
-      });
-      const DATA = await RES.json();
-      console.log(DATA, "DATA");
-      setImage(DATA?.image);
-      // const IMG_URL = await fetchUploadImage(DATA?.image);
-      /** Trả về item và thêm image_url */
-      // setImage(IMG_URL);
-    } catch (error) {
-      console.error("Lỗi mạng hoặc server:", error);
-    }
-  };
 
   const [loading_shop, setLoadingShop] = useState(false);
   /**
    * Hàm gọi API tạo ảnh từ prompt
    */
   const searchShopInfo = async (query: string, data: any) => {
+    if (!data_input_local?.shop_name || !data_input_local?.shop_address) {
+      toast.error(t("enter_store_name_and_address"));
+      if (!data_input_local?.shop_name) {
+        setErrors((prev) => {
+          return {
+            ...prev,
+            shop_name: t("enter_store_name"),
+          };
+        });
+      }
+      if (!data_input_local?.shop_address) {
+        setErrors((prev) => {
+          return {
+            ...prev,
+            shop_address: t("enter_store_address"),
+          };
+        });
+      }
+      return;
+    }
+
+    /** Upload hình ảnh lên Merchant và lấy url*/
+    const IMAGE_URL = await fetchUploadImage(file_logo_image);
+    /** Lưu lại giá trị */
+    setDataInput &&
+      setDataInput({
+        ...data_input,
+        shop_avatar: IMAGE_URL,
+      });
+
     setLoadingShop(true);
     /** Key word search */
-    let key_word = query ? query : "Haidilao Vincom Trần Duy Hưng";
+    let key_word = query ? query : "";
     /** Tìm kiếm thông tin cửa hàng */
     const RES = await fetch("/api/store-knowledge", {
       method: "POST",
@@ -293,7 +276,7 @@ export default function TemplateClient({
         "Content-Type": "application/json",
       },
     });
-
+    /** Data Store */
     const DATA_STORE = await RES.json();
     console.log(DATA_STORE, "DATA_STORE");
     /** gọi hàm update tài liệu */
@@ -348,7 +331,7 @@ export default function TemplateClient({
       console.log("✅ Sản phẩm đã được thêm");
       /** Gửi thông tin cửa hàng (nếu có) */
       if (results?.content) {
-        toast.success("Tìm kiếm thông tin cửa hàng thành công!");
+        toast.success(t("store_info_found"));
         const SHOP_INFO_RES = await fetch("/api/shop-info", {
           method: "PUT",
           body: JSON.stringify({ session_id, content: results.content }),
@@ -363,13 +346,13 @@ export default function TemplateClient({
       /** Trường hợp không có content */
       if (!results?.content) {
         /** Hiển thị lỗi */
-        toast.error("Không tìm thấy thống tin cửa hàng");
+        toast.error(t("store_info_not_found"));
         /** Lưu thông tin cửa hàng */
         const SHOP_INFO_RES = await fetch("/api/shop-info", {
           method: "PUT",
           body: JSON.stringify({
             session_id,
-            content: "Không tìm thấy thông tin cửa hàng",
+            content: t("store_info_not_found"),
           }),
         });
 
@@ -385,9 +368,11 @@ export default function TemplateClient({
       /** Chuyển trang */
       // ROUTER.push("/editor"); // Custom router navigation (not using next/router)
 
+      /** Cập nhật trạng thái hoàn thành bước Preview */
       handleFinishPreview && handleFinishPreview("success");
     } catch (error) {
       console.error("Lỗi mạng hoặc server:", error);
+      /** Cập nhật trạng thái báo lỗi*/
       handleFinishPreview && handleFinishPreview("error");
     } finally {
       // setLoading(false);
@@ -402,15 +387,67 @@ export default function TemplateClient({
     setData((prevData) => [...prevData, product]);
   };
 
+  /** Avatar Shop */
+  const [avatar_shop, setAvatarShop] = useState<string | null>("");
+  /** Địa chỉ shop */
+  const [shop_address, setShopAddress] = useState<string | null>("");
+  /** Tên cửa hàng */
+  const [shop_name, setShopname] = useState<string | null>("");
+  /** Khai báo lỗi */
+  const [errors, setErrors] = useState<{
+    shop_name: string;
+    shop_address: string;
+  }>({
+    shop_name: "",
+    shop_address: "",
+  });
+
+  /** Hàm Upload Image */
+  const handleOnSelect = () => {};
+
+  /** File ảnh đã upload */
+  const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
+
   return (
-    <main className="px-3 py-2 max-w-3xl w-full mx-auto space-y-6 relative">
+    <main className="py-2 px-1 max-w-3xl w-full mx-auto gap-y-4 relative">
+      <div className="flex flex-col gap-y-4 ">
+        <InputTitle
+          value_input={data_input_local?.shop_name || ""}
+          setValueInput={(e) => {
+            // setShopname(e);
+            setDataInputLocal({ ...data_input_local, shop_name: e });
+            setDataInput && setDataInput({ ...data_input, shop_name: e });
+            setErrors({ ...errors, shop_name: "" });
+          }}
+          title={t("shop_name")}
+          placeholder={t("enter_shop_name")}
+          error={errors?.shop_name}
+        />
+        <InputTitle
+          value_input={data_input_local?.shop_address || ""}
+          setValueInput={(e) => {
+            // setShopAddress(e);
+            setDataInputLocal({ ...data_input_local, shop_address: e });
+            setDataInput && setDataInput({ ...data_input, shop_address: e });
+            setErrors({ ...errors, shop_address: "" });
+          }}
+          title={t("shop_address")}
+          placeholder={t("enter_shop_address")}
+          error={errors?.shop_address}
+        />
+        <InputAvatar
+          onSelect={(e) => setFileLogoImage(e)}
+          defaultValue={data_input_local?.shop_avatar || ""}
+        />
+      </div>
+
       <div className="flex flex-row items-center justify-between bg-white sticky top-0 z-10 py-2 w-full">
         <h1 className="md:text-2xl md:font-bold  text-xl font-medium ">Menu</h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded text-sm"
         >
-          Add Product
+          {t("add_product")}
         </button>
       </div>
       <div>
@@ -447,7 +484,7 @@ export default function TemplateClient({
                   />
                 ))
               ) : (
-                <div className="p-4 text-gray-500">Dữ liệu trống.</div>
+                <div className="p-4 text-gray-500">{t("no_data")}</div>
               ))}
           </div>
         )}
@@ -456,14 +493,17 @@ export default function TemplateClient({
         <div className="flex w-full justify-center items-center sticky bottom-0 p-1">
           <button
             onClick={() => {
-              searchShopInfo(input, data);
+              searchShopInfo(
+                data_input_local?.shop_name +
+                  " - " +
+                  data_input_local?.shop_address || "",
+                data
+              );
             }}
             disabled={loading_shop}
             className="bg-blue-500 text-white px-4 py-2 font-medium rounded hover:bg-blue-700 cursor-pointer flex gap-x-2 items-center"
           >
-            {loading_shop
-              ? "Đang tìm kiếm thông tin về cửa hàng"
-              : "Tìm kiếm thông tin về cửa hàng"}
+            {loading_shop ? t("searching_shop") : t("search_shop")}
             <div>{loading_shop && <Loading color_white />}</div>
           </button>
         </div>
