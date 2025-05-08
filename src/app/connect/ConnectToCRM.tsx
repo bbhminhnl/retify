@@ -1,6 +1,6 @@
 "use client";
 
-import { find, get, has, keys } from "lodash";
+import { find, forEach, get, has, keys } from "lodash";
 import { useEffect, useState } from "react";
 
 import Loading from "@/components/loading/Loading";
@@ -237,6 +237,139 @@ const ConnectToCRM = ({
   };
 
   /**
+   * Gọi API lấy dữ liệu workspace
+   * @returns
+   */
+  const fetchWorkSpace = async (page_id: string, org_id: string) => {
+    /**
+     * Đường dẫn API lấy dữ liệu workspace
+     */
+    const END_POINT = `workspace/${page_id}?org_id=${org_id}`;
+    /**
+     * Gọi API lấy dữ liệu workspace
+     */
+    try {
+      const RES = await apiCommon({
+        end_point: END_POINT,
+        service_type: "llm_ai",
+        headers: {},
+        method: "GET",
+      });
+
+      /** Chuyển dữ liệu thành dạng cố định
+       * để hiển thị được tên file
+       */
+
+      console.log(RES, "RES");
+
+      /** Trả về danh sách cần loại bỏ */
+      return RES?.data?.workspace?.documents || [];
+    } catch (error) {
+      console.error("Error fetching workspace:", error);
+      return [];
+    }
+  };
+
+  /**
+   * Gọi API cập nhật embedding
+   */
+  const fetchUpdateEmbedding = async (
+    adds: string[],
+    deletes: string[],
+    page_id: string,
+    org_id: string
+  ) => {
+    setLoading(true);
+
+    /**
+     * Đường dẫn API xoá folder
+     */
+    const END_POINT = `workspace/${page_id}/update-embeddings?org_id=${org_id}`;
+
+    /**
+     * Gọi API cập nhật embedding
+     */
+    try {
+      /**
+       *  Gọi API cập nhật embedding
+       */
+      await apiCommon({
+        end_point: END_POINT,
+        method: "POST",
+        body: {
+          adds,
+          deletes,
+        },
+        service_type: "llm_ai",
+      });
+    } catch (error) {
+    } finally {
+    }
+  };
+
+  const fetchLocalFiles = async (org_id: string) => {
+    /**
+     * Đường dẫn API lấy dữ liệu local files
+     */
+    const END_POINT = `app/document/local_files?org_id=${org_id}`;
+
+    const RES = await apiCommon({
+      end_point: END_POINT,
+      service_type: "llm_no_proxy",
+      method: "POST",
+      body: {
+        /** fix cứng */
+        d_parent_id: { $exists: false },
+      },
+    });
+
+    return RES?.data;
+  };
+
+  /**
+   * API xoá tài liệu
+   * @param d_id  id Tài liệu
+   */
+  const fetchDeleteDocument = async (d_id: string[], org_id: string) => {
+    setLoading(true);
+    /**
+     * Đường dẫn API xoá tài liệu
+     */
+    const END_POINT = `app/document/remove_document?org_id=${org_id}`;
+
+    /**
+     * Gọi API cập nhật embedding
+     */
+    try {
+      /**
+       * Gọi API cập nhật XOÁ tài liệu
+       */
+
+      await apiCommon({
+        end_point: END_POINT,
+        method: "DELETE",
+        body: { d_id: d_id },
+        service_type: "llm_no_proxy",
+      });
+    } catch (error) {
+      console.error("Error updating embeddings:", error);
+      /**
+       * Hiển thị toast thông báo lỗi
+       */
+      // dispatch(
+      //   showToast({
+      //     message: t('delete_failed_maybe_system_error'),
+      //     type: 'error',
+      //   })
+      // )
+    } finally {
+      /**
+       * Kết thúc loading
+       */
+      setLoading(false);
+    }
+  };
+  /**
    * Hàm chọn BM để add Page vào
    * @param ORG_ID
    * @param PAGE_ID
@@ -290,8 +423,40 @@ const ConnectToCRM = ({
     /** ========== Tải lên file tài liệu ===========*/
     /** Update text */
     setLoadingText(t("uploading_document"));
+
+    /** ================== Lấy dữ liệu workspace, Xoá nếu là tài liệu retify, Cập nhật embedding ==================== */
+    /** Lấy dữ liệu workspace */
+    const WORK_SPACE_DATA = await fetchWorkSpace(agent_info, ORG_ID);
+    /** Lọc những tài liệu Trùng tên với data của retify */
+    const FILTERED_DATA =
+      WORK_SPACE_DATA &&
+      WORK_SPACE_DATA.filter((item: any) =>
+        item?.docpath.includes("retify_started_knowledge.txt")
+      );
+    /** Khởi tạo List cần xoá */
+    let deletes = [];
+    /** Thêm tài liệu vào list */
+    deletes =
+      (FILTERED_DATA && FILTERED_DATA.map((item: any) => item?.docpath)) || [];
+    /** Tiến hành xoá tài liệu Trùng với retify */
+    await fetchUpdateEmbedding([], deletes, agent_info, ORG_ID);
+    /** Danh sách tài liệu tỏng local file */
+    const LOCAL_FILES = await fetchLocalFiles(ORG_ID);
+
+    /** Lấy ra những tài liệu Trùng với retify */
+    const FILTERED_LOCAL_FILES = LOCAL_FILES.filter(
+      (item: any) => item?.d_name === "retify_started_knowledge.txt"
+    );
+    console.log(FILTERED_LOCAL_FILES, "FILTERED_LOCAL_FILES");
+    /** Tạo danh sách d_id */
+    const LIST_D_ID = FILTERED_LOCAL_FILES.map((item: any) => item?.d_id);
+    /** Xoá tài liệu */
+    forEach(LIST_D_ID, async (item: any) => {
+      fetchDeleteDocument(item, ORG_ID);
+    });
     /** Gọi hàm upload tài liệu */
     const UPLOAD_DATA = await uploadData(ACCESS_TOKEN, ORG_ID, agent_info);
+
     /** Kiểm tra thông tin lỗi */
 
     /** ================ Thêm tài liệu cho Trợ lý ảo ============= */
@@ -327,7 +492,7 @@ const ConnectToCRM = ({
     /** Tạo sản phẩm đồng bộ sang Merchant */
     setLoadingText(t("syncing_product_with_merchant"));
     /** GỌi hàm Tạo sản phẩm Merchant */
-    await createAllProducts(TOKEN_MERCHANT, PAGE_ID);
+    await createAllProducts(TOKEN_MERCHANT, PAGE_ID, ORG_ID);
   };
 
   /** Function chính
@@ -341,6 +506,8 @@ const ConnectToCRM = ({
     ACCESS_TOKEN: string
   ) => {
     try {
+      console.log(ORG_ID, "ORG_ID");
+      setSelectedOrganization(ORG_ID);
       setLoading(true);
       /** Kết nối Chatbox */
       await handleConnectToChatBox(ORG_ID, PAGE_ID, ACCESS_TOKEN);
@@ -751,7 +918,11 @@ const ConnectToCRM = ({
    * @param ACCESS_TOKEN
    * @param PAGE_ID
    */
-  const createAllProducts = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
+  const createAllProducts = async (
+    ACCESS_TOKEN: string,
+    PAGE_ID: string,
+    ORG_ID: string
+  ) => {
     /** Dùng Promise.all để gửi nhiều request cùng lúc */
     await Promise.all(
       products.map((product) =>
@@ -768,7 +939,7 @@ const ConnectToCRM = ({
     setTimeout(() => {
       // setLoadingText("");
       // setFinishInstalling(true);
-      onFinish && onFinish(selected_page, selected_organization);
+      onFinish && onFinish(PAGE_ID, ORG_ID);
     }, 2000);
 
     // fetchListPages(ACCESS_TOKEN, PAGE_ID);
@@ -1147,7 +1318,6 @@ const ConnectToCRM = ({
                 className="flex w-full items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
                 onClick={() => {
                   mainFunction(org?.org_id, selected_page, chatbox_token);
-                  setSelectedOrganization(org?.org_id);
                   setOrganization([]);
                 }}
               >

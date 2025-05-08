@@ -1,6 +1,5 @@
 import Firework from "@/assets/images/Firework.png";
 import Image from "next/image";
-import React from "react";
 import { useTranslations } from "next-intl";
 const ConnectDone = ({
   page_id,
@@ -23,7 +22,7 @@ const ConnectDone = ({
           onClick={() => {
             window.ReactNativeWebView?.postMessage(
               JSON.stringify({
-                type: "page.loginFB",
+                type: "page.home",
                 message: {
                   final: true,
                   page_id: page_id,

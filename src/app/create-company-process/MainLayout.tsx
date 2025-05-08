@@ -369,6 +369,35 @@ const MainLayout = () => {
       setLoading(false);
     }
   };
+  /** Xử lý message từ Facebook
+   * @param event SSO
+   */
+  function getFacebookToken(event: MessageEvent) {
+    if (
+      !event ||
+      !event.data ||
+      typeof event.data !== "object" ||
+      event.data.from !== "FACEBOOK_IFRAME" ||
+      event.data.event !== "LOGIN"
+    ) {
+      return;
+    }
+    /** RESPONSE từ facebook */
+    const FACEBOOK_RESPONSE = event.data.data;
+    /** Nếu có access token thì lưu vào state */
+    if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
+      /** Lưu vào state */
+      setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
+    }
+  }
+  /** Lầy token facebook */
+  useEffect(() => {
+    window.addEventListener("message", getFacebookToken);
+    return () => {
+      window.removeEventListener("message", getFacebookToken);
+    };
+  }, []);
+
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
       {!on_finish && (
@@ -401,7 +430,7 @@ const MainLayout = () => {
                   // setOnFinish(true);
                   /** Test nên giải lập lấy được accessToken */
                   // setAccessToken(
-                  //   "EAASOEiugKa0BO4U7YFL3ZA3gssEZC9s3XgcFtxOy93tDGrKIgUf0jYADdIy0DKQ1FusGmgECeGSqmGNwjn1vpM97eNc64MXF4ina8csntAwTL2DAZCBwFzXQQ08wDhM28YKdAGP1OeJfM86TBPxwkrGSqjyqZBklApgzmmghUgidTCUzZA3ZCZAZAZCWY48fS90GHEb52UZAuKk4rUpQZDZD"
+                  //   "EAASOEiugKa0BO1NYEt8nLkqOpJCBOToRZBFWLZCewJPnl0kuuhYPHVQryfGMctJDIhxqg7LlhGuJJM4fkUcNK2smAgNxJujcZAznjm0hEmgaTlZANqGVBlNFfUEWCVK3IRCfF3kHs6AUJx1q4eJIYvqIqzPCae9veqSJIPtNdQzIazwCRczMhu1ZA7ZAXBnktQufoL9j8VT6LyXAZDZD"
                   // );
                 }, 2000);
               }}
