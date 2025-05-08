@@ -949,13 +949,9 @@ const ConnectToCRM = ({
     const RESULT = await fetchDocument();
     console.log(RESULT, "RESULT");
     /** Tạo mock data file mới với dữ liệu đã cập nhật */
-    const MOCK_DATA_FILE = new File(
-      [RESULT],
-      "mau_tra_loi_nhan_vien_ai_update.txt",
-      {
-        type: "text/plain",
-      }
-    );
+    const MOCK_DATA_FILE = new File([RESULT], "retify_started_knowledge.txt", {
+      type: "text/plain",
+    });
 
     /** Đường dẫn API upload file*/
     const END_POINT = `app/document/upload?org_id=${ORG_ID}`;
