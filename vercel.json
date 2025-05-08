@@ -1,5 +1,5 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "rewrites": [],
 
   "functions": {
     "app/api/detect/route.js": {
