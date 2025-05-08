@@ -6,6 +6,8 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 
 import Loading from "@/components/loading/Loading";
+import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 const IframeMerchant = ({
   data_input,
@@ -14,6 +16,8 @@ const IframeMerchant = ({
   data_input: any;
   step: number;
 }) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** Ref */
   const IFRAME_REF = useRef<HTMLIFrameElement | null>(null);
   /**
@@ -55,6 +59,7 @@ const IframeMerchant = ({
       console.log(DATA, "DATA");
     } catch (error) {
       console.error("Error fetching products:", error);
+      toast.error(t("error_fetching_products") + error);
     }
   };
 
@@ -80,7 +85,7 @@ const IframeMerchant = ({
     /** Update dữ liệu sản phẩm */
     const MOCK_CATEGORIES_UPDATE = MOCK_CATEGORIES.map((category) => ({
       ...category,
-      name: "Danh sách sản phẩm",
+      name: t("products_list"),
       products: data,
     }));
     /** Check Iframe và gửi dữ liệu post Message */

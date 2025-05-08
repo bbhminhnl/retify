@@ -14,6 +14,7 @@ import Whatsapp from "@/assets/icons/whatsapp.svg";
 import { set } from "lodash";
 import { toast } from "react-toastify";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 /**
  * Dư liệu POS
@@ -62,6 +63,8 @@ interface ConnectChannelProps {
 }
 
 const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** select channel */
   const [selected_channel, setSelectedChannel] = useState<string>("");
 
@@ -82,7 +85,7 @@ const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
                       onConnect?.();
                       setSelectedChannel(option.value);
                     } else {
-                      toast.warn("Tính năng này đang phát triển");
+                      toast.warn(t("feature_not_available"));
                     }
                   }}
                   loading={loading}
@@ -94,7 +97,7 @@ const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
                   name="QR"
                   Icon={option.Icon}
                   onConnect={() => {
-                    toast.warn("Tính năng này đang phát triển");
+                    toast.warn(t("feature_not_available"));
                   }}
                 />
               )}

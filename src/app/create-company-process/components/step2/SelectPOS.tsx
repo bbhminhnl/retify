@@ -4,8 +4,11 @@ import Clover from "@/assets/images/Clover.png";
 import ConnectChannel from "./ConnectChannel";
 import Shopify from "@/assets/icons/icons8-shopify.svg";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 const SelectPOS: React.FC = () => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** State lưu giá trị nhập */
   const [value, setValue] = useState<string>("");
 
@@ -27,9 +30,7 @@ const SelectPOS: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <h2 className="text-sm text-left font-normal">
-        Option 3: Connect your POS
-      </h2>
+      <h2 className="text-sm text-left font-normal">{t("Option3")}</h2>
       <div className="flex flex-col gap-2">
         {
           /** Render list option */

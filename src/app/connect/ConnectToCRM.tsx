@@ -1,13 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
 import { find, get, has, keys } from "lodash";
+import { useEffect, useState } from "react";
 
-import ConnectHandler from "../components/ConnectHandler";
 import Loading from "@/components/loading/Loading";
 import { UserProfile } from "@/types";
 import { apiCommon } from "@/services/fetchApi";
 import { toast } from "react-toastify";
+import { useTranslations } from "next-intl";
 
 /**
  * Interface Product
@@ -45,6 +45,8 @@ const ConnectToCRM = ({
   access_token_global: string;
   onFinish?: () => void;
 }) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** State accessToken*/
   const [access_token, setAccessToken] = useState<any>("");
   /** Danh sách page*/
@@ -89,6 +91,7 @@ const ConnectToCRM = ({
   };
 
   useEffect(() => {
+    /** Nhậnd dược token global */
     if (access_token_global) {
       setAccessToken(access_token_global);
     }
@@ -109,6 +112,7 @@ const ConnectToCRM = ({
       setProducts(DATA);
     } catch (error) {
       console.error("Error fetching products:", error);
+      toast.error(t("error_fetching_products") + error);
     }
   };
 
@@ -242,7 +246,7 @@ const ConnectToCRM = ({
     ACCESS_TOKEN: string
   ) => {
     /** ===================== Thêm page vào Chatbox ======================== */
-    setLoadingText("Đang thêm Trang vào Tổ chức");
+    setLoadingText(t("adding_page_to_organization"));
     /** Kiểm tra page đã tồn tại chưa */
     const IS_EXIST_PAGE = await checkExistPage(ORG_ID, PAGE_ID, ACCESS_TOKEN);
     /** Nếu chưa tồn tại thì thêm page */
@@ -252,7 +256,7 @@ const ConnectToCRM = ({
 
     /** ================== Lấy danh sách AGENT ==================== */
     /** Cập nhật tin nhắn */
-    setLoadingText("Đang cài đặt trợ lý ảo ...");
+    setLoadingText(t("setting_up_virtual_assistant"));
     /** Thông tin info */
     let agent_info = await fetchAgent(ORG_ID);
 
@@ -267,15 +271,13 @@ const ConnectToCRM = ({
         agent_info = await fetchAgent(ORG_ID);
 
         if (!agent_info) {
-          return handleError(
-            "Tạo trợ lý ảo thành công nhưng lấy thông tin thất bại!"
-          );
+          return handleError(t("assistant_created_but_fetch_failed"));
         }
       }
     }
     /** ================== Cập nhật Setting ==================== */
     /** Cập nhật text */
-    setLoadingText("Đang cập nhật Thiết lập trợ lý ảo ...");
+    setLoadingText(t("updating_virtual_assistant_settings"));
     /** Cập nhật Setting  */
     await updateSettingPage({
       ACCESS_TOKEN,
@@ -285,20 +287,20 @@ const ConnectToCRM = ({
 
     /** ========== Tải lên file tài liệu ===========*/
     /** Update text */
-    setLoadingText("Tải lên tài liệu ...");
+    setLoadingText(t("uploading_document"));
     /** Gọi hàm upload tài liệu */
     const UPLOAD_DATA = await uploadData(ACCESS_TOKEN, ORG_ID, agent_info);
     /** Kiểm tra thông tin lỗi */
 
     /** ================ Thêm tài liệu cho Trợ lý ảo ============= */
     /** Cập nhật text */
-    setLoadingText("Thêm tài liệu cho trợ lý ảo ...");
+    setLoadingText(t("adding_document_to_assistant"));
     /** Gọi hàm add knowledge */
     await addKnowledge(ACCESS_TOKEN, ORG_ID, agent_info, UPLOAD_DATA);
 
     /** Cập nhật text message */
 
-    setLoadingText("Cài đặt Chatbox thành công!");
+    setLoadingText(t("chatbox_setup_success"));
   };
 
   const handleConnectToMerchant = async (
@@ -307,7 +309,7 @@ const ConnectToCRM = ({
     ACCESS_TOKEN: string
   ) => {
     /** Cập nhật Loading Text */
-    setLoadingText("Đang kết nối với Merchant");
+    setLoadingText(t("connecting_to_merchant"));
     /** Gọi hàm lấy Token Partner */
     const PARTNER_TOKEN = await fetchTokenPartner(
       ACCESS_TOKEN,
@@ -321,7 +323,7 @@ const ConnectToCRM = ({
     setTokenMerchant(TOKEN_MERCHANT);
 
     /** Tạo sản phẩm đồng bộ sang Merchant */
-    setLoadingText("Đang đồng bộ sản phẩm với Merchant");
+    setLoadingText(t("syncing_product_with_merchant"));
     /** GỌi hàm Tạo sản phẩm Merchant */
     await createAllProducts(TOKEN_MERCHANT, PAGE_ID);
   };
@@ -359,7 +361,7 @@ const ConnectToCRM = ({
   ): void {
     /** Nếu không có lỗi báo lỗi không xác định */
     if (!error) {
-      handleError("Đã xảy ra lỗi không xác định.");
+      handleError(t("unknown_error_occurred"));
       return;
     }
     /** Kiểm tra loại lỗi */
@@ -368,29 +370,23 @@ const ConnectToCRM = ({
     /** Hiện thông tin lỗi */
     switch (ERROR) {
       case "REACH_QUOTA.PAGE":
-        handleError(
-          "Đã đạt giới hạn Trang trong Tổ chức, thêm Trang không thành công!"
-        );
+        handleError(t("org_page_limit_reached"));
         break;
 
       case "LIMIT_DOCUMENT":
-        handleError(
-          "Đã đạt giới hạn Tải lên tài liệu của Tổ chức, Thêm tài liệu không thành công!"
-        );
+        handleError(t("org_doc_upload_limit_reached"));
         break;
 
       case "LIMIT_SIZE":
-        handleError(
-          "Dung lượng file tải lên quá lớn, Thêm tài liệu không thành công!"
-        );
+        handleError(t("file_too_large"));
         break;
 
       case "jwt malformed":
-        handleError("Token không hợp lệ, Kết nối không thành công!");
+        handleError(t("invalid_token_connection_failed"));
         break;
 
       default:
-        handleError(`Đã xảy ra lỗi: ${error?.message || error}`);
+        handleError(`${t("error_occurred")}: ${error?.message || error}`);
         break;
     }
   }
@@ -761,7 +757,7 @@ const ConnectToCRM = ({
       )
     );
     /** update message đã tạo sản phẩm thành công */
-    setLoadingText("Đồng bộ sản phẩm thành công");
+    setLoadingText(t("product_sync_success"));
     /** Tắt loading */
     setLoading(false);
     /**
@@ -782,7 +778,7 @@ const ConnectToCRM = ({
    * @param PAGE_ID
    */
   const fetchListPages = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
-    setLoadingText("Syncing product...");
+    setLoadingText(t("syncing_products"));
     try {
       /**
        * Domain
@@ -879,7 +875,7 @@ const ConnectToCRM = ({
     /**
      * Bật trạng thái loading
      */
-    setLoadingText("Starting to sync product with Facebook...");
+    setLoadingText(t("sync_product_facebook_start"));
     setLoading(true);
     try {
       /**
@@ -917,9 +913,7 @@ const ConnectToCRM = ({
       /**
        * Cập nhật text
        */
-      setLoadingText(
-        "The product has been synced to FB SMC! After synchronization, it may take up to 24 hours for your product to appear on Messenger or up to 2 hours to be linked to Facebook Livestream."
-      );
+      setLoadingText(t("sync_product_facebook_note"));
       /**
        * Xoá text sau 5s
        */
@@ -1060,24 +1054,24 @@ const ConnectToCRM = ({
     /** Bắt đầu loading */
     setLoading(true);
     /** Hiện text tiến trình */
-    setLoadingText("Bắt đầu cài đặt");
+    setLoadingText(t("starting_setup"));
 
     /**================== Login =================== */
     /** Cập nhạt Text tiến trình */
-    setLoadingText("Đang cài đặt");
+    setLoadingText(t("setting_up"));
     /**  */
     const ACCESS_TOKEN = await onLogin(PAGE_ID);
     /** Kiểm tra token được return */
     if (ACCESS_TOKEN === "error" || !ACCESS_TOKEN) {
       /** Gọi handle Error */
-      handleError("Token không chính xác");
+      handleError(t("incorrect_token"));
 
       return;
     }
     /** Lưu token và state */
     setChatboxToken(ACCESS_TOKEN);
     /** ======================= Lấy danh sách page Retion ======================== */
-    setLoadingText("Đang lấy dữ liệu tổ chức");
+    setLoadingText(t("fetching_organization_data"));
     /** Danh sách Tổ chức */
     const LIST_ORG = await fetchListOrg(ACCESS_TOKEN);
     /** Nếu không có Tổ chức, hoặc lỗi error */
@@ -1085,7 +1079,7 @@ const ConnectToCRM = ({
       /**
        * Gọi handle Error
        */
-      handleError("Lấy Danh sách Tổ chức không thành công!");
+      handleError(t("fetch_organization_list_failed"));
 
       return;
     }
@@ -1113,7 +1107,7 @@ const ConnectToCRM = ({
         !finish_installing &&
         organization?.length === 0 && (
           <div className="h-full">
-            <h4>Select Your Page</h4>
+            <h4>{t("select_your_page")}</h4>
             <div className="flex flex-col gap-y-2">
               {pages.map((page: UserProfile) => (
                 <div
@@ -1138,10 +1132,8 @@ const ConnectToCRM = ({
               ))}
               {pages.length === 0 && (
                 <div className="flex flex-col gap-y-2 w-full items-center py-4">
-                  <h3>Không tìm thấy trang</h3>
-                  <p>
-                    Bạn cần tạo một trang Facebook trước khi tiếp tục thiết lập.
-                  </p>
+                  <h3>{t("page_not_found")}</h3>
+                  <p>{t("create_fb_page_first")}</p>
                 </div>
               )}
             </div>
@@ -1149,7 +1141,7 @@ const ConnectToCRM = ({
         )}
       {organization?.length > 0 && (
         <div className="h-full w-full">
-          <h4>Select Organization</h4>
+          <h4>{t("select_your_organization")}</h4>
           <div className="flex flex-col gap-y-2 w-full">
             {organization.map((org: any) => (
               <div
@@ -1189,7 +1181,7 @@ const ConnectToCRM = ({
         }
         {finish_installing && (
           <div className="flex flex-col items-center justify-center h-12">
-            <p className="text-lg text-green-500">Kết nối thành công!</p>
+            <p className="text-lg text-green-500">{t("connect_success")}</p>
             {/* <div className="flex flex-col items-center justify-center gap-y-2">
               <a
                 // href="https://m.me/414786618395170"

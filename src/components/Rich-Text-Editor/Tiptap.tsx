@@ -12,7 +12,9 @@ import MenuBar from "./MenuBar";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import { debounce } from "lodash";
+import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 /**
  * type sản phẩm
@@ -42,6 +44,8 @@ const Tiptap = ({
    */
   handleFinishEditor: (status: string) => void;
 }) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** Router */
   const ROUTER = useRouter();
   /** Markdown*/
@@ -225,9 +229,9 @@ const Tiptap = ({
     /** Nếu editor đã được khởi tạo */
     if (editor) {
       const MD = editor.storage.markdown.getMarkdown();
-      console.log(MD, "MDDDD");
+
       if (!MD) {
-        alert("Vui lòng nhập nội dung trước khi lưu");
+        toast.warning(t("content_required_before_save"));
         setShowConnect(false);
         return;
       }
@@ -295,7 +299,7 @@ const Tiptap = ({
             onClick={handleSave}
             className="h-10 px-4 flex-shrink-0 bg-blue-500 text-white rounded-md flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-600"
           >
-            <span className="text-sm font-semibold">Lưu</span>
+            <span className="text-sm font-semibold">{t("save")}</span>
             {loading && <Loading color_white />}
           </button>
         </div>
@@ -306,7 +310,7 @@ const Tiptap = ({
         />
       </div>
       <div className="hidden md:flex flex-col flex-grow min-h-0 bg-gray-100 overflow-hidden rounded-lg overflow-y-auto p-4 text-left">
-        <h2 className="font-bold">Tài liệu hiển thị:</h2>
+        <h2 className="font-bold">{t("document_display")}</h2>
         <pre className="text-sm whitespace-pre-wrap">{markdown}</pre>
       </div>
       {/* {show_connect && (

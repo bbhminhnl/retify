@@ -1,6 +1,7 @@
 // components/StepNavigator.tsx
 import Loading from "@/components/loading/Loading";
 import React from "react";
+import { useTranslations } from "next-intl";
 
 /** Interface Props */
 type Props = {
@@ -40,6 +41,8 @@ const StepNavigator: React.FC<Props> = ({
   disabledBack,
   loading,
 }) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   return (
     <div className="flex justify-between w-full">
       <button
@@ -47,7 +50,7 @@ const StepNavigator: React.FC<Props> = ({
         disabled={step === 1 || loading}
         className="px-10 py-2 bg-slate-200 text-slate-700 rounded-md disabled:opacity-50 text-sm font-semibold cursor-pointer"
       >
-        Back
+        {t("Back")}
       </button>
       {step !== maxSteps && (
         <button
@@ -58,7 +61,7 @@ const StepNavigator: React.FC<Props> = ({
           disabled={step === maxSteps || disabledNext || loading}
           className={`px-10 py-2 bg-blue-700 text-white rounded-md disabled:bg-blue-200 disabled:text-blue-700 text-sm font-semibold cursor-pointer flex items-center gap-x-2`}
         >
-          Next
+          {t("Next")}
           {loading && (
             <div className="">
               <Loading size="sm" color_white />

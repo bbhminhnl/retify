@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { Trash } from "lucide-react";
 import { formatCurrency } from "@/utils";
+import { useTranslations } from "next-intl";
 
 /** Interface Product */
 interface ProductItemProps {
@@ -33,6 +34,8 @@ const ProductItemCustom = ({
   onUpdate,
   onDelete,
 }: ProductItemProps) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** Trạng thái edit */
   const [is_editing, setIsEditing] = useState(false);
   /** Sản phẩm */
@@ -76,7 +79,7 @@ const ProductItemCustom = ({
           className=" text-xs px-2 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 
         group-hover:block block md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
         >
-          Sửa
+          {t("edit")}
         </button>
 
         {/* Nút Xoa (hiện khi hover hoặc luôn hiện ở mobile) */}

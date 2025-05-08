@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 
+import { useTranslations } from "next-intl";
+
 const OptionInput: React.FC = () => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** State lưu giá trị nhập */
   const [value, setValue] = useState<string>("");
 
@@ -13,9 +17,7 @@ const OptionInput: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <h2 className="text-sm text-left font-normal">
-        Option 2: Enter your domain
-      </h2>
+      <h2 className="text-sm text-left font-normal">{t("Option2")}</h2>
       <input
         type="text"
         value={value}

@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
+import { useTranslations } from "next-intl";
+
 /** Kiểu dữ liệu */
 type IOptionUpload = {
   /** Callback function */
@@ -8,6 +10,8 @@ type IOptionUpload = {
   defaultValue?: string;
 };
 const InputAvatar = ({ onSelect, defaultValue }: IOptionUpload) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /**
    * Input Ref
    */
@@ -50,9 +54,7 @@ const InputAvatar = ({ onSelect, defaultValue }: IOptionUpload) => {
 
   return (
     <div className="flex flex-col gap-1">
-      <h2 className="text-sm text-left font-normal">
-        Upload your company logo
-      </h2>
+      <h2 className="text-sm text-left font-normal">{t("shop_logo")}</h2>
       <div
         onClick={handleDivClick}
         className="border flex items-center justify-center overflow-hidden rounded-lg border-slate-200 p-3 text-sm cursor-pointer"
@@ -64,7 +66,7 @@ const InputAvatar = ({ onSelect, defaultValue }: IOptionUpload) => {
             style={{ width: "50%", height: "50%", objectFit: "cover" }}
           />
         ) : (
-          "📸 Click to capture"
+          <span>{t("upload_image")}</span>
         )}
       </div>
       <input

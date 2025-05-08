@@ -2,6 +2,7 @@ import Image from "next/image";
 import QR from "@/assets/images/QR.png";
 import React from "react";
 import Shopify from "@/assets/icons/shopify.svg";
+import { useTranslations } from "next-intl";
 /**
  * Kiểu dữ liệu download
  */
@@ -14,6 +15,8 @@ interface Props {
   Icon?: React.ElementType;
 }
 const Download = ({ name, onConnect, Icon }: Props) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   return (
     <div className="flex flex-col items-center justify-between p-3 gap-2.5 rounded-lg border border-slate-200">
       <div className="flex items-center justify-between w-full">
@@ -32,7 +35,7 @@ const Download = ({ name, onConnect, Icon }: Props) => {
           onClick={() => onConnect && onConnect()}
           className="py-2 px-10 text-white rounded-md gap-1 text-sm font-semibold bg-blue-700 cursor-pointer hover:bg-blue-500"
         >
-          Download
+          {t("download")}
         </div>
       </div>
       <div>

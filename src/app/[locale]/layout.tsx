@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
+import ToastProvider from "@/components/ToastProvider";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 
@@ -52,6 +53,7 @@ export default async function RootLayout({ children, params }: Props) {
     <html lang={VALID_LOCALE}>
       <body>
         <NextIntlClientProvider locale={VALID_LOCALE} messages={messages}>
+          <ToastProvider />
           {children}
         </NextIntlClientProvider>
       </body>

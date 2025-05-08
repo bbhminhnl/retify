@@ -40,7 +40,7 @@ export default function InputField({
       <label className="block mb-1 font-medium text-left">{label}</label>
       <input
         type={type}
-        className={`w-full border rounded px-2 py-1 ${
+        className={`w-full border rounded-lg p-2 ${
           error ? "border-red-500" : ""
         }`}
         value={value}

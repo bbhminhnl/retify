@@ -14,6 +14,7 @@ import ProductItemCustom from "../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 type IDataInput = {
   /**
@@ -62,6 +63,8 @@ export default function TemplateClient({
   /** Thêm avatar */
   onSelectAvatar?: (value: string) => void;
 }) {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** Dữ liệu hiển thị */
   const [data, setData] = useState<any[]>([]);
   /** Error */
@@ -233,12 +236,12 @@ export default function TemplateClient({
    */
   const searchShopInfo = async (query: string, data: any) => {
     if (!data_input_local?.shop_name || !data_input_local?.shop_address) {
-      toast.error("Vui lòng nhập tên cửa hàng và địa chỉ cửa hàng.");
+      toast.error(t("enter_store_name_and_address"));
       if (!data_input_local?.shop_name) {
         setErrors((prev) => {
           return {
             ...prev,
-            shop_name: "Vui lòng nhập tên cửa hàng.",
+            shop_name: t("enter_store_name"),
           };
         });
       }
@@ -246,7 +249,7 @@ export default function TemplateClient({
         setErrors((prev) => {
           return {
             ...prev,
-            shop_address: "Vui lòng nhập địa chỉ cửa hàng.",
+            shop_address: t("enter_store_address"),
           };
         });
       }
@@ -328,7 +331,7 @@ export default function TemplateClient({
       console.log("✅ Sản phẩm đã được thêm");
       /** Gửi thông tin cửa hàng (nếu có) */
       if (results?.content) {
-        toast.success("Tìm kiếm thông tin cửa hàng thành công!");
+        toast.success(t("store_info_found"));
         const SHOP_INFO_RES = await fetch("/api/shop-info", {
           method: "PUT",
           body: JSON.stringify({ session_id, content: results.content }),
@@ -343,13 +346,13 @@ export default function TemplateClient({
       /** Trường hợp không có content */
       if (!results?.content) {
         /** Hiển thị lỗi */
-        toast.error("Không tìm thấy thống tin cửa hàng");
+        toast.error(t("store_info_not_found"));
         /** Lưu thông tin cửa hàng */
         const SHOP_INFO_RES = await fetch("/api/shop-info", {
           method: "PUT",
           body: JSON.stringify({
             session_id,
-            content: "Không tìm thấy thông tin cửa hàng",
+            content: t("store_info_not_found"),
           }),
         });
 
@@ -416,8 +419,8 @@ export default function TemplateClient({
             setDataInput && setDataInput({ ...data_input, shop_name: e });
             setErrors({ ...errors, shop_name: "" });
           }}
-          title="Shop Name"
-          placeholder="Enter your shop name"
+          title={t("shop_name")}
+          placeholder={t("enter_shop_name")}
           error={errors?.shop_name}
         />
         <InputTitle
@@ -428,8 +431,8 @@ export default function TemplateClient({
             setDataInput && setDataInput({ ...data_input, shop_address: e });
             setErrors({ ...errors, shop_address: "" });
           }}
-          title="Shop Address"
-          placeholder="Enter your shop address"
+          title={t("shop_address")}
+          placeholder={t("enter_shop_address")}
           error={errors?.shop_address}
         />
         <InputAvatar
@@ -444,7 +447,7 @@ export default function TemplateClient({
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded text-sm"
         >
-          Add Product
+          {t("add_product")}
         </button>
       </div>
       <div>
@@ -481,7 +484,7 @@ export default function TemplateClient({
                   />
                 ))
               ) : (
-                <div className="p-4 text-gray-500">Dữ liệu trống.</div>
+                <div className="p-4 text-gray-500">{t("no_data")}</div>
               ))}
           </div>
         )}
@@ -500,9 +503,7 @@ export default function TemplateClient({
             disabled={loading_shop}
             className="bg-blue-500 text-white px-4 py-2 font-medium rounded hover:bg-blue-700 cursor-pointer flex gap-x-2 items-center"
           >
-            {loading_shop
-              ? "Searching shop information..."
-              : "Search shop information"}
+            {loading_shop ? t("searching_shop") : t("search_shop")}
             <div>{loading_shop && <Loading color_white />}</div>
           </button>
         </div>

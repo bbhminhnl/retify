@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
+import { useTranslations } from "next-intl";
+
 /** Kiểu dữ liệu */
 type IOptionUpload = {
   /** Callback function */
@@ -8,6 +10,8 @@ type IOptionUpload = {
   defaultValue?: string;
 };
 const OptionUpload = ({ onSelect, defaultValue }: IOptionUpload) => {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /**
    * Input Ref
    */
@@ -48,9 +52,7 @@ const OptionUpload = ({ onSelect, defaultValue }: IOptionUpload) => {
 
   return (
     <div className="flex flex-col gap-1">
-      <h2 className="text-sm text-left font-normal">
-        Option 1: Snap from a Fixed Menu
-      </h2>
+      <h2 className="text-sm text-left font-normal">{t("Option1")}</h2>
       <div
         onClick={handleDivClick}
         className="border flex items-center justify-center overflow-hidden rounded-lg border-slate-200 p-3 text-sm cursor-pointer"
@@ -62,7 +64,7 @@ const OptionUpload = ({ onSelect, defaultValue }: IOptionUpload) => {
             style={{ width: "50%", height: "100%", objectFit: "cover" }}
           />
         ) : (
-          "📸 Click to capture"
+          <span>{t("click_to_capture")}</span>
         )}
       </div>
       <input

@@ -312,7 +312,7 @@ const MainLayout = () => {
       /** Upload hình ảnh lên Merchant và lấy url*/
       const IMAGE_URL = await fetchUploadImage(file_image);
       // const IMAGE_URL = image_url;
-      console.log(IMAGE_URL, "IMAGE_URL");
+      // console.log(IMAGE_URL, "IMAGE_URL");
       /** Lưu lại URL ảnh */
       setImage(IMAGE_URL);
       /** api google vision xử lý ảnh */

@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { IProductItem } from "@/types";
 import InputField from "./InputField";
 import { X } from "lucide-react";
+import { isEmpty } from "lodash";
 import { simpleUUID } from "@/utils";
+import { useTranslations } from "next-intl";
 
 interface AddProductModalProps {
   /**
@@ -38,6 +40,8 @@ export default function AddProductModal({
   product,
   type = "add",
 }: AddProductModalProps) {
+  /** Đa ngôn ngữ */
+  const t = useTranslations();
   /** Tên sản phẩm */
   const [name, setName] = useState("");
   /** Giá sản phẩm */
@@ -89,15 +93,15 @@ export default function AddProductModal({
     const NEW_ERRORS: typeof errors = {};
     /** Kiểm tra tên sản phẩm */
     if (!name.trim()) {
-      NEW_ERRORS.name = "Tên sản phẩm không được để trống.";
+      NEW_ERRORS.name = t("product_name_required");
     }
     /** Kiểm tra giá */
     if (isNaN(Number(price)) || Number(price) <= 0) {
-      NEW_ERRORS.price = "Giá phải là số lớn hơn 0.";
+      NEW_ERRORS.price = t("price_must_be_positive");
     }
     /** Kiểm tra đơn vị */
     if (!unit.trim() || !/^[a-zA-Z0-9]+$/.test(unit)) {
-      NEW_ERRORS.unit = "Đơn vị chỉ được chứa chữ và số, không khoảng trắng.";
+      NEW_ERRORS.unit = t("unit_format_error");
     }
     /** Set lỗi */
     setErrors(NEW_ERRORS);
@@ -107,11 +111,15 @@ export default function AddProductModal({
   /** Kiểm tra open */
   if (!open) return null;
 
+  console.log(product, "product");
+
   return (
     <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
       <div className="bg-white p-6 rounded shadow-lg w-full max-w-md space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Thêm sản phẩm</h2>
+          <h2 className="text-xl font-bold">
+            {!isEmpty(product) ? t("edit_product") : t("add_product")}
+          </h2>
           <div
             onClick={onClose}
             color="#000"
@@ -122,27 +130,27 @@ export default function AddProductModal({
         </div>
 
         <InputField
-          label="Tên sản phẩm"
+          label={t("product_name")}
           value={name}
           onChange={setName}
-          placeholder="Nhập tên sản phẩm"
+          placeholder={t("enter_product_name")}
           error={errors.name}
         />
 
         <InputField
-          label="Giá"
+          label={t("price")}
           value={price}
           onChange={(val) => setPrice(val)}
           type="number"
-          placeholder="Nhập giá"
+          placeholder={t("enter_price")}
           error={errors.price}
         />
 
         <InputField
-          label="Đơn vị"
+          label={t("unit")}
           value={unit}
           onChange={setUnit}
-          placeholder="Nhập đơn vị"
+          placeholder={t("enter_unit")}
           error={errors.unit}
         />
 
@@ -176,7 +184,7 @@ export default function AddProductModal({
             onClick={onClose}
             className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 cursor-pointer"
           >
-            Huỷ
+            {t("cancel")}
           </button>
           <button
             onClick={() => {
@@ -192,7 +200,7 @@ export default function AddProductModal({
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
           >
-            Lưu
+            {t("save")}
           </button>
         </div>
       </div>

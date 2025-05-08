@@ -51,12 +51,19 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    /** Sửa phần khởi tạo client thành: */
+    const CREDENTIALS = JSON.parse(process.env.GOOGLE_CREDENTIALS!);
+
     /** Tạo client */
     const CLIENT = new vision.ImageAnnotatorClient({
-      credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS || "{}"),
+      credentials: CREDENTIALS,
     });
+
+    console.log(CLIENT, "CLIENT");
     /** Tạo biến image */
     let image: protos.google.cloud.vision.v1.IImage | any;
+
     /** Nếu có base64Image thì sử dụng nó */
     if (base64Image) {
       image = prepareImageInput(base64Image);
