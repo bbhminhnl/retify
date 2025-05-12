@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 // components/CompanySizeSelector.tsx
 import { useTranslations } from "next-intl";
@@ -60,6 +60,10 @@ const CompanySizeSelector: React.FC<Props> = ({ onSelect, defaultValue }) => {
     /** callback function */
     onSelect(size);
   };
+
+  useEffect(() => {
+    setSelected(defaultValue || null);
+  }, [defaultValue]);
 
   return (
     <div className="w-full flex flex-col gap-4">

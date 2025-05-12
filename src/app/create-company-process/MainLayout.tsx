@@ -1,6 +1,7 @@
 "use client";
 
 import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
+import { loadFormData, saveFormData } from "@/utils/formStore";
 import { useEffect, useState } from "react";
 
 import ConnectDone from "./components/step6/ConnectDone";
@@ -31,18 +32,57 @@ declare global {
     };
   }
 }
-
+/** Form data type */
+const DEFAULT_FORM_DATA: FormDataType = {
+  step: 1,
+  company_size: "",
+  image_url: "",
+  data_input: {},
+  list_products: [],
+  errors: {
+    shop_name: "",
+    shop_address: "",
+  },
+  markdown: "",
+  internal_markdown: "",
+  access_token: "",
+  shop_information: {},
+};
 const MainLayout = () => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
+
+  const [form_data, setFormData] = useState<FormDataType>(DEFAULT_FORM_DATA);
+  /** Gọi lần đầu lấy data ở localStorage */
+  useEffect(() => {
+    const SAVED = loadFormData();
+    if (SAVED) {
+      setFormData({ ...DEFAULT_FORM_DATA, ...SAVED });
+    }
+  }, []);
+
+  /** Tự động lưu vào localStorage khi form_data thay đổi */
+  useEffect(() => {
+    saveFormData(form_data);
+  }, [form_data]);
+
+  /**
+   *  Hàm cập nhật gía trị trong form_data
+   * @param key
+   * @param value
+   */
+  const updateField = (key: keyof FormDataType, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
   /** Tổng số Step */
   const TOTAL_STEPS = 6;
   /** Step hiện tại */
-  const [step, setStep] = useState(1);
+  // const [step, setStep] = useState(1);
   /** company size */
   const [company_size, setCompanySize] = useState("");
-  /** fixed menu */
-  const [fixed_menu, setFixedMenu] = useState("");
   /** onFinish */
   const [on_finish, setOnFinish] = useState(false);
   /**Loading */
@@ -54,28 +94,18 @@ const MainLayout = () => {
   );
   /** File ảnh đã upload */
   const [file_image, setFileImage] = useState<File | null>(null);
-  /** raw data*/
-  const [raw_data, setRawData] = useState<any>(null);
-  /** user_id */
-  const [user_id, setUserId] = useState("user_id_test");
-  /** Trạng thái step 3 */
-  const [template_preview, setTemplatePreview] = useState("preview");
   /** Data input */
   const [data_input, setDataInput] = useState<any>(null);
   /** Access token */
   const [access_token, setAccessToken] = useState("");
-
   /** selected page */
   const [selected_page, setSelectedPage] = useState("");
   /** selected organization */
   const [selected_organization, setSelectedOrganization] = useState("");
-
   /** data Product */
   const [products, setProducts] = useState<IProductItem[]>([]);
-
   /** Loading shop */
   const [loading_shop, setLoadingShop] = useState(false);
-
   /** Khai báo lỗi */
   const [errors, setErrors] = useState<{
     shop_name: string;
@@ -89,7 +119,6 @@ const MainLayout = () => {
   const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
 
   /** ======= Bước 4 ======= */
-
   /** Markdown*/
   const [markdown, setMarkdown] = useState("");
   /** Nội dung markdown */
@@ -100,13 +129,13 @@ const MainLayout = () => {
     /**
      * Bước 1: Chọn size, Nếu chưa chọn size thi khóa next button
      */
-    if (step === 1 && company_size === "") {
+    if (form_data?.step === 1 && form_data?.company_size === "") {
       return true;
     }
     /**
      * Bước 2: Chọn menu, Nếu chưa tải file lên thì khóa next button
      */
-    if (step === 2 && !file_image) {
+    if (form_data?.step === 2 && !file_image && !form_data?.image_url) {
       // if (step === 2 && image_url === "") {
       return true;
     }
@@ -121,49 +150,45 @@ const MainLayout = () => {
 
   /** Hàm xử lý back */
   const onBackFn = () => {
-    /** Nếu step 3 */
-    if (step === 3) {
-      /** Set trạng thái preview */
-      setTemplatePreview("preview");
-    }
     /** nếu step 5 */
-    if (step === 5) {
+    if (form_data.step === 5) {
       /** Xoá token */
       setAccessToken("");
     }
     /** setStep  */
-    setStep((s) => Math.max(s - 1, 1));
+    // setStep((s) => Math.max(s - 1, 1));
+    updateField("step", form_data.step - 1);
   };
 
   /** Hàm xử lý Next */
   const onNextFn = () => {
     /** Bước 2 */
-    if (step === 2) {
-      /** Xử lý tạo món ăn */
-      handleProcessProduct();
+    if (form_data?.step === 2) {
+      if (file_image) {
+        /** Xử lý tạo món ăn */
+        handleProcessProductStep2();
+      } else {
+        /** Cập nhật step */
+        updateField("step", form_data.step + 1);
+      }
       /** Bước 3 */
-    } else if (step === 3) {
+    } else if (form_data?.step === 3) {
       /** Set trạng thái preview */
-      searchShopInfo(
+      searchShopInfoStep3(
         data_input?.shop_name + " - " + data_input?.shop_address,
         products
       );
-      /** setStep */
-      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-    } else if (step === 4) {
-      handleSave();
+    } else if (form_data.step === 4) {
+      handleSaveStep4();
     } else {
       /** setStep */
-      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      updateField("step", form_data.step + 1);
     }
   };
   /** Hàm xử lý khi nhấn nút lưu */
-  const handleSave = async () => {
+  const handleSaveStep4 = async () => {
     /** Nếu editor đã được khởi tạo */
-    // if (internal_markdown) {
-    // const MD = editor.storage.markdown.getMarkdown();
-    console.log(internal_markdown, "internal_markdown");
-    console.log(markdown, "markdown");
     if (!internal_markdown) {
       toast.warning(t("content_required_before_save"));
       return;
@@ -175,43 +200,53 @@ const MainLayout = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(internal_markdown),
       });
-      // setTimeout(() => {
       /** setStep */
-      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-      // }, 1000);
+      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      updateField("step", form_data.step + 1);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
-
-    // }
   };
   /**
    * Hàm gọi API tạo ảnh từ prompt
+   * @param query
+   * @param data
    */
-  const searchShopInfo = async (query: string, data: any) => {
+  const searchShopInfoStep3 = async (query: string, data: any) => {
     /**
      * Kiểm tra thống tin cửa hàng
      */
-    if (!data_input?.shop_name || !data_input?.shop_address) {
+    if (
+      !form_data?.data_input?.shop_name ||
+      !form_data?.data_input?.shop_address
+    ) {
       toast.error(t("enter_store_name_and_address"));
       /** Nếu thiếu thông tin cửa hàng */
-      if (!data_input?.shop_name) {
-        setErrors((prev) => {
-          return {
-            ...prev,
-            shop_name: t("enter_store_name"),
-          };
+      if (!form_data?.data_input?.shop_name) {
+        // setErrors((prev) => {
+        //   return {
+        //     ...prev,
+        //     shop_name: t("enter_store_name"),
+        //   };
+        // });
+        updateField("errors", {
+          ...form_data.errors,
+          shop_name: t("enter_store_name"),
         });
       }
       /** Nếu thông tin địa chỉ cửa hàng */
-      if (!data_input?.shop_address) {
-        setErrors((prev) => {
-          return {
-            ...prev,
-            shop_address: t("enter_store_address"),
-          };
+      if (!form_data?.data_input?.shop_address) {
+        // setErrors((prev) => {
+        //   return {
+        //     ...prev,
+        //     shop_address: t("enter_store_address"),
+        //   };
+        // });
+        updateField("errors", {
+          ...form_data.errors,
+          shop_address: t("enter_store_address"),
         });
       }
       return;
@@ -246,7 +281,8 @@ const MainLayout = () => {
       /** Tắt loading */
       processDocument(data, DATA_STORE?.content);
       /** setStep */
-      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      updateField("step", form_data.step + 1);
     } catch (error) {
       toast.error(t("something_went_wrong"));
     } finally {
@@ -406,7 +442,7 @@ const MainLayout = () => {
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [step]);
+  }, [form_data.step]);
 
   /**
    * Hàm xử lý upload ảnh lên server
@@ -416,27 +452,7 @@ const MainLayout = () => {
   const fetchUploadImage = async (file: any): Promise<string> => {
     return new Promise((resolve) => {
       try {
-        // /** Giả định đây là ảnh PNG, bạn có thể đổi thành "image/jpeg" nếu cần */
-        // const MIME_TYPE = "image/png";
-        // /** Convert base64 → binary → File */
-        // const BYTE_STRING = atob(file);
-        // /**
-        //  * Chuyển đổi base64 thành Uint8Array
-        //  */
-        // const BYTE_ARRAY = new Uint8Array(BYTE_STRING.length);
-        // /**
-        //  * Chuyển đổi base64 thành Uint8Array
-        //  */
-        // for (let i = 0; i < BYTE_STRING.length; i++) {
-        //   BYTE_ARRAY[i] = BYTE_STRING.charCodeAt(i);
-        // }
-        // /**
-        //  * Tạo đối tượng File từ Uint8Array
-        //  */
-        // const FILE = new File([BYTE_ARRAY], "image.png", { type: MIME_TYPE });
-        /**
-         * Đưa vào FormData
-         */
+        /** Đưa vào FormData */
         const FORM_DATA = new FormData();
         FORM_DATA.append("file", file);
         /** Upload ảnh lên merchant */
@@ -563,11 +579,11 @@ const MainLayout = () => {
   /** UseEffect*/
   useEffect(() => {
     /** Nếu step 3 */
-    if (step === 3) {
+    if (form_data?.step === 3) {
       /** Lấy dữ liệu products */
       fetchProducts();
     }
-  }, [step]);
+  }, [form_data?.step]);
   /** Lấy đata products */
   const fetchProducts = async () => {
     try {
@@ -596,7 +612,7 @@ const MainLayout = () => {
    * @description
    * Bước 3: Tạo món ăn trên server
    */
-  const handleProcessProduct = async () => {
+  const handleProcessProductStep2 = async () => {
     try {
       /** Setloading */
       setLoading(true);
@@ -606,6 +622,9 @@ const MainLayout = () => {
       // console.log(IMAGE_URL, "IMAGE_URL");
       /** Lưu lại URL ảnh */
       setImage(IMAGE_URL);
+
+      form_data.image_url = IMAGE_URL;
+      // updateField("image_url", IMAGE_URL);
 
       /** Xử lý tạo menu */
       // const VISION_DATA = await googleVisionAPI(IMAGE_URL);
@@ -623,11 +642,13 @@ const MainLayout = () => {
       /** Xử lý clean Menu */
       const MENU_ITEMS = await handleCleanMenu(VISION_DATA?.texts);
       /** Xử lý lưu lại Product */
-      const PARSED_MENU = await handleSaveProducts(MENU_ITEMS);
-      /** Lưu giá trị vào state */
-      setRawData(PARSED_MENU);
+      await handleSaveProducts(MENU_ITEMS);
+
+      setFileImage(null);
+
       /** Next step */
-      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      updateField("step", form_data.step + 1);
     } catch (error) {
       if (error instanceof Error) {
         /** Hiện toast */
@@ -668,27 +689,52 @@ const MainLayout = () => {
       window.removeEventListener("message", getFacebookToken);
     };
   }, []);
-
+  console.log(company_size, "company_size");
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
       {!on_finish && (
         <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
-          <Progress currentStep={step} totalSteps={TOTAL_STEPS} />
-          <StepTitle step={step} />
+          <Progress currentStep={form_data?.step} totalSteps={TOTAL_STEPS} />
+          <StepTitle step={form_data.step} />
           <div className="w-full flex-grow min-h-0  overflow-hidden overflow-y-auto">
             <StepContent
-              step={step}
+              // step={step}
+              step={form_data.step}
+              /** Bước 1 */
               onSelectCompanySize={(value) => {
-                setCompanySize(value);
+                // setCompanySize(value);
+                updateField("company_size", value);
               }}
-              company_size={company_size}
+              company_size={form_data.company_size}
+              /** Bước 2 */
               onSelectMenu={(value) => {
-                /** callback function */
-                setFixedMenu(value);
-
                 setFileImage(value);
               }}
-              fixed_menu={image_url}
+              fixed_menu={form_data.image_url}
+              /** Bước 3 */
+              data_input={form_data.data_input}
+              setDataInput={(e) => {
+                console.log(e);
+                updateField("data_input", { ...form_data.data_input, ...e });
+              }}
+              updateLogo={(e) => {
+                setFileLogoImage(e);
+              }}
+              list_products={products}
+              setListProducts={setProducts}
+              errors={form_data?.errors}
+              setErrors={(e) => {
+                updateField("errors", { ...form_data.errors, ...e });
+              }}
+              /** Bước 4 */
+
+              markdown_parent={markdown}
+              setMarkdownParent={setMarkdown}
+              internal_markdown_parent={internal_markdown}
+              setInternalMarkdownParent={setInternalMarkdown}
+              /** Bước 5 */
+
+              /** Bước 6 */
               handleConnectChannel={() => {
                 console.log("Connect channel");
                 setLoading(true);
@@ -697,25 +743,11 @@ const MainLayout = () => {
                 );
                 setTimeout(() => {
                   setLoading(false);
-                  // setOnFinish(true);
-                  /** Test nên giải lập lấy được accessToken */
-                  // setAccessToken(
-                  //   "EAASOEiugKa0BO1NYEt8nLkqOpJCBOToRZBFWLZCewJPnl0kuuhYPHVQryfGMctJDIhxqg7LlhGuJJM4fkUcNK2smAgNxJujcZAznjm0hEmgaTlZANqGVBlNFfUEWCVK3IRCfF3kHs6AUJx1q4eJIYvqIqzPCae9veqSJIPtNdQzIazwCRczMhu1ZA7ZAXBnktQufoL9j8VT6LyXAZDZD"
-                  // );
                 }, 2000);
               }}
-              access_token={access_token}
               loading={loading}
-              rawData={raw_data}
-              template_id={user_id}
-              address={""}
-              // handleFinishPreview={(e) => {
-              //   setTemplatePreview(e);
-              // }}
-              template_preview={template_preview}
-              setTemplatePreview={setTemplatePreview}
-              data_input={data_input}
-              setDataInput={setDataInput}
+              /** Bước 6 Finish */
+              access_token={access_token}
               onFinish={(
                 selected_page: string,
                 selected_organization: string
@@ -724,21 +756,10 @@ const MainLayout = () => {
                 setSelectedPage(selected_page);
                 setSelectedOrganization(selected_organization);
               }}
-              updateLogo={(e) => {
-                setFileLogoImage(e);
-              }}
-              list_products={products}
-              setListProducts={setProducts}
-              errors={errors}
-              setErrors={setErrors}
-              markdown_parent={markdown}
-              setMarkdownParent={setMarkdown}
-              internal_markdown_parent={internal_markdown}
-              setInternalMarkdownParent={setInternalMarkdown}
             />
           </div>
           <StepNavigator
-            step={step}
+            step={form_data.step}
             maxSteps={TOTAL_STEPS}
             onBack={() => {
               onBackFn();
@@ -747,7 +768,7 @@ const MainLayout = () => {
               onNextFn();
             }}
             disabledNext={checkDisableNextButton()}
-            disabledBack={step === 1}
+            disabledBack={form_data.step === 1}
             loading={loading || loading_shop}
           />
         </div>

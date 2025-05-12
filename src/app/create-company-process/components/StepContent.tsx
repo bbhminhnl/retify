@@ -28,16 +28,6 @@ type Props = {
   handleConnectChannel: () => void;
   /** Loading */
   loading?: boolean;
-  /** data menu */
-  rawData: any;
-  /** template id */
-  template_id: string;
-  /** address */
-  address: string;
-  /** Template preview */
-  template_preview: string;
-  /** setTemplatePreview */
-  setTemplatePreview: (value: string) => void;
   /** Data input */
   data_input: any;
   /** setDataInput */
@@ -78,11 +68,6 @@ const StepContent: React.FC<Props> = ({
   fixed_menu,
   handleConnectChannel,
   loading,
-  rawData,
-  template_id,
-  address,
-  template_preview,
-  setTemplatePreview,
   data_input,
   setDataInput,
   access_token,
@@ -92,12 +77,12 @@ const StepContent: React.FC<Props> = ({
   setListProducts,
   errors,
   setErrors,
-
   markdown_parent,
   setMarkdownParent,
   internal_markdown_parent,
   setInternalMarkdownParent,
 }) => {
+  console.log(company_size, "company_size");
   return (
     <div className="rounded w-full text-center h-full">
       {step === 1 && (
@@ -136,13 +121,6 @@ const StepContent: React.FC<Props> = ({
       )}
       {step === 4 && (
         <div>
-          {/* <EditorPage
-            step={step}
-            handleFinishEditor={(e) => {
-              setTemplatePreview(e);
-            }}
-          /> */}
-
           <Tiptap
             step={step}
             markdown_parent={markdown_parent}
