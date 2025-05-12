@@ -8,6 +8,7 @@ import EditorPage from "@/app/[locale]/editor/EditorPage";
 import IframeMerchant from "./step4/IframeMerchant";
 import LaunchAI from "./step5/LaunchAI";
 import TemplateClient from "@/app/[locale]/template/TemplateClient";
+import Tiptap from "@/components/Rich-Text-Editor/Tiptap";
 
 /**
  * Interface Props
@@ -47,6 +48,26 @@ type Props = {
   onFinish?: (page_id: string, org_id: string) => void;
   /** logo shop */
   updateLogo: (value: any) => void;
+  /** List Products */
+  list_products: any[];
+  /** setListProducts */
+  setListProducts: (value: any) => void;
+  /** errors */
+  errors?: {
+    shop_name: string;
+    shop_address: string;
+  };
+  /** setErrors */
+  setErrors?: (value: any) => void;
+
+  /** markdown */
+  markdown_parent?: string;
+  /** setMarkdown */
+  setMarkdownParent?: (markdown: string) => void;
+  /** Internal markdown */
+  internal_markdown_parent?: string;
+  /** setInternalMarkdown */
+  setInternalMarkdownParent?: (markdown: string) => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -67,6 +88,15 @@ const StepContent: React.FC<Props> = ({
   access_token,
   onFinish,
   updateLogo,
+  list_products,
+  setListProducts,
+  errors,
+  setErrors,
+
+  markdown_parent,
+  setMarkdownParent,
+  internal_markdown_parent,
+  setInternalMarkdownParent,
 }) => {
   return (
     <div className="rounded w-full text-center h-full">
@@ -90,39 +120,45 @@ const StepContent: React.FC<Props> = ({
         />
       )}
 
-      {step === 3 && template_preview === "preview" && (
+      {step === 3 && (
         <div>
           <TemplateClient
-            address=""
-            handleFinishPreview={(e) => setTemplatePreview(e)}
             step={step}
-            onSelect={(value) => {}}
-            defaultValue=""
             data_input={data_input}
             setDataInput={setDataInput}
-            onSelectAvatar={(value) => {
-              updateLogo(value);
-            }}
+            list_products={list_products}
+            setListProducts={setListProducts}
+            updateLogo={updateLogo}
+            errors_input={errors}
+            setErrorsInput={setErrors}
           />
         </div>
       )}
-      {((step === 3 && template_preview === "success") ||
-        (step === 3 && template_preview === "editor_success")) && (
+      {step === 4 && (
         <div>
-          <EditorPage
+          {/* <EditorPage
+            step={step}
             handleFinishEditor={(e) => {
               setTemplatePreview(e);
             }}
+          /> */}
+
+          <Tiptap
+            step={step}
+            markdown_parent={markdown_parent}
+            setMarkdownParent={setMarkdownParent}
+            internal_markdown_parent={internal_markdown_parent}
+            setInternalMarkdownParent={setInternalMarkdownParent}
           />
         </div>
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <div className="h-full">
           <IframeMerchant data_input={data_input} step={step} />
         </div>
       )}
-      {step === 5 && !access_token && (
+      {step === 6 && !access_token && (
         <LaunchAI
           onConnect={() => {
             handleConnectChannel();
@@ -130,7 +166,7 @@ const StepContent: React.FC<Props> = ({
           loading={loading}
         />
       )}
-      {step === 5 && access_token && (
+      {step === 6 && access_token && (
         <div>
           <ConnectToCRM
             access_token_global={access_token}

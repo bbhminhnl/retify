@@ -22,6 +22,8 @@ const StepTitle: React.FC<Props> = ({ step }) => {
         return t("step4");
       case 5:
         return t("step5");
+      case 6:
+        return t("step6");
       default:
         return "";
     }

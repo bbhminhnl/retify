@@ -4,6 +4,9 @@ import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
 import { useEffect, useState } from "react";
 
 import ConnectDone from "./components/step6/ConnectDone";
+import { IProductItem } from "@/types";
+import { MOCK_DATA } from "@/utils/data";
+import Product from "../products/Products";
 import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
@@ -33,9 +36,9 @@ const MainLayout = () => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
   /** Tổng số Step */
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 6;
   /** Step hiện tại */
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
   /** company size */
   const [company_size, setCompanySize] = useState("");
   /** fixed menu */
@@ -51,9 +54,6 @@ const MainLayout = () => {
   );
   /** File ảnh đã upload */
   const [file_image, setFileImage] = useState<File | null>(null);
-
-  /** File ảnh đã upload */
-  const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
   /** raw data*/
   const [raw_data, setRawData] = useState<any>(null);
   /** user_id */
@@ -69,6 +69,31 @@ const MainLayout = () => {
   const [selected_page, setSelectedPage] = useState("");
   /** selected organization */
   const [selected_organization, setSelectedOrganization] = useState("");
+
+  /** data Product */
+  const [products, setProducts] = useState<IProductItem[]>([]);
+
+  /** Loading shop */
+  const [loading_shop, setLoadingShop] = useState(false);
+
+  /** Khai báo lỗi */
+  const [errors, setErrors] = useState<{
+    shop_name: string;
+    shop_address: string;
+  }>({
+    shop_name: "",
+    shop_address: "",
+  });
+
+  /** File ảnh đã upload */
+  const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
+
+  /** ======= Bước 4 ======= */
+
+  /** Markdown*/
+  const [markdown, setMarkdown] = useState("");
+  /** Nội dung markdown */
+  const [internal_markdown, setInternalMarkdown] = useState("");
 
   /** Disable next button */
   const checkDisableNextButton = () => {
@@ -89,9 +114,7 @@ const MainLayout = () => {
     /**
      * Bước 3: Tạo menu và tài liệu, Nếu chưa hoàn thành thì không cho next
      */
-    if (step === 3 && template_preview !== "editor_success") {
-      return true;
-    }
+
     /** Mặc định return false */
     return false;
   };
@@ -121,12 +144,232 @@ const MainLayout = () => {
       /** Bước 3 */
     } else if (step === 3) {
       /** Set trạng thái preview */
-      setTemplatePreview("preview");
+      searchShopInfo(
+        data_input?.shop_name + " - " + data_input?.shop_address,
+        products
+      );
       /** setStep */
-      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    } else if (step === 4) {
+      handleSave();
     } else {
       /** setStep */
       setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    }
+  };
+  /** Hàm xử lý khi nhấn nút lưu */
+  const handleSave = async () => {
+    /** Nếu editor đã được khởi tạo */
+    // if (internal_markdown) {
+    // const MD = editor.storage.markdown.getMarkdown();
+    console.log(internal_markdown, "internal_markdown");
+    console.log(markdown, "markdown");
+    if (!internal_markdown) {
+      toast.warning(t("content_required_before_save"));
+      return;
+    }
+    try {
+      setLoading(true);
+      await fetch("/api/documents", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(internal_markdown),
+      });
+      // setTimeout(() => {
+      /** setStep */
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      // }, 1000);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+
+    // }
+  };
+  /**
+   * Hàm gọi API tạo ảnh từ prompt
+   */
+  const searchShopInfo = async (query: string, data: any) => {
+    /**
+     * Kiểm tra thống tin cửa hàng
+     */
+    if (!data_input?.shop_name || !data_input?.shop_address) {
+      toast.error(t("enter_store_name_and_address"));
+      /** Nếu thiếu thông tin cửa hàng */
+      if (!data_input?.shop_name) {
+        setErrors((prev) => {
+          return {
+            ...prev,
+            shop_name: t("enter_store_name"),
+          };
+        });
+      }
+      /** Nếu thông tin địa chỉ cửa hàng */
+      if (!data_input?.shop_address) {
+        setErrors((prev) => {
+          return {
+            ...prev,
+            shop_address: t("enter_store_address"),
+          };
+        });
+      }
+      return;
+    }
+
+    /** Upload hình ảnh lên Merchant và lấy url*/
+    const IMAGE_URL = await fetchUploadImage(file_logo_image);
+    /** Lưu lại giá trị */
+    setDataInput &&
+      setDataInput({
+        ...data_input,
+        shop_avatar: IMAGE_URL,
+      });
+
+    try {
+      setLoadingShop(true);
+      /** Key word search */
+      let key_word = query ? query : "";
+      /** Tìm kiếm thông tin cửa hàng */
+      const RES = await fetch("/api/store-knowledge", {
+        method: "POST",
+        body: JSON.stringify({ query: key_word }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      /** Data Store */
+      const DATA_STORE = await RES.json();
+      console.log(DATA_STORE, "DATA_STORE");
+      /** gọi hàm update tài liệu */
+      handleAddDocument(data, DATA_STORE);
+      /** Tắt loading */
+      processDocument(data, DATA_STORE?.content);
+      /** setStep */
+      setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    } catch (error) {
+      toast.error(t("something_went_wrong"));
+    } finally {
+      setLoadingShop(false);
+    }
+  };
+
+  /** Hàm xử lý tạo nội dung markdown từ dữ liệu
+   * @param item Danh sách sản phẩm
+   * @param shop Thông tin cửa hàng
+   */
+  const processDocument = (item: Product[], shop: string) => {
+    /** Thông tin cửa hàng */
+    const SHOP_INFO_BLOCK = shop ? `## 🏪 Thông tin cửa hàng\n${shop}` : "";
+    /** THông tin Sản phẩm */
+    const PRODUCT_BLOCK =
+      item.length > 0
+        ? `${item
+            .map(
+              (product) =>
+                `- **${product.name}**: ${product.price.toLocaleString(
+                  "vi-VN"
+                )} đ`
+            )
+            .join("\n")}`
+        : "";
+    /** Lấy dữ liệu từ Mock data */
+    const EXISTING_DATA = typeof MOCK_DATA === "string" ? MOCK_DATA : "";
+    /** Cập nhật Thông tin sản phẩm và Thông tin Shop */
+    const UPDATED_DATA = [EXISTING_DATA, PRODUCT_BLOCK, SHOP_INFO_BLOCK]
+      .filter(Boolean)
+      .join("\n\n");
+
+    /** Cập nhật cả markdown và internal_markdown */
+    setMarkdown(UPDATED_DATA);
+
+    /** Cập nhật nội dung editor */
+    setInternalMarkdown(UPDATED_DATA);
+  };
+
+  /**
+   *  Hàm gọi API tạo ảnh từ prompt
+   * @param data
+   * @param results
+   * @returns
+   */
+  const handleAddDocument = async (data: any, results: any) => {
+    /** Ensure sessionId is a string (fall back to a default string if undefined) */
+    let session_id: string = getSessionId() ?? generateSessionId(); // Fallback to generateSessionId if undefined
+
+    /** If sessionId was newly generated, store it in cookies */
+    if (!getSessionId()) {
+      storeSessionId(session_id);
+    }
+    /** Tajo 1 delay */
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
+    /** Sản phẩm mới */
+    const NEW_PRODUCT = data.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      price: Number(product.price) || product.price,
+      product_image: `${product.image_url}`,
+      type: "product",
+      unit: product.unit,
+    }));
+    console.log(NEW_PRODUCT, "NEW_PRODUCT");
+    try {
+      /** Gửi sản phẩm mới */
+      const PRODUCT_RES = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
+      });
+      console.log(PRODUCT_RES, "PRODUCT_RES");
+      /** Nếu không thành cong */
+      if (!PRODUCT_RES.ok) {
+        return;
+      }
+
+      console.log("✅ Sản phẩm đã được thêm");
+      /** Gửi thông tin cửa hàng (nếu có) */
+      if (results?.content) {
+        toast.success(t("store_info_found"));
+        const SHOP_INFO_RES = await fetch("/api/shop-info", {
+          method: "PUT",
+          body: JSON.stringify({ session_id, content: results.content }),
+        });
+        /** Kiem tra ket qua */
+        if (SHOP_INFO_RES.ok) {
+          console.log("✅ Cập nhật thông tin cửa hàng thành công");
+        } else {
+          console.warn("⚠️ Không thể cập nhật thông tin cửa hàng");
+        }
+      }
+      /** Trường hợp không có content */
+      if (!results?.content) {
+        /** Hiển thị lỗi */
+        toast.error(t("store_info_not_found"));
+        /** Lưu thông tin cửa hàng */
+        const SHOP_INFO_RES = await fetch("/api/shop-info", {
+          method: "PUT",
+          body: JSON.stringify({
+            session_id,
+            content: t("store_info_not_found"),
+          }),
+        });
+
+        /** Kiem tra ket qua */
+        if (SHOP_INFO_RES.ok) {
+          console.log("✅ Cập nhật thông tin cửa hàng thành công");
+        } else {
+          console.warn("⚠️ Không thể cập nhật thông tin cửa hàng");
+        }
+      }
+      /** Sau khi thành công, chờ 500ms rồi chuyển trang */
+      await delay(500);
+      /** Chuyển trang */
+    } catch (error) {
+      console.error("Lỗi mạng hoặc server:", error);
+    } finally {
+      // setLoading(false);
     }
   };
 
@@ -317,6 +560,34 @@ const MainLayout = () => {
     return PARSED_MENU;
   };
 
+  /** UseEffect*/
+  useEffect(() => {
+    /** Nếu step 3 */
+    if (step === 3) {
+      /** Lấy dữ liệu products */
+      fetchProducts();
+    }
+  }, [step]);
+  /** Lấy đata products */
+  const fetchProducts = async () => {
+    try {
+      /** Gọi API lấy products*/
+      const RESPONSE = await fetch("/api/products", {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      });
+      /** DATA JSON */
+      const DATA = await RESPONSE.json();
+      /** Lưu dữ liệu product */
+      // setProduct(DATA);
+      setProducts(DATA);
+      console.log(DATA, "DATA");
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
   /**
    * Hàm xử lý tạo món ăn trên server
    * @returns void
@@ -414,8 +685,7 @@ const MainLayout = () => {
               onSelectMenu={(value) => {
                 /** callback function */
                 setFixedMenu(value);
-                // console.log(value, "valueee");
-                // fetchUploadImage(value);'
+
                 setFileImage(value);
               }}
               fixed_menu={image_url}
@@ -455,22 +725,30 @@ const MainLayout = () => {
                 setSelectedOrganization(selected_organization);
               }}
               updateLogo={(e) => {
-                // setFileLogoImage(e);
+                setFileLogoImage(e);
               }}
+              list_products={products}
+              setListProducts={setProducts}
+              errors={errors}
+              setErrors={setErrors}
+              markdown_parent={markdown}
+              setMarkdownParent={setMarkdown}
+              internal_markdown_parent={internal_markdown}
+              setInternalMarkdownParent={setInternalMarkdown}
             />
           </div>
           <StepNavigator
             step={step}
             maxSteps={TOTAL_STEPS}
-            onNext={() => {
-              onNextFn();
-            }}
             onBack={() => {
               onBackFn();
             }}
+            onNext={() => {
+              onNextFn();
+            }}
             disabledNext={checkDisableNextButton()}
             disabledBack={step === 1}
-            loading={loading}
+            loading={loading || loading_shop}
           />
         </div>
       )}

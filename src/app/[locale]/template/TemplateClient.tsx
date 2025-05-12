@@ -1,7 +1,5 @@
 "use client";
 
-import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
-import { isEmpty, set } from "lodash";
 import { useEffect, useState } from "react";
 
 import AddProductModal from "@/components/AddProductModal";
@@ -12,8 +10,7 @@ import InputTitle from "../../create-company-process/components/step3/InputTitle
 import Loading from "@/components/loading/Loading";
 import ProductItemCustom from "../../products/components/ProductItemCustom";
 import async from "async"; // Nhập Async.js từ node_modules
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
+import { isEmpty } from "lodash";
 import { useTranslations } from "next-intl";
 
 type IDataInput = {
@@ -27,41 +24,35 @@ type IDataInput = {
   shop_avatar?: string;
 };
 export default function TemplateClient({
-  address,
-  handleFinishPreview,
   step,
-  onSelect,
-  defaultValue,
   data_input,
   setDataInput,
-  onSelectAvatar,
+  list_products,
+  setListProducts,
+  updateLogo,
+  errors_input,
+  setErrorsInput,
 }: {
-  /** Địa chỉ */
-  address: string;
-  /**
-   *  Hàm xuất dữ liệu preview
-   * @param e string
-   * @returns
-   */
-  handleFinishPreview?: (e: string) => void;
   /**
    * Bước hiện tại
    */
   step?: number;
-  /**
-   *  Hàm select
-   * @param value
-   * @returns
-   */
-  onSelect?: (value: any) => void;
-  /** Gia tri mac dinh */
-  defaultValue?: string;
   /** Dữ liệu input */
   data_input?: IDataInput;
   /** Hàm set dữ liệu input */
   setDataInput?: (value: IDataInput) => void;
-  /** Thêm avatar */
-  onSelectAvatar?: (value: string) => void;
+  /** Danh sách products */
+  list_products?: IProductItem[];
+  /** Hàm set danh sách products */
+  setListProducts?: (value: IProductItem[]) => void;
+  /** hàm Update logo */
+  updateLogo?: (value: any) => void;
+  /** Errors */
+  errors_input?: {
+    shop_name: string;
+    shop_address: string;
+  };
+  setErrorsInput?: (value: any) => void;
 }) {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -81,14 +72,19 @@ export default function TemplateClient({
   const [id_delete, setIdDelete] = useState<string | null>(null);
   /** Data Input */
   const [data_input_local, setDataInputLocal] = useState<IDataInput>({});
+
+  useEffect(() => {
+    if (errors_input) {
+      setErrors(errors_input);
+    }
+  }, [errors_input]);
+
   /** UseEffect*/
   useEffect(() => {
-    /** Nếu step 3 */
-    if (step === 3) {
-      /** Lấy dữ liệu products */
-      fetchProducts();
+    if (list_products) {
+      setData(list_products);
     }
-  }, [step]);
+  }, [list_products]);
 
   /**
    * UseEffect
@@ -99,28 +95,6 @@ export default function TemplateClient({
     }
   }, [data_input]);
 
-  /** Lấy đata products */
-  const fetchProducts = async () => {
-    try {
-      /** Gọi API lấy products*/
-      const RESPONSE = await fetch("/api/products", {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      });
-      /** DATA JSON */
-      const DATA = await RESPONSE.json();
-      /** Lưu dữ liệu product */
-      // setProduct(DATA);
-      setData(DATA);
-      console.log(DATA, "DATA");
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
-
-  /** Router*/
-  const ROUTER = useRouter();
   /**
    * Thêm ảnh mô tả cho sản phẩm
    * @param menuItems Danh sách các món ăn
@@ -230,169 +204,16 @@ export default function TemplateClient({
     });
   };
 
-  const [loading_shop, setLoadingShop] = useState(false);
-  /**
-   * Hàm gọi API tạo ảnh từ prompt
-   */
-  const searchShopInfo = async (query: string, data: any) => {
-    if (!data_input_local?.shop_name || !data_input_local?.shop_address) {
-      toast.error(t("enter_store_name_and_address"));
-      if (!data_input_local?.shop_name) {
-        setErrors((prev) => {
-          return {
-            ...prev,
-            shop_name: t("enter_store_name"),
-          };
-        });
-      }
-      if (!data_input_local?.shop_address) {
-        setErrors((prev) => {
-          return {
-            ...prev,
-            shop_address: t("enter_store_address"),
-          };
-        });
-      }
-      return;
-    }
-
-    /** Upload hình ảnh lên Merchant và lấy url*/
-    const IMAGE_URL = await fetchUploadImage(file_logo_image);
-    /** Lưu lại giá trị */
-    setDataInput &&
-      setDataInput({
-        ...data_input,
-        shop_avatar: IMAGE_URL,
-      });
-
-    setLoadingShop(true);
-    /** Key word search */
-    let key_word = query ? query : "";
-    /** Tìm kiếm thông tin cửa hàng */
-    const RES = await fetch("/api/store-knowledge", {
-      method: "POST",
-      body: JSON.stringify({ query: key_word }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    /** Data Store */
-    const DATA_STORE = await RES.json();
-    console.log(DATA_STORE, "DATA_STORE");
-    /** gọi hàm update tài liệu */
-    handleAddDocument(data, DATA_STORE);
-    /** Tắt loading */
-    setLoadingShop(false);
-
-    return;
-  };
-
-  /**
-   *  Hàm gọi API tạo ảnh từ prompt
-   * @param data
-   * @param results
-   * @returns
-   */
-  const handleAddDocument = async (data: any, results: any) => {
-    /** Ensure sessionId is a string (fall back to a default string if undefined) */
-    let session_id: string = getSessionId() ?? generateSessionId(); // Fallback to generateSessionId if undefined
-
-    /** If sessionId was newly generated, store it in cookies */
-    if (!getSessionId()) {
-      storeSessionId(session_id);
-    }
-    /** Tajo 1 delay */
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
-    /** Sản phẩm mới */
-    const NEW_PRODUCT = data.map((product: any) => ({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price) || product.price,
-      product_image: `${product.image_url}`,
-      type: "product",
-      unit: product.unit,
-    }));
-    console.log(NEW_PRODUCT, "NEW_PRODUCT");
-    try {
-      /** Gửi sản phẩm mới */
-      const PRODUCT_RES = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id, products: NEW_PRODUCT }), // Send sessionId
-      });
-      console.log(PRODUCT_RES, "PRODUCT_RES");
-      /** Nếu không thành cong */
-      if (!PRODUCT_RES.ok) {
-        return;
-      }
-
-      console.log("✅ Sản phẩm đã được thêm");
-      /** Gửi thông tin cửa hàng (nếu có) */
-      if (results?.content) {
-        toast.success(t("store_info_found"));
-        const SHOP_INFO_RES = await fetch("/api/shop-info", {
-          method: "PUT",
-          body: JSON.stringify({ session_id, content: results.content }),
-        });
-        /** Kiem tra ket qua */
-        if (SHOP_INFO_RES.ok) {
-          console.log("✅ Cập nhật thông tin cửa hàng thành công");
-        } else {
-          console.warn("⚠️ Không thể cập nhật thông tin cửa hàng");
-        }
-      }
-      /** Trường hợp không có content */
-      if (!results?.content) {
-        /** Hiển thị lỗi */
-        toast.error(t("store_info_not_found"));
-        /** Lưu thông tin cửa hàng */
-        const SHOP_INFO_RES = await fetch("/api/shop-info", {
-          method: "PUT",
-          body: JSON.stringify({
-            session_id,
-            content: t("store_info_not_found"),
-          }),
-        });
-
-        /** Kiem tra ket qua */
-        if (SHOP_INFO_RES.ok) {
-          console.log("✅ Cập nhật thông tin cửa hàng thành công");
-        } else {
-          console.warn("⚠️ Không thể cập nhật thông tin cửa hàng");
-        }
-      }
-      /** Sau khi thành công, chờ 500ms rồi chuyển trang */
-      await delay(500);
-      /** Chuyển trang */
-      // ROUTER.push("/editor"); // Custom router navigation (not using next/router)
-
-      /** Cập nhật trạng thái hoàn thành bước Preview */
-      handleFinishPreview && handleFinishPreview("success");
-    } catch (error) {
-      console.error("Lỗi mạng hoặc server:", error);
-      /** Cập nhật trạng thái báo lỗi*/
-      handleFinishPreview && handleFinishPreview("error");
-    } finally {
-      // setLoading(false);
-    }
-  };
-
   /**
    *  Thêm sản phẩm mới
    * @param product Sản phẩm mới
    */
   const handleAddProduct = (product: IProductItem) => {
-    setData((prevData) => [...prevData, product]);
+    /** Thêm sản phẩm mới về danh sách */
+    const LIST_PRODUCTS = [...data, product];
+    setListProducts && setListProducts(LIST_PRODUCTS);
   };
 
-  /** Avatar Shop */
-  const [avatar_shop, setAvatarShop] = useState<string | null>("");
-  /** Địa chỉ shop */
-  const [shop_address, setShopAddress] = useState<string | null>("");
-  /** Tên cửa hàng */
-  const [shop_name, setShopname] = useState<string | null>("");
   /** Khai báo lỗi */
   const [errors, setErrors] = useState<{
     shop_name: string;
@@ -401,12 +222,6 @@ export default function TemplateClient({
     shop_name: "",
     shop_address: "",
   });
-
-  /** Hàm Upload Image */
-  const handleOnSelect = () => {};
-
-  /** File ảnh đã upload */
-  const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
 
   return (
     <main className="py-2 px-1 max-w-3xl w-full mx-auto gap-y-4 relative">
@@ -418,6 +233,8 @@ export default function TemplateClient({
             setDataInputLocal({ ...data_input_local, shop_name: e });
             setDataInput && setDataInput({ ...data_input, shop_name: e });
             setErrors({ ...errors, shop_name: "" });
+            setErrorsInput &&
+              setErrorsInput({ ...errors_input, shop_name: "" });
           }}
           title={t("shop_name")}
           placeholder={t("enter_shop_name")}
@@ -430,13 +247,15 @@ export default function TemplateClient({
             setDataInputLocal({ ...data_input_local, shop_address: e });
             setDataInput && setDataInput({ ...data_input, shop_address: e });
             setErrors({ ...errors, shop_address: "" });
+            setErrorsInput &&
+              setErrorsInput({ ...errors_input, shop_address: "" });
           }}
           title={t("shop_address")}
           placeholder={t("enter_shop_address")}
           error={errors?.shop_address}
         />
         <InputAvatar
-          onSelect={(e) => setFileLogoImage(e)}
+          onSelect={(e) => updateLogo && updateLogo(e)}
           defaultValue={data_input_local?.shop_avatar || ""}
         />
       </div>
@@ -489,7 +308,7 @@ export default function TemplateClient({
           </div>
         )}
       </div>
-      {!loading && (
+      {/* {!loading && (
         <div className="flex w-full justify-center items-center sticky bottom-0 p-1">
           <button
             onClick={() => {
@@ -507,7 +326,7 @@ export default function TemplateClient({
             <div>{loading_shop && <Loading color_white />}</div>
           </button>
         </div>
-      )}
+      )} */}
       <AddProductModal
         open={is_modal_open}
         onClose={() => {
@@ -536,6 +355,9 @@ export default function TemplateClient({
         onSubmit={() => {
           setIsModalDelete(false);
           setData((prev) => prev.filter((p) => p.id !== id_delete));
+
+          const new_data = data.filter((p) => p.id !== id_delete);
+          setListProducts && setListProducts(new_data);
         }}
       />
     </main>

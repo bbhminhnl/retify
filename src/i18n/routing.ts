@@ -4,6 +4,6 @@ import { defineRouting } from "next-intl/routing";
 export const routing = defineRouting({
   /** Thêm 'as const' để tạo literal types */
   locales: ["en", "vi"] as const,
-  defaultLocale: "en",
+  defaultLocale: "vi",
   localePrefix: "always",
 });

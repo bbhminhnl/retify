@@ -31,8 +31,8 @@ const IframeMerchant = ({
 
   /** Fetch products when step === 4 */
   useEffect(() => {
-    /** Buowsc 4 thì lấy dữ liệu */
-    if (step === 4) {
+    /** Bước 5 thì lấy dữ liệu */
+    if (step === 5) {
       fetchProducts();
     }
   }, [step]);

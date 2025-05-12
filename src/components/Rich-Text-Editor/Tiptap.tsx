@@ -3,17 +3,12 @@
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useCallback, useEffect, useState } from "react";
 
-import FacebookLoginButton from "../FacebookLoginButton";
 import Highlight from "@tiptap/extension-highlight";
-import Loading from "../loading/Loading";
-import { MOCK_DATA } from "@/utils/data";
 import { Markdown } from "tiptap-markdown";
 import MenuBar from "./MenuBar";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import { debounce } from "lodash";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 /**
@@ -36,18 +31,33 @@ type Product = {
 
 const Tiptap = ({
   handleFinishEditor,
+  step,
+  markdown_parent,
+  setMarkdownParent,
+  internal_markdown_parent,
+  setInternalMarkdownParent,
 }: {
   /**
    *  Hàm xuất lý khi hoàn thành bài viet
    * @param status "success" | "fail"
    * @returns
    */
-  handleFinishEditor: (status: string) => void;
+  handleFinishEditor?: (status: string) => void;
+
+  /** step */
+  step: number;
+
+  /** markdown */
+  markdown_parent?: string;
+  /** setMarkdown */
+  setMarkdownParent?: (markdown: string) => void;
+  /** Internal markdown */
+  internal_markdown_parent?: string;
+  /** setInternalMarkdown */
+  setInternalMarkdownParent?: (markdown: string) => void;
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
-  /** Router */
-  const ROUTER = useRouter();
   /** Markdown*/
   const [markdown, setMarkdown] = useState("");
   /** Nội dung markdown */
@@ -56,16 +66,7 @@ const Tiptap = ({
   const [products, setProducts] = useState<Product[]>([]);
   /** Shop info */
   const [shop_info, setShopInfo] = useState<string>("");
-  /** Hiển thị kết nối */
-  const [show_connect, setShowConnect] = useState(false);
-  /** Access token */
-  const [access_token, setAccessToken] = useState("");
-  /** Loading */
-  const [loading, setLoading] = useState(false);
-
-  /** Debounce hàm save để tránh gọi API quá nhiều lần
-   *
-   */
+  /** Debounce hàm save để tránh gọi API quá nhiều lần */
   const debouncedSave = useCallback(
     debounce(async (content: string) => {
       await fetch("/api/documents", {
@@ -116,8 +117,12 @@ const Tiptap = ({
       const MD = editor.storage.markdown.getMarkdown();
       /** Lưu vào state */
       setInternalMarkdown(MD);
+      /** call back fn  */
+      setInternalMarkdownParent && setInternalMarkdownParent(MD);
       /** Lưu markdown vào state */
       setMarkdown(MD);
+      /** callback fn */
+      setMarkdownParent && setMarkdownParent(MD);
       /** Lưu markdown vào server */
       debouncedSave(MD);
     },
@@ -155,13 +160,13 @@ const Tiptap = ({
   }, []);
 
   /** Xử lý khi có dữ liệu sản phẩm hoặc shop info thay đổi */
-  useEffect(() => {
-    /** Nếu có dữ liệu sản phẩm hoặc thông tin shop thì tạo nội dung markdown */
-    if (products.length > 0 || shop_info) {
-      /**Xử lý dữ liệu */
-      processDocument(products, shop_info);
-    }
-  }, [products, shop_info]);
+  // useEffect(() => {
+  //   /** Nếu có dữ liệu sản phẩm hoặc thông tin shop thì tạo nội dung markdown */
+  //   if (products.length > 0 || shop_info) {
+  //     /**Xử lý dữ liệu */
+  //     // processDocument(products, shop_info);
+  //   }
+  // }, [products, shop_info]);
 
   /** Xử lý đồng bộ dữ liệu từ ngoài vào editor */
   useEffect(() => {
@@ -191,117 +196,59 @@ const Tiptap = ({
       }
     }
   }, [editor, markdown]);
-
-  /** Hàm xử lý tạo nội dung markdown từ dữ liệu
-   * @param item Danh sách sản phẩm
-   * @param shop Thông tin cửa hàng
+  /**
+   * Xử lý đồng bộ dữ liệu từ ngoại vào editor
    */
-  const processDocument = (item: Product[], shop: string) => {
-    /** Thông tin cửa hàng */
-    const SHOP_INFO_BLOCK = shop ? `## 🏪 Thông tin cửa hàng\n${shop}` : "";
-    /** THông tin Sản phẩm */
-    const PRODUCT_BLOCK =
-      item.length > 0
-        ? `${item
-            .map(
-              (product) =>
-                `- **${product.name}**: ${product.price.toLocaleString(
-                  "vi-VN"
-                )} đ`
-            )
-            .join("\n")}`
-        : "";
-    /** Lấy dữ liệu từ Mock data */
-    const EXISTING_DATA = typeof MOCK_DATA === "string" ? MOCK_DATA : "";
-    /** Cập nhật Thông tin sản phẩm và Thông tin Shop */
-    const UPDATED_DATA = [EXISTING_DATA, PRODUCT_BLOCK, SHOP_INFO_BLOCK]
-      .filter(Boolean)
-      .join("\n\n");
-
-    /** Cập nhật cả markdown và internal_markdown */
-    setMarkdown(UPDATED_DATA);
-    /** Cập nhật nội dung editor */
-    setInternalMarkdown(UPDATED_DATA);
-  };
-
-  /** Hàm xử lý khi nhấn nút lưu */
-  const handleSave = async () => {
-    /** Nếu editor đã được khởi tạo */
-    if (editor) {
-      const MD = editor.storage.markdown.getMarkdown();
-
-      if (!MD) {
-        toast.warning(t("content_required_before_save"));
-        setShowConnect(false);
-        return;
-      }
-
-      setLoading(true);
-      await fetch("/api/documents", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(MD),
-      });
-      setTimeout(() => {
-        // setShowConnect(true);
-        handleFinishEditor("editor_success");
-        setLoading(false);
-      }, 1000);
+  useEffect(() => {
+    if (markdown_parent) {
+      setMarkdown(markdown_parent);
     }
-  };
+    // if (internal_markdown_parent) {
+    //   setInternalMarkdown(internal_markdown_parent);
+    // }
+  }, [markdown_parent]);
 
   /** Xử lý message từ Facebook
    * @param event SSO
    */
-  function getFacebookToken(event: MessageEvent) {
-    if (
-      !event ||
-      !event.data ||
-      typeof event.data !== "object" ||
-      event.data.from !== "FACEBOOK_IFRAME" ||
-      event.data.event !== "LOGIN"
-    ) {
-      return;
-    }
-    /** RESPONSE từ facebook */
-    const FACEBOOK_RESPONSE = event.data.data;
-    /** Nếu có access token thì lưu vào state */
-    if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
-      /** Lưu vào state */
-      setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
-    }
-  }
+  // function getFacebookToken(event: MessageEvent) {
+  //   if (
+  //     !event ||
+  //     !event.data ||
+  //     typeof event.data !== "object" ||
+  //     event.data.from !== "FACEBOOK_IFRAME" ||
+  //     event.data.event !== "LOGIN"
+  //   ) {
+  //     return;
+  //   }
+  //   /** RESPONSE từ facebook */
+  //   const FACEBOOK_RESPONSE = event.data.data;
+  //   /** Nếu có access token thì lưu vào state */
+  //   if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
+  //     /** Lưu vào state */
+  //     setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
+  //   }
+  // }
   /** Lầy token facebook */
-  useEffect(() => {
-    window.addEventListener("message", getFacebookToken);
-    return () => {
-      window.removeEventListener("message", getFacebookToken);
-    };
-  }, []);
-
-  useEffect(() => {
-    /** Nếu có access token thì điều hướng đến trang kết nối */
-    if (access_token) {
-      handleAddProductAndNavigate(access_token);
-    }
-  }, [access_token]);
-
-  const handleAddProductAndNavigate = async (access_token: string) => {
-    ROUTER.push("/connect?access_token=" + access_token);
-  };
+  // useEffect(() => {
+  //   window.addEventListener("message", getFacebookToken);
+  //   return () => {
+  //     window.removeEventListener("message", getFacebookToken);
+  //   };
+  // }, []);
 
   return (
     <div className="flex flex-col flex-grow min-h-0 h-full w-full overflow-hidden">
       <div className="py-2 w-full ">
         <div className="flex gap-x-2 w-full justify-between items-center">
           <MenuBar editor={editor} />
-          <button
+          {/* <button
             onClick={handleSave}
             className="h-10 px-4 flex-shrink-0 bg-blue-500 text-white rounded-md flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-600"
           >
             <span className="text-sm font-semibold">{t("save")}</span>
             {loading && <Loading color_white />}
-          </button>
+          </button> */}
         </div>
 
         <EditorContent
