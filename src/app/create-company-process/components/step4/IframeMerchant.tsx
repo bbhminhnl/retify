@@ -12,9 +12,11 @@ import { useTranslations } from "next-intl";
 const IframeMerchant = ({
   data_input,
   step,
+  products,
 }: {
   data_input: any;
   step: number;
+  products: any[];
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -33,35 +35,36 @@ const IframeMerchant = ({
   useEffect(() => {
     /** Bước 5 thì lấy dữ liệu */
     if (step === 5) {
-      fetchProducts();
+      // fetchProducts();
+      setData(products);
     }
-  }, [step]);
+  }, [products]);
 
   /** Hmaf lấy dữ liệu */
-  const fetchProducts = async () => {
-    try {
-      /**
-       * Gọi API lấy dữ liệu
-       */
-      const RESPONSE = await fetch("/api/products", {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      });
-      /**
-       * Lấy dữ liệu
-       */
-      const DATA = await RESPONSE.json();
-      /**
-       * Lưu dữ liệu
-       */
-      setData(DATA);
-      console.log(DATA, "DATA");
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error(t("error_fetching_products") + error);
-    }
-  };
+  // const fetchProducts = async () => {
+  //   try {
+  //     /**
+  //      * Gọi API lấy dữ liệu
+  //      */
+  //     const RESPONSE = await fetch("/api/products", {
+  //       headers: {
+  //         "Cache-Control": "no-store",
+  //       },
+  //     });
+  //     /**
+  //      * Lấy dữ liệu
+  //      */
+  //     const DATA = await RESPONSE.json();
+  //     /**
+  //      * Lưu dữ liệu
+  //      */
+  //     setData(DATA);
+  //     console.log(DATA, "DATA");
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error);
+  //     toast.error(t("error_fetching_products") + error);
+  //   }
+  // };
 
   /**  Trigger handleLoad only when data is available and flag is true*/
   useEffect(() => {

@@ -12,6 +12,7 @@ import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
+import { callStepAPI } from "@/services/fetchApi";
 import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
@@ -106,23 +107,12 @@ const MainLayout = () => {
   const [products, setProducts] = useState<IProductItem[]>([]);
   /** Loading shop */
   const [loading_shop, setLoadingShop] = useState(false);
-  /** Khai báo lỗi */
-  const [errors, setErrors] = useState<{
-    shop_name: string;
-    shop_address: string;
-  }>({
-    shop_name: "",
-    shop_address: "",
-  });
 
   /** File ảnh đã upload */
   const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
 
-  /** ======= Bước 4 ======= */
-  /** Markdown*/
-  const [markdown, setMarkdown] = useState("");
-  /** Nội dung markdown */
-  const [internal_markdown, setInternalMarkdown] = useState("");
+  /** Data input */
+  const [is_edit, setIsEdit] = useState(false);
 
   /** Disable next button */
   const checkDisableNextButton = () => {
@@ -150,10 +140,19 @@ const MainLayout = () => {
 
   /** Hàm xử lý back */
   const onBackFn = () => {
+    /** nếu step 4 */
+    if (form_data.step === 4) {
+      setIsEdit(false);
+      setDataInput({
+        ...form_data.data_input,
+      });
+    }
+
     /** nếu step 5 */
-    if (form_data.step === 5) {
+    if (form_data.step === 6) {
       /** Xoá token */
-      setAccessToken("");
+      // setAccessToken("");
+      updateField("access_token", "");
     }
     /** setStep  */
     // setStep((s) => Math.max(s - 1, 1));
@@ -175,8 +174,10 @@ const MainLayout = () => {
     } else if (form_data?.step === 3) {
       /** Set trạng thái preview */
       searchShopInfoStep3(
-        data_input?.shop_name + " - " + data_input?.shop_address,
-        products
+        form_data?.data_input?.shop_name +
+          " - " +
+          form_data?.data_input?.shop_address,
+        form_data.list_products
       );
     } else if (form_data.step === 4) {
       handleSaveStep4();
@@ -189,7 +190,7 @@ const MainLayout = () => {
   /** Hàm xử lý khi nhấn nút lưu */
   const handleSaveStep4 = async () => {
     /** Nếu editor đã được khởi tạo */
-    if (!internal_markdown) {
+    if (!form_data.internal_markdown) {
       toast.warning(t("content_required_before_save"));
       return;
     }
@@ -198,7 +199,7 @@ const MainLayout = () => {
       await fetch("/api/documents", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(internal_markdown),
+        body: JSON.stringify(form_data.internal_markdown),
       });
       /** setStep */
       // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
@@ -223,43 +224,46 @@ const MainLayout = () => {
       !form_data?.data_input?.shop_address
     ) {
       toast.error(t("enter_store_name_and_address"));
-      /** Nếu thiếu thông tin cửa hàng */
+
+      const NEW_ERRORS: Record<string, string> = { ...form_data.errors };
+
       if (!form_data?.data_input?.shop_name) {
-        // setErrors((prev) => {
-        //   return {
-        //     ...prev,
-        //     shop_name: t("enter_store_name"),
-        //   };
-        // });
-        updateField("errors", {
-          ...form_data.errors,
-          shop_name: t("enter_store_name"),
-        });
+        NEW_ERRORS.shop_name = t("enter_store_name");
       }
-      /** Nếu thông tin địa chỉ cửa hàng */
+
       if (!form_data?.data_input?.shop_address) {
-        // setErrors((prev) => {
-        //   return {
-        //     ...prev,
-        //     shop_address: t("enter_store_address"),
-        //   };
-        // });
-        updateField("errors", {
-          ...form_data.errors,
-          shop_address: t("enter_store_address"),
-        });
+        NEW_ERRORS.shop_address = t("enter_store_address");
       }
+
+      updateField("errors", NEW_ERRORS);
+
       return;
     }
 
-    /** Upload hình ảnh lên Merchant và lấy url*/
-    const IMAGE_URL = await fetchUploadImage(file_logo_image);
-    /** Lưu lại giá trị */
-    setDataInput &&
-      setDataInput({
-        ...data_input,
+    if (file_logo_image) {
+      /** Upload hình ảnh lên Merchant và lấy url*/
+      const IMAGE_URL = await fetchUploadImage(file_logo_image);
+      /** Lưu lại giá trị */
+      setDataInput &&
+        setDataInput({
+          ...data_input,
+          shop_avatar: IMAGE_URL,
+        });
+
+      /** Update field data_input */
+      updateField("data_input", {
+        ...form_data.data_input,
         shop_avatar: IMAGE_URL,
       });
+    }
+
+    console.log(is_edit, "isEdit");
+    /** Nếu isEdit false thì Next luôn */
+    if (!is_edit) {
+      updateField("step", form_data.step + 1);
+      setIsEdit(false);
+      return;
+    }
 
     try {
       setLoadingShop(true);
@@ -276,10 +280,17 @@ const MainLayout = () => {
       /** Data Store */
       const DATA_STORE = await RES.json();
       console.log(DATA_STORE, "DATA_STORE");
+
+      console.log(data, "data");
       /** gọi hàm update tài liệu */
       handleAddDocument(data, DATA_STORE);
       /** Tắt loading */
       processDocument(data, DATA_STORE?.content);
+
+      /** Set isEdit */
+      setIsEdit(false);
+      /** Reset file */
+      setFileLogoImage(null);
       /** setStep */
       // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
       updateField("step", form_data.step + 1);
@@ -317,10 +328,11 @@ const MainLayout = () => {
       .join("\n\n");
 
     /** Cập nhật cả markdown và internal_markdown */
-    setMarkdown(UPDATED_DATA);
-
+    // setMarkdown(UPDATED_DATA);
+    updateField("markdown", UPDATED_DATA);
     /** Cập nhật nội dung editor */
-    setInternalMarkdown(UPDATED_DATA);
+    // setInternalMarkdown(UPDATED_DATA);
+    updateField("internal_markdown", UPDATED_DATA);
   };
 
   /**
@@ -432,6 +444,7 @@ const MainLayout = () => {
         // toast.error(data.payload);
         /** Set access token */
         setAccessToken(data.payload?.token?.accessToken);
+        updateField("access_token", data.payload?.token?.accessToken);
       }
     };
 
@@ -505,30 +518,77 @@ const MainLayout = () => {
     return VISION_DATA;
   };
 
+  // async function processMenu(rawText: string) {
+  //   const STEP_0 = await fetch("/api/clean-menu/step0", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ rawText }),
+  //   });
+  //   const { fixedText } = await STEP_0.json();
+
+  //   const STEP_1 = await fetch("/api/clean-menu/step1", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ fixedText }),
+  //   });
+  //   const { filteredText } = await STEP_1.json();
+
+  //   const STEP_2 = await fetch("/api/clean-menu/step2", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ filteredText }),
+  //   });
+  //   const { normalizedText } = await STEP_2.json();
+
+  //   const STEP_3 = await fetch("/api/clean-menu/step3", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ normalizedText }),
+  //   });
+  //   const { menuItems } = await STEP_3.json();
+
+  //   return menuItems;
+  // }
+  async function processMenu(rawText: string) {
+    /** Fix text */
+    const { fixedText } = await callStepAPI("step0", { rawText });
+    /** Filter text*/
+    const { filteredText } = await callStepAPI("step1", { fixedText });
+    /** Normalize text*/
+    const { normalizedText } = await callStepAPI("step2", { filteredText });
+    /** Get menu items */
+    const { menuItems } = await callStepAPI("step3", { normalizedText });
+
+    return menuItems;
+  }
+
   /**
    * Hàm Xử lý Clean Menu
    * @param raw_text
    * @returns
    */
   const handleCleanMenu = async (raw_text: any) => {
-    /** Xử lý tổng hợp thông tin món ăn */
-    const CLEAN_MENU = await fetch("/api/clean-menu", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rawText: raw_text?.join("\n") }),
-    });
+    // /** Xử lý tổng hợp thông tin món ăn */
+    // const CLEAN_MENU = await fetch("/api/clean-menu", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ rawText: raw_text?.join("\n") }),
+    // });
+    const CLEAN_MENU = await processMenu(raw_text?.join("\n"));
 
     /** Kiểm tra kết quả */
-    if (!CLEAN_MENU.ok) {
-      throw new Error(
-        `Cleaned Menu API failed with status ${CLEAN_MENU.status}`
-      );
-    }
+    // if (!CLEAN_MENU.ok) {
+    //   throw new Error(
+    //     `Cleaned Menu API failed with status ${CLEAN_MENU.status}`
+    //   );
+    // }
+
+    console.log(CLEAN_MENU, "CLEAN_MENU");
     /**
      * Kết quả trả về từ API
      */
-    const { menuItems: MENU_ITEMS } = await CLEAN_MENU.json();
-    return MENU_ITEMS;
+    // const { menuItems: MENU_ITEMS } = await CLEAN_MENU.json();
+    return CLEAN_MENU;
   };
 
   /** Hàm xử lý lưu sản phẩm
@@ -573,36 +633,36 @@ const MainLayout = () => {
       throw new Error("Failed to create products");
     }
     /** Trả về danh sách sản phẩm */
-    return PARSED_MENU;
+    return NEW_PRODUCT;
   };
 
   /** UseEffect*/
-  useEffect(() => {
-    /** Nếu step 3 */
-    if (form_data?.step === 3) {
-      /** Lấy dữ liệu products */
-      fetchProducts();
-    }
-  }, [form_data?.step]);
+  // useEffect(() => {
+  //   /** Nếu step 3 */
+  //   if (form_data?.step === 3) {
+  //     /** Lấy dữ liệu products */
+  //     fetchProducts();
+  //   }
+  // }, [form_data?.step]);
   /** Lấy đata products */
-  const fetchProducts = async () => {
-    try {
-      /** Gọi API lấy products*/
-      const RESPONSE = await fetch("/api/products", {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      });
-      /** DATA JSON */
-      const DATA = await RESPONSE.json();
-      /** Lưu dữ liệu product */
-      // setProduct(DATA);
-      setProducts(DATA);
-      console.log(DATA, "DATA");
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    }
-  };
+  // const fetchProducts = async () => {
+  //   try {
+  //     /** Gọi API lấy products*/
+  //     const RESPONSE = await fetch("/api/products", {
+  //       headers: {
+  //         "Cache-Control": "no-store",
+  //       },
+  //     });
+  //     /** DATA JSON */
+  //     const DATA = await RESPONSE.json();
+  //     /** Lưu dữ liệu product */
+  //     // setProduct(DATA);
+  //     setProducts(DATA);
+  //     console.log(DATA, "DATA");
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error);
+  //   }
+  // };
 
   /**
    * Hàm xử lý tạo món ăn trên server
@@ -642,7 +702,11 @@ const MainLayout = () => {
       /** Xử lý clean Menu */
       const MENU_ITEMS = await handleCleanMenu(VISION_DATA?.texts);
       /** Xử lý lưu lại Product */
-      await handleSaveProducts(MENU_ITEMS);
+      const PRODUCTS = await handleSaveProducts(MENU_ITEMS);
+
+      console.log(PRODUCTS, "products");
+
+      updateField("list_products", [...PRODUCTS]);
 
       setFileImage(null);
 
@@ -680,6 +744,7 @@ const MainLayout = () => {
     if (FACEBOOK_RESPONSE?.authResponse?.accessToken) {
       /** Lưu vào state */
       setAccessToken(FACEBOOK_RESPONSE.authResponse.accessToken);
+      updateField("access_token", FACEBOOK_RESPONSE.authResponse.accessToken);
     }
   }
   /** Lầy token facebook */
@@ -689,7 +754,7 @@ const MainLayout = () => {
       window.removeEventListener("message", getFacebookToken);
     };
   }, []);
-  console.log(company_size, "company_size");
+
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
       {!on_finish && (
@@ -715,23 +780,50 @@ const MainLayout = () => {
               data_input={form_data.data_input}
               setDataInput={(e) => {
                 console.log(e);
+                console.log(data_input, "data_input");
                 updateField("data_input", { ...form_data.data_input, ...e });
+                /** Compare dữ liệu */
+                if (
+                  !e ||
+                  typeof e !== "object" ||
+                  !data_input ||
+                  typeof data_input !== "object"
+                )
+                  return;
+                const IS_CHANGED = Object.keys(e).some((key) => {
+                  return e[key] !== data_input[key];
+                });
+                /** Nội dung thay đổi thì set trạng thái */
+                if (IS_CHANGED) {
+                  setIsEdit(true);
+                }
               }}
               updateLogo={(e) => {
                 setFileLogoImage(e);
+                setIsEdit(true);
               }}
-              list_products={products}
-              setListProducts={setProducts}
+              list_products={form_data.list_products}
+              setListProducts={(e) => {
+                updateField("list_products", [
+                  ...form_data.list_products,
+                  ...e,
+                ]);
+                setIsEdit(true);
+              }}
               errors={form_data?.errors}
               setErrors={(e) => {
                 updateField("errors", { ...form_data.errors, ...e });
               }}
               /** Bước 4 */
 
-              markdown_parent={markdown}
-              setMarkdownParent={setMarkdown}
-              internal_markdown_parent={internal_markdown}
-              setInternalMarkdownParent={setInternalMarkdown}
+              markdown_parent={form_data.markdown}
+              setMarkdownParent={(e) => {
+                updateField("markdown", e);
+              }}
+              internal_markdown_parent={form_data.internal_markdown}
+              setInternalMarkdownParent={(e) => {
+                updateField("internal_markdown", e);
+              }}
               /** Bước 5 */
 
               /** Bước 6 */
@@ -747,7 +839,7 @@ const MainLayout = () => {
               }}
               loading={loading}
               /** Bước 6 Finish */
-              access_token={access_token}
+              access_token={form_data.access_token}
               onFinish={(
                 selected_page: string,
                 selected_organization: string

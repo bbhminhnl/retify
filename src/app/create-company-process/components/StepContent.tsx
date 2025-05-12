@@ -120,7 +120,7 @@ const StepContent: React.FC<Props> = ({
         </div>
       )}
       {step === 4 && (
-        <div>
+        <div className="flex-grow min-h-0 overflow-hidden h-full">
           <Tiptap
             step={step}
             markdown_parent={markdown_parent}
@@ -133,7 +133,11 @@ const StepContent: React.FC<Props> = ({
 
       {step === 5 && (
         <div className="h-full">
-          <IframeMerchant data_input={data_input} step={step} />
+          <IframeMerchant
+            data_input={data_input}
+            step={step}
+            products={list_products}
+          />
         </div>
       )}
       {step === 6 && !access_token && (

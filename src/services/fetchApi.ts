@@ -102,3 +102,14 @@ export function getAccessToken() {
    */
   return ACCESS_TOKEN;
 }
+export async function callStepAPI(
+  endpoint: string,
+  payload: any
+): Promise<any> {
+  const RES = await fetch(`/api/clean-menu/${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return RES.json();
+}

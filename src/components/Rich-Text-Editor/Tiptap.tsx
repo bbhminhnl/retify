@@ -156,7 +156,7 @@ const Tiptap = ({
       }
     };
 
-    fetchData();
+    // fetchData();
   }, []);
 
   /** Xử lý khi có dữ liệu sản phẩm hoặc shop info thay đổi */
@@ -238,28 +238,29 @@ const Tiptap = ({
   // }, []);
 
   return (
-    <div className="flex flex-col flex-grow min-h-0 h-full w-full overflow-hidden">
-      <div className="py-2 w-full ">
-        <div className="flex gap-x-2 w-full justify-between items-center">
-          <MenuBar editor={editor} />
-          {/* <button
+    <div className="flex flex-col flex-grow min-h-0 h-full overflow-hidden">
+      {/* <div className="py-2 w-full "> */}
+      <div className="flex gap-x-2 w-full justify-between items-center">
+        <MenuBar editor={editor} />
+        {/* <button
             onClick={handleSave}
             className="h-10 px-4 flex-shrink-0 bg-blue-500 text-white rounded-md flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-600"
           >
             <span className="text-sm font-semibold">{t("save")}</span>
             {loading && <Loading color_white />}
           </button> */}
-        </div>
-
+      </div>
+      <div className="flex flex-col flex-grow min-h-0 h-full">
         <EditorContent
           editor={editor}
-          className="h-80 overflow-y-auto border border-black rounded-md bg-slate-50"
+          className="h-full overflow-y-auto border border-black rounded-md bg-slate-50"
         />
       </div>
-      <div className="hidden md:flex flex-col flex-grow min-h-0 bg-gray-100 overflow-hidden rounded-lg overflow-y-auto p-4 text-left">
+      {/* </div> */}
+      {/* <div className="hidden md:flex flex-col flex-grow min-h-0 bg-gray-100 overflow-hidden rounded-lg overflow-y-auto p-4 text-left">
         <h2 className="font-bold">{t("document_display")}</h2>
         <pre className="text-sm whitespace-pre-wrap">{markdown}</pre>
-      </div>
+      </div> */}
       {/* {show_connect && (
       )} */}
       {/* <div className="flex items-center justify-center h-12 w-full sticky bottom-0">
