@@ -783,15 +783,11 @@ const MainLayout = () => {
                 console.log(data_input, "data_input");
                 updateField("data_input", { ...form_data.data_input, ...e });
                 /** Compare dữ liệu */
-                if (
-                  !e ||
-                  typeof e !== "object" ||
-                  !data_input ||
-                  typeof data_input !== "object"
-                )
+                if (!e || typeof e !== "object") {
                   return;
+                }
                 const IS_CHANGED = Object.keys(e).some((key) => {
-                  return e[key] !== data_input[key];
+                  return e[key] !== (data_input ?? {})[key];
                 });
                 /** Nội dung thay đổi thì set trạng thái */
                 if (IS_CHANGED) {
