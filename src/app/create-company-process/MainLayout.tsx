@@ -38,7 +38,7 @@ const MainLayout = () => {
   /** Tổng số Step */
   const TOTAL_STEPS = 6;
   /** Step hiện tại */
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(1);
   /** company size */
   const [company_size, setCompanySize] = useState("");
   /** fixed menu */
