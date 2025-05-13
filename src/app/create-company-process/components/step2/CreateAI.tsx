@@ -23,7 +23,7 @@ type Props = {
 
 const CreateAI: React.FC<Props> = ({ onSelect, defaultValue }) => {
   return (
-    <div className="w-full grid gap-4">
+    <div className="w-full grid gap-4 p-1">
       <OptionUpload onSelect={onSelect} defaultValue={defaultValue} />
       <OptionInput />
       <SelectPOS />

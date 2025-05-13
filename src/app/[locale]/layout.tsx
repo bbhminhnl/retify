@@ -64,11 +64,6 @@ export default async function RootLayout({ children, params }: Props) {
   return (
     <html lang={VALID_LOCALE}>
       <body>
-        {/* <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, height=device-height"
-        /> */}
-
         <NextIntlClientProvider locale={VALID_LOCALE} messages={messages}>
           <ToastProvider />
           {children}
