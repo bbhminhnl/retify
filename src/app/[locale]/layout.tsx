@@ -14,21 +14,32 @@ type Props = {
   /** params là Promise */
   params: Promise<{ locale: string }>;
 };
+/**
+ * Kiểu font cho trang web geistSans
+ */
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
+/**
+ * Kiểu font cho trang web geistMono
+ */
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
+/**
+ * Meta data cho trang web
+ */
 export const metadata: Metadata = {
   title: "Retify",
   description: "A simple way to generate your menu",
 };
 
+/**
+ * Kiểu viewport cho trang web
+ */
 export const viewport = {
   width: "device-width",
   initialScale: 1,
@@ -44,6 +55,9 @@ export default async function RootLayout({ children, params }: Props) {
 
   /** Kiểm tra xem locale có hợp lệ không */
   const IS_VALID_LOCALE = routing.locales.includes(locale as any);
+  /**
+   * Neu locale khong hop le, return 404
+   */
   if (!IS_VALID_LOCALE) {
     notFound();
   }
@@ -51,10 +65,11 @@ export default async function RootLayout({ children, params }: Props) {
   /** Ép kiểu locale thành "en" | "vi" */
   const VALID_LOCALE = locale as "en" | "vi";
 
-  console.log(VALID_LOCALE, "valid locale");
-  console.log(locale, "locale");
   /** Tải messages cho locale */
   let messages;
+  /**
+   * Neu khong tìm thấy file messages, return 404
+   */
   try {
     messages = (await import(`../../../messages/${VALID_LOCALE}.json`)).default;
   } catch (error) {
