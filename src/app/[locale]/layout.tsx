@@ -29,6 +29,15 @@ export const metadata: Metadata = {
   description: "A simple way to generate your menu",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  minimumScale: 1,
+  userScalable: "no",
+  height: "device-height",
+};
+
 export default async function RootLayout({ children, params }: Props) {
   /** Await params để lấy locale */
   const { locale } = await params;
@@ -55,10 +64,10 @@ export default async function RootLayout({ children, params }: Props) {
   return (
     <html lang={VALID_LOCALE}>
       <body>
-        <meta
+        {/* <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, height=device-height"
-        />
+        /> */}
 
         <NextIntlClientProvider locale={VALID_LOCALE} messages={messages}>
           <ToastProvider />
