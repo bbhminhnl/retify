@@ -4,6 +4,8 @@ import { routing } from "./routing";
 export default getRequestConfig(async ({ requestLocale }) => {
   /** Lấy locale */
   let locale = await requestLocale;
+  console.log(locale, "request locale");
+
   /**
    * Kiểm tra locale
    */
@@ -11,6 +13,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
     /** Neu không tìm thấy locale, dùng locale default */
     locale = routing.defaultLocale;
   }
+
+  console.log(locale, "request locale");
   /**
    * LOCALE hợp lệ
    */

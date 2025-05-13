@@ -42,6 +42,8 @@ export default async function RootLayout({ children, params }: Props) {
   /** Ép kiểu locale thành "en" | "vi" */
   const VALID_LOCALE = locale as "en" | "vi";
 
+  console.log(VALID_LOCALE, "valid locale");
+  console.log(locale, "locale");
   /** Tải messages cho locale */
   let messages;
   try {
@@ -55,7 +57,7 @@ export default async function RootLayout({ children, params }: Props) {
       <body>
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no height=device-height"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, height=device-height"
         />
 
         <NextIntlClientProvider locale={VALID_LOCALE} messages={messages}>
