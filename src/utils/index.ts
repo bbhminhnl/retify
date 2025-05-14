@@ -1,3 +1,5 @@
+import { toast } from "react-toastify";
+
 /** FromatCurrency
  * @param {string} value - The value to format
  * @returns {string} - Formatted currency string
@@ -52,4 +54,88 @@ export const MENU_PATTERNS = {
  */
 export function simpleUUID(): string {
   return Math.random().toString(36).substring(2, 10);
+}
+/**
+ * Hàm sao chép văn bản vào clipboard và hiển thị thông báo thành công
+ * @param text Văn bản cần sao chép
+ * @param onError Callback khi sao chép thất bại (tùy chọn)
+ */
+export function copyToClipboard(text: string, onError?: (error: any) => void) {
+  /** Kiểm tra nếu trình duyệt hỗ trợ Clipboard API */
+  if (navigator.clipboard) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        // showSuccessMessage('Đã sao chép thành công!')
+        toast.success("Đã sao chép thành công!");
+      })
+      .catch((error) => {
+        console.error("Lỗi khi sao chép:", error);
+        onError && onError(error);
+      });
+  } else {
+    /** Trường hợp trình duyệt không hỗ trợ Clipboard API, sử dụng phương pháp cũ */
+    try {
+      /**
+       * Tạo một phần tử TEXT_AREA ẩn để sao chép văn bản
+       */
+      const TEXT_AREA = document.createElement("textarea");
+      /**
+       * Gán văn bản cần sao chép vào phần tử TEXT_AREA
+       */
+      TEXT_AREA.value = text;
+      /** Đảm bảo phần tử này không hiển thị trên màn hình */
+      TEXT_AREA.style.position = "fixed";
+      /**
+       * Đặt opacity = 0 để ẩn phần tử
+       */
+      TEXT_AREA.style.opacity = "0";
+      /**
+       * Thêm phần tử TEXT_AREA vào body
+       */
+      document.body.appendChild(TEXT_AREA);
+      /**
+       * Focus vào phần tử TEXT_AREA
+       */
+      TEXT_AREA.focus();
+      /**
+       * Chọn toàn bộ văn bản trong phần tử TEXT_AREA
+       */
+      TEXT_AREA.select();
+      /**
+       * Thực hiện lệnh sao chép
+       */
+      const SUCCESSFUL = document.execCommand("copy");
+      /**
+       * Kiểm tra xem sao chép có thành công không
+       */
+      if (SUCCESSFUL) {
+        /**
+         * Hiển thị thông báo thành công
+         */
+        // showSuccessMessage('Đã sao chép thành công!')
+        toast.success("Đã sao chép thành công!");
+      } else {
+        throw new Error("Không thể sao chép");
+      }
+    } catch (error) {
+      console.error("Lỗi khi sao chép:", error);
+      /**
+       * Gọi hàm onError nếu có
+       */
+      onError && onError(error);
+    } finally {
+      /** Kiểm tra nếu textArea đã được thêm vào DOM thì xóa nó đi */
+      const TEXT_AREA = document.querySelector("textarea");
+      /**
+       * Xóa phần tử TEXT_AREA khỏi body
+       */
+      if (TEXT_AREA) {
+        /**
+         * Xóa phần tử TEXT_AREA khỏi body
+         */
+        document.body.removeChild(TEXT_AREA);
+      }
+    }
+  }
 }

@@ -291,15 +291,34 @@ const MainLayout = () => {
       /**
        * Tìm kiếm thông tin từ data
        */
-      const AI_DETECT_CONTENT = await fetch("/api/ai-detect", {
+      const AI_DETECT_CONTENT = await fetch("/api/clean-menu/ai-detect", {
         method: "POST",
-        body: JSON.stringify({ rawTexts: DATA_STORE?.content }),
+        body: JSON.stringify({ rawText: DATA_STORE?.content }),
         headers: {
           "Content-Type": "application/json",
         },
       });
+      /**
+       * Parse json
+       */
+      const AI_DETECT_CONTENT_DATA = await AI_DETECT_CONTENT.json();
 
-      console.log(AI_DETECT_CONTENT, "DATA_AI_DETECT_CONTENT");
+      console.log(AI_DETECT_CONTENT_DATA, "DATA_AI_DETECT_CONTENT");
+
+      /** Parse chuỗi JSON thành object */
+      // const SHOP_INFO = JSON.parse(AI_DETECT_CONTENT_DATA?.fixedText);
+      // let jsonFixed = SHOP_INFO.fixedText
+      //   .replace(/(\w+):/g, '"$1":') // thêm dấu nháy cho key
+      //   .replace(/\bundefined\b/g, "null");
+      // try {
+      //   const shopInfo = JSON.parse(jsonFixed);
+      //   console.log(shopInfo);
+      // } catch (e) {
+      //   console.error("Lỗi parse JSON:", e.message);
+      // }
+
+      // updateField("shop_address_detected", SHOP_INFO?.ai_detect_shop_address);
+      // updateField("shop_name_detected", SHOP_INFO?.ai_detect_shop_name);
 
       /** Set isEdit */
       setIsEdit(false);

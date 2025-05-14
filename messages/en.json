@@ -96,5 +96,7 @@
   "awesome": "Awesome!",
   "setup_complete": "Setup complete, let's get your store up and running with Retify.AI!",
   "go_live": "Go Live",
-  "not_JSON": "Not a JSON, skipped: "
+  "not_JSON": "Not a JSON, skipped: ",
+  "something_went_wrong": "Something went wrong, please check again.",
+  "copy": "Copy"
 }

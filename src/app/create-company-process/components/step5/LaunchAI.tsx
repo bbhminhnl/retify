@@ -21,26 +21,26 @@ import { useTranslations } from "next-intl";
  * Dư liệu POS
  */
 const POS_OPTION = [
-  {
-    value: "Facebook",
-    label: "Facebook",
-    Icon: IFacebook,
-  },
-  {
-    value: "Instagram",
-    label: "Instagram",
-    Icon: Instagram,
-  },
-  {
-    value: "Tiktok",
-    label: "Tiktok",
-    Icon: ITiktok,
-  },
-  {
-    value: "Whatsapp",
-    label: "Whatsapp",
-    Icon: IWhatsapp,
-  },
+  // {
+  //   value: "Facebook",
+  //   label: "Facebook",
+  //   Icon: IFacebook,
+  // },
+  // {
+  //   value: "Instagram",
+  //   label: "Instagram",
+  //   Icon: Instagram,
+  // },
+  // {
+  //   value: "Tiktok",
+  //   label: "Tiktok",
+  //   Icon: ITiktok,
+  // },
+  // {
+  //   value: "Whatsapp",
+  //   label: "Whatsapp",
+  //   Icon: IWhatsapp,
+  // },
   {
     value: "Website",
     label: "Website",
@@ -72,7 +72,7 @@ const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
   return (
     <div>
       <div className="flex flex-col gap-3">
-        <div className=" items-center justify-center h-12 w-full sticky bottom-0 hidden md:flex">
+        {/* <div className=" items-center justify-center h-12 w-full sticky bottom-0 hidden md:flex">
           <div className="h-10 w-80">
             <iframe
               loading="lazy"
@@ -81,7 +81,7 @@ const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
               frameBorder="none"
             ></iframe>
           </div>
-        </div>
+        </div> */}
         {
           /** Render list option */
           POS_OPTION.map((option, index) => (
@@ -101,6 +101,7 @@ const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
                   }}
                   loading={loading}
                   selected={selected_channel === option.value}
+                  btn_text={t("copy")}
                 />
               )}
               {option.value === "QR" && (

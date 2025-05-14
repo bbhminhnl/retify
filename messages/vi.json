@@ -97,5 +97,7 @@
   "setup_complete": "Cài đặt hoàn tất, hãy để chúng tôi giúp bạn đưa cửa hàng của bạn lên và chạy với Retify.AI!",
   "go_live": "Trực tuyến",
   "not_JSON": "Không phải JSON, bỏ qua: ",
-  "cannot_detect_text": "Không thể nhận diện văn bản từ hình ảnh. Vui lòng kiểm tra lại hình hoặc nhập thủ công."
+  "cannot_detect_text": "Không thể nhận diện văn bản từ hình ảnh. Vui lòng kiểm tra lại hình hoặc nhập thủ công.",
+  "something_went_wrong": "Đã xảy ra lỗi, vui lòng kiểm tra lai.",
+  "copy": "Sao chép"
 }
