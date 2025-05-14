@@ -52,7 +52,7 @@ const StepNavigator: React.FC<Props> = ({
       >
         {t("Back")}
       </button>
-      {step !== maxSteps && (
+      {
         <button
           onClick={() => {
             if (disabledNext) return;
@@ -68,7 +68,7 @@ const StepNavigator: React.FC<Props> = ({
             </div>
           )}
         </button>
-      )}
+      }
     </div>
   );
 };

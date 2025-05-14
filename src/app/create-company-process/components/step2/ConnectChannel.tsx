@@ -62,9 +62,11 @@ const ConnectChannel = ({
           )}
         </div>
       </div>
-      <div className="flex flex-grow min-w-0 overflow-hidden overflow-x-auto">
-        <ChatEmbedCode />
-      </div>
+      {name === "website" && (
+        <div className="flex flex-grow min-w-0 overflow-hidden overflow-x-auto">
+          <ChatEmbedCode />
+        </div>
+      )}
     </div>
   );
 };
