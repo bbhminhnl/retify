@@ -55,6 +55,22 @@ type Props = {
   internal_markdown_parent?: string;
   /** setInternalMarkdown */
   setInternalMarkdownParent?: (markdown: string) => void;
+  /** access token chatbox */
+  access_token_chatbox?: string;
+  /** Connect to CRM */
+  connect_to_crm?: boolean;
+  /** on Finish */
+  on_finish_all?: boolean;
+  /** Update QR code
+   *  @param value
+   */
+  updateQRCode?: (value: any) => void;
+  /** qr code */
+  qr_code?: string;
+  /** Parent_page_id */
+  parent_page_id?: string;
+  /** setParentPageId */
+  setParentPageId?: (value: string) => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -78,6 +94,13 @@ const StepContent: React.FC<Props> = ({
   setMarkdownParent,
   internal_markdown_parent,
   setInternalMarkdownParent,
+  access_token_chatbox,
+  connect_to_crm,
+  on_finish_all,
+  updateQRCode,
+  qr_code,
+  parent_page_id,
+  setParentPageId,
 }) => {
   console.log(company_size, "company_size");
   return (
@@ -101,7 +124,6 @@ const StepContent: React.FC<Props> = ({
           defaultValue={fixed_menu}
         />
       )}
-
       {step === 3 && (
         <div>
           <TemplateClient
@@ -127,8 +149,7 @@ const StepContent: React.FC<Props> = ({
           />
         </div>
       )}
-
-      {step === 5 && (
+      {step === 5 && !connect_to_crm && (
         <div className="h-full">
           <IframeMerchant
             data_input={data_input}
@@ -137,23 +158,30 @@ const StepContent: React.FC<Props> = ({
           />
         </div>
       )}
-      {step === 6 && !access_token && (
-        <LaunchAI
-          onConnect={() => {
-            handleConnectChannel();
-          }}
-          loading={loading}
-        />
-      )}
-      {step === 6 && access_token && (
+      {step === 5 && connect_to_crm && (
         <div>
           <ConnectToCRM
             access_token_global={access_token}
             onFinish={(selected_page, selected_organization) => {
               onFinish && onFinish(selected_page, selected_organization);
             }}
+            access_token_chatbox={access_token_chatbox}
+            page_name={data_input.shop_name.toLowerCase()}
+            document={markdown_parent}
+            updateQRCode={updateQRCode}
+            setParentPageId={setParentPageId}
           />
         </div>
+      )}
+      {step === 6 && !on_finish_all && (
+        <LaunchAI
+          // onConnect={() => {
+          //   handleConnectChannel();
+          // }}
+          loading={loading}
+          qr_code={qr_code}
+          page_id={parent_page_id}
+        />
       )}
     </div>
   );

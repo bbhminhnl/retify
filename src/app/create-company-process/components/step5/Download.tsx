@@ -13,8 +13,10 @@ interface Props {
   onConnect?: () => void;
   /** Icon */
   Icon?: React.ElementType;
+  /** src */
+  src?: string;
 }
-const Download = ({ name, onConnect, Icon }: Props) => {
+const Download = ({ name, onConnect, Icon, src }: Props) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
   return (
@@ -39,7 +41,7 @@ const Download = ({ name, onConnect, Icon }: Props) => {
         </div>
       </div>
       <div>
-        <Image src={QR} alt={name || "QR"} width={200} height={200} />
+        <Image src={src || QR} alt={name || "QR"} width={200} height={200} />
       </div>
     </div>
   );

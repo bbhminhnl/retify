@@ -50,6 +50,10 @@ const DEFAULT_FORM_DATA: FormDataType = {
   shop_information: {},
   shop_address_detected: "",
   shop_name_detected: "",
+  connect_to_crm: false,
+  on_finish_all: false,
+  qr_code: "",
+  parent_page_id: "",
 };
 const MainLayout = () => {
   /** Đa ngôn ngữ */
@@ -116,6 +120,8 @@ const MainLayout = () => {
   /** Data input */
   const [is_edit, setIsEdit] = useState(false);
 
+  const [access_token_chatbox, setAccessTokenChatbox] = useState<string>("");
+
   /** Disable next button */
   const checkDisableNextButton = () => {
     /**
@@ -151,10 +157,17 @@ const MainLayout = () => {
     }
 
     /** nếu step 5 */
+    if (form_data.step === 5 && form_data.connect_to_crm) {
+      updateField("connect_to_crm", false);
+      return;
+    }
+
+    /** nếu step 5 */
     if (form_data.step === 6) {
       /** Xoá token */
       // setAccessToken("");
-      updateField("access_token", "");
+      // updateField("access_token", "");
+      updateField("connect_to_crm", false);
     }
     /** setStep  */
     // setStep((s) => Math.max(s - 1, 1));
@@ -183,6 +196,20 @@ const MainLayout = () => {
       );
     } else if (form_data.step === 4) {
       handleSaveStep4();
+    } else if (form_data.step === 5) {
+      setAccessTokenChatbox(
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI"
+      );
+
+      updateField(
+        "access_token",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI"
+      );
+      /** setStep */
+      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+      updateField("connect_to_crm", true);
+    } else if (form_data.step === 6) {
+      updateField("on_finish_all", true);
     } else {
       /** setStep */
       // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
@@ -471,12 +498,22 @@ const MainLayout = () => {
       }
 
       /** Đảm bảo đã parse xong và có định dạng đúng */
-      if (data?.type === "page.loginFB") {
+      // if (data?.type === "page.loginFB") {
+      //   console.log(data, "event data");
+      //   /** Hiệnt toast message */
+      //   // toast.error(data.payload);
+      //   /** Set access token */
+      //   setAccessToken(data.payload?.token?.accessToken);
+      //   updateField("access_token", data.payload?.token?.accessToken);
+      // }
+
+      /** Kiem tra event data */
+      if (data?.type === "page.token_chatbox") {
         console.log(data, "event data");
-        /** Hiệnt toast message */
-        // toast.error(data.payload);
+
         /** Set access token */
-        setAccessToken(data.payload?.token?.accessToken);
+        // setAccessToken(data.payload?.token?.accessToken);
+        setAccessTokenChatbox(data.payload?.token?.accessToken);
         updateField("access_token", data.payload?.token?.accessToken);
       }
     };
@@ -488,7 +525,7 @@ const MainLayout = () => {
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [form_data.step]);
+  }, []);
 
   /**
    * Hàm xử lý upload ảnh lên server
@@ -727,7 +764,7 @@ const MainLayout = () => {
 
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
-      {!on_finish && (
+      {!form_data?.on_finish_all && (
         <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
           <Progress currentStep={form_data?.step} totalSteps={TOTAL_STEPS} />
           <StepTitle step={form_data.step} />
@@ -813,33 +850,47 @@ const MainLayout = () => {
               }}
               loading={loading}
               /** Bước 6 Finish */
-              access_token={form_data.access_token}
+              access_token={""}
+              access_token_chatbox={form_data.access_token}
               onFinish={(
                 selected_page: string,
                 selected_organization: string
               ) => {
-                setOnFinish(true);
+                // setOnFinish(true);
+                updateField("step", TOTAL_STEPS);
                 setSelectedPage(selected_page);
                 setSelectedOrganization(selected_organization);
               }}
+              connect_to_crm={form_data.connect_to_crm}
+              on_finish_all={form_data.on_finish_all}
+              updateQRCode={(e) => {
+                updateField("qr_code", e);
+              }}
+              qr_code={form_data.qr_code}
+              parent_page_id={form_data.parent_page_id}
+              setParentPageId={(e) => {
+                updateField("parent_page_id", e);
+              }}
             />
           </div>
-          <StepNavigator
-            step={form_data.step}
-            maxSteps={TOTAL_STEPS}
-            onBack={() => {
-              onBackFn();
-            }}
-            onNext={() => {
-              onNextFn();
-            }}
-            disabledNext={checkDisableNextButton()}
-            disabledBack={form_data.step === 1}
-            loading={loading || loading_shop}
-          />
+          {(!form_data?.on_finish_all || form_data?.connect_to_crm) && (
+            <StepNavigator
+              step={form_data.step}
+              maxSteps={TOTAL_STEPS}
+              onBack={() => {
+                onBackFn();
+              }}
+              onNext={() => {
+                onNextFn();
+              }}
+              disabledNext={checkDisableNextButton()}
+              disabledBack={form_data.step === 1}
+              loading={loading || loading_shop}
+            />
+          )}
         </div>
       )}
-      {on_finish && (
+      {form_data?.on_finish_all && (
         <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
           <ConnectDone page_id={selected_page} org_id={selected_organization} />
         </div>

@@ -1,11 +1,12 @@
 "use client";
 
-import { find, forEach, get, has, keys } from "lodash";
+import { create, find, forEach, get, has, keys, set } from "lodash";
 import { useEffect, useState } from "react";
 
 import Loading from "@/components/loading/Loading";
 import { UserProfile } from "@/types";
 import { apiCommon } from "@/services/fetchApi";
+import { generateQRCodeImage } from "@/utils";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 
@@ -41,9 +42,20 @@ type IPageProps = {
 const ConnectToCRM = ({
   access_token_global,
   onFinish,
+  access_token_chatbox,
+  page_name,
+  document,
+  updateQRCode,
+  setParentPageId,
 }: {
   access_token_global: string;
   onFinish?: (page_id: string, org_id: string) => void;
+  access_token_chatbox?: string;
+  page_name?: string;
+  document?: string;
+  updateQRCode?: (value: any) => void;
+  parent_page_id?: string;
+  setParentPageId?: (value: string) => void;
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -118,17 +130,25 @@ const ConnectToCRM = ({
     }
   };
 
+  // useEffect(() => {
+  //   /**
+  //    * Nếu có token thì lấy danh sách page
+  //    */
+  //   if (access_token) {
+  //     /** Lấy danh sách page */
+  //     fetchPageFacebook();
+  //     /** Lấy danh sách sản phẩm */
+  //     fetchProducts();
+  //   }
+  // }, [access_token]);
+
   useEffect(() => {
-    /**
-     * Nếu có token thì lấy danh sách page
-     */
-    if (access_token) {
-      /** Lấy danh sách page */
-      fetchPageFacebook();
-      /** Lấy danh sách sản phẩm */
-      fetchProducts();
+    console.log(access_token_chatbox, "access_token_chatbox");
+    if (access_token_chatbox) {
+      // fetchListOrg(access_token_chatbox);
+      handleLoginChatbox(access_token_chatbox);
     }
-  }, [access_token]);
+  }, [access_token_chatbox]);
 
   /**
    * Lay danh sach page
@@ -495,20 +515,57 @@ const ConnectToCRM = ({
     await createAllProducts(TOKEN_MERCHANT, PAGE_ID, ORG_ID);
   };
 
+  /**
+   *  Hàm tạo page
+   * @param ORG_ID
+   * @param ACCESS_TOKEN
+   * @returns
+   */
+  const createPage = async (ORG_ID: string, ACCESS_TOKEN: string) => {
+    setLoadingText(t("creating_page"));
+    /**
+     * Endpoint tạo page
+     */
+    const END_POINT = "app/page/create_website_page";
+    /** Tạo QR code */
+    const BASE_64_IMG = await generateQRCodeImage(
+      `https://${page_name}.retify.ai`
+    );
+    /**
+     * Update QR code
+     */
+    updateQRCode && updateQRCode(BASE_64_IMG);
+
+    const RES = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: {
+        org_id: ORG_ID,
+        name: `${page_name}.retify.ai`,
+      },
+      headers: {
+        Authorization: ACCESS_TOKEN,
+      },
+      service_type: "service",
+    });
+    return RES?.data?.fb_page_id;
+  };
+
   /** Function chính
    * @param ORG_ID
    * @param PAGE_ID
    * @param ACCESS_TOKEN
    */
-  const mainFunction = async (
-    ORG_ID: string,
-    PAGE_ID: string,
-    ACCESS_TOKEN: string
-  ) => {
+  const mainFunction = async (ORG_ID: string, ACCESS_TOKEN: string) => {
     try {
       console.log(ORG_ID, "ORG_ID");
       setSelectedOrganization(ORG_ID);
       setLoading(true);
+
+      /** Create Page */
+      const PAGE_ID = await createPage(ORG_ID, ACCESS_TOKEN);
+      /** Cập nhật page id */
+      setParentPageId && setParentPageId(PAGE_ID);
       /** Kết nối Chatbox */
       await handleConnectToChatBox(ORG_ID, PAGE_ID, ACCESS_TOKEN);
       /** Kết nối Merchant */
@@ -931,8 +988,7 @@ const ConnectToCRM = ({
     );
     /** update message đã tạo sản phẩm thành công */
     setLoadingText(t("product_sync_success"));
-    /** Tắt loading */
-    setLoading(false);
+
     /**
      * Xoá text sau 5s
      */
@@ -940,6 +996,8 @@ const ConnectToCRM = ({
       // setLoadingText("");
       // setFinishInstalling(true);
       onFinish && onFinish(PAGE_ID, ORG_ID);
+      /** Tắt loading */
+      setLoading(false);
     }, 2000);
 
     // fetchListPages(ACCESS_TOKEN, PAGE_ID);
@@ -1119,10 +1177,15 @@ const ConnectToCRM = ({
     /** Lấy FILE Document từ API */
     const RESULT = await fetchDocument();
     console.log(RESULT, "RESULT");
+    console.log(document, "documents");
     /** Tạo mock data file mới với dữ liệu đã cập nhật */
-    const MOCK_DATA_FILE = new File([RESULT], "retify_started_knowledge.txt", {
-      type: "text/plain",
-    });
+    const MOCK_DATA_FILE = new File(
+      [document?.toString() || ""],
+      "retify_started_knowledge.txt",
+      {
+        type: "text/plain",
+      }
+    );
 
     /** Đường dẫn API upload file*/
     const END_POINT = `app/document/upload?org_id=${ORG_ID}`;
@@ -1218,7 +1281,7 @@ const ConnectToCRM = ({
    * Handle connect page
    * @param PAGE_ID
    */
-  const handleConnectPage = async (PAGE_ID: string) => {
+  const handleLoginChatbox = async (access_token: string) => {
     /**================== Cập nhật trạng thái =================== */
     /** Bắt đầu loading */
     setLoading(true);
@@ -1229,20 +1292,20 @@ const ConnectToCRM = ({
     /** Cập nhạt Text tiến trình */
     setLoadingText(t("setting_up"));
     /**  */
-    const ACCESS_TOKEN = await onLogin(PAGE_ID);
+    // const ACCESS_TOKEN = await onLogin(PAGE_ID);
     /** Kiểm tra token được return */
-    if (ACCESS_TOKEN === "error" || !ACCESS_TOKEN) {
+    if (access_token === "error" || !access_token) {
       /** Gọi handle Error */
       handleError(t("incorrect_token"));
 
       return;
     }
     /** Lưu token và state */
-    setChatboxToken(ACCESS_TOKEN);
+    setChatboxToken(access_token);
     /** ======================= Lấy danh sách page Retion ======================== */
     setLoadingText(t("fetching_organization_data"));
     /** Danh sách Tổ chức */
-    const LIST_ORG = await fetchListOrg(ACCESS_TOKEN);
+    const LIST_ORG = await fetchListOrg(access_token);
     /** Nếu không có Tổ chức, hoặc lỗi error */
     if (LIST_ORG === "error" || !LIST_ORG) {
       /**
@@ -1270,7 +1333,7 @@ const ConnectToCRM = ({
         />
       </Suspense> */}
 
-      {access_token &&
+      {/* {access_token &&
         !loading &&
         !loading_text &&
         !finish_installing &&
@@ -1307,8 +1370,8 @@ const ConnectToCRM = ({
               )}
             </div>
           </div>
-        )}
-      {organization?.length > 0 && (
+        )} */}
+      {organization?.length > 0 && !loading && (
         <div className="h-full w-full">
           <h4>{t("select_your_organization")}</h4>
           <div className="flex flex-col gap-y-2 w-full">
@@ -1317,8 +1380,8 @@ const ConnectToCRM = ({
                 key={org?.org_id}
                 className="flex w-full items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
                 onClick={() => {
-                  mainFunction(org?.org_id, selected_page, chatbox_token);
-                  setOrganization([]);
+                  mainFunction(org?.org_id, chatbox_token);
+                  // setOrganization([]);
                 }}
               >
                 <img

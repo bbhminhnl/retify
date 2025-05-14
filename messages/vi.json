@@ -99,5 +99,6 @@
   "not_JSON": "Không phải JSON, bỏ qua: ",
   "cannot_detect_text": "Không thể nhận diện văn bản từ hình ảnh. Vui lòng kiểm tra lại hình hoặc nhập thủ công.",
   "something_went_wrong": "Đã xảy ra lỗi, vui lòng kiểm tra lai.",
-  "copy": "Sao chép"
+  "copy": "Sao chép",
+  "creating_page": "Đang tạo trang"
 }

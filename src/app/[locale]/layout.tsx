@@ -31,14 +31,19 @@ const geistMono = Geist_Mono({
 
 /**
  * Meta data cho trang web
+ * cần giữ nguyên tên metadata
  */
 export const metadata: Metadata = {
   title: "Retify",
   description: "A simple way to generate your menu",
+  icons: {
+    icon: "/favicon.ico", // hoặc .png, .svg
+  },
 };
 
 /**
  * Kiểu viewport cho trang web
+ * không đổi tên theo format. cần giữ nguyên tên trang web
  */
 export const viewport = {
   width: "device-width",

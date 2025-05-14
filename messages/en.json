@@ -98,5 +98,6 @@
   "go_live": "Go Live",
   "not_JSON": "Not a JSON, skipped: ",
   "something_went_wrong": "Something went wrong, please check again.",
-  "copy": "Copy"
+  "copy": "Copy",
+  "creating_page": "Creating Page"
 }

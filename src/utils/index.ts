@@ -1,3 +1,4 @@
+import QRCode from "qrcode";
 import { toast } from "react-toastify";
 
 /** FromatCurrency
@@ -137,5 +138,24 @@ export function copyToClipboard(text: string, onError?: (error: any) => void) {
         document.body.removeChild(TEXT_AREA);
       }
     }
+  }
+}
+
+/**
+ * Hàm generate QR code base64 từ chuỗi đầu vào
+ * @param text Chuỗi cần chuyển thành QR
+ * @returns Chuỗi base64 ảnh PNG QR code
+ */
+export async function generateQRCodeImage(text: string): Promise<string> {
+  try {
+    /**
+     * Tạo QR code tuần nây
+     */
+    const DATA_URL = await QRCode.toDataURL(text);
+    /** Đây là một ảnh PNG base64 */
+    return DATA_URL;
+  } catch (err) {
+    console.error("Lỗi khi tạo QR Code:", err);
+    throw err;
   }
 }

@@ -23,6 +23,14 @@ interface FormDataType {
   shop_address_detected: string;
   /** Thống tin cửa hàng */
   shop_name_detected: string;
+  /** connect to CRM */
+  connect_to_crm: boolean;
+  /** onFinish */
+  on_finish_all: boolean;
+  /** qr code */
+  qr_code: string;
+  /** page id */
+  parent_page_id: string;
 }
 interface FormErrors {
   /** Thống tin cửa hàng */

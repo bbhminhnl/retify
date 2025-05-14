@@ -61,9 +61,18 @@ interface ConnectChannelProps {
   onConnect?: () => void;
   /** Loading */
   loading?: boolean;
+  /** qr code */
+  qr_code?: string;
+  /** page_id */
+  page_id?: string;
 }
 
-const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
+const LaunchAI = ({
+  onConnect,
+  loading,
+  qr_code,
+  page_id,
+}: ConnectChannelProps) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
   /** select channel */
@@ -102,6 +111,7 @@ const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
                   loading={loading}
                   selected={selected_channel === option.value}
                   btn_text={t("copy")}
+                  page_id={page_id}
                 />
               )}
               {option.value === "QR" && (
@@ -111,6 +121,7 @@ const LaunchAI = ({ onConnect, loading }: ConnectChannelProps) => {
                   onConnect={() => {
                     toast.warn(t("feature_not_available"));
                   }}
+                  src={qr_code}
                 />
               )}
             </div>

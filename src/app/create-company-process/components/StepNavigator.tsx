@@ -58,7 +58,7 @@ const StepNavigator: React.FC<Props> = ({
             if (disabledNext) return;
             onNext();
           }}
-          disabled={step === maxSteps || disabledNext || loading}
+          disabled={disabledNext || loading}
           className={`px-10 py-2 bg-blue-700 text-white rounded-md disabled:bg-blue-200 disabled:text-blue-700 text-sm font-semibold cursor-pointer flex items-center gap-x-2`}
         >
           {t("Next")}
