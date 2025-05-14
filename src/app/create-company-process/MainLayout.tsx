@@ -48,6 +48,8 @@ const DEFAULT_FORM_DATA: FormDataType = {
   internal_markdown: "",
   access_token: "",
   shop_information: {},
+  shop_address_detected: "",
+  shop_name_detected: "",
 };
 const MainLayout = () => {
   /** Đa ngôn ngữ */
@@ -286,6 +288,18 @@ const MainLayout = () => {
       handleAddDocument(data, DATA_STORE);
       /** Tắt loading */
       processDocument(data, DATA_STORE?.content);
+      /**
+       * Tìm kiếm thông tin từ data
+       */
+      const AI_DETECT_CONTENT = await fetch("/api/ai-detect", {
+        method: "POST",
+        body: JSON.stringify({ rawTexts: DATA_STORE?.content }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log(AI_DETECT_CONTENT, "DATA_AI_DETECT_CONTENT");
 
       /** Set isEdit */
       setIsEdit(false);
@@ -518,37 +532,11 @@ const MainLayout = () => {
     return VISION_DATA;
   };
 
-  // async function processMenu(rawText: string) {
-  //   const STEP_0 = await fetch("/api/clean-menu/step0", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ rawText }),
-  //   });
-  //   const { fixedText } = await STEP_0.json();
-
-  //   const STEP_1 = await fetch("/api/clean-menu/step1", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ fixedText }),
-  //   });
-  //   const { filteredText } = await STEP_1.json();
-
-  //   const STEP_2 = await fetch("/api/clean-menu/step2", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ filteredText }),
-  //   });
-  //   const { normalizedText } = await STEP_2.json();
-
-  //   const STEP_3 = await fetch("/api/clean-menu/step3", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ normalizedText }),
-  //   });
-  //   const { menuItems } = await STEP_3.json();
-
-  //   return menuItems;
-  // }
+  /**
+   * Hàm xử lý menu
+   * @param raw_text
+   * @returns
+   */
   async function processMenu(rawText: string) {
     /** Fix text */
     const { fixedText } = await callStepAPI("step0", { rawText });
@@ -569,19 +557,10 @@ const MainLayout = () => {
    */
   const handleCleanMenu = async (raw_text: any) => {
     // /** Xử lý tổng hợp thông tin món ăn */
-    // const CLEAN_MENU = await fetch("/api/clean-menu", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ rawText: raw_text?.join("\n") }),
-    // });
+
     const CLEAN_MENU = await processMenu(raw_text?.join("\n"));
 
     /** Kiểm tra kết quả */
-    // if (!CLEAN_MENU.ok) {
-    //   throw new Error(
-    //     `Cleaned Menu API failed with status ${CLEAN_MENU.status}`
-    //   );
-    // }
 
     console.log(CLEAN_MENU, "CLEAN_MENU");
     /**
@@ -635,34 +614,6 @@ const MainLayout = () => {
     /** Trả về danh sách sản phẩm */
     return NEW_PRODUCT;
   };
-
-  /** UseEffect*/
-  // useEffect(() => {
-  //   /** Nếu step 3 */
-  //   if (form_data?.step === 3) {
-  //     /** Lấy dữ liệu products */
-  //     fetchProducts();
-  //   }
-  // }, [form_data?.step]);
-  /** Lấy đata products */
-  // const fetchProducts = async () => {
-  //   try {
-  //     /** Gọi API lấy products*/
-  //     const RESPONSE = await fetch("/api/products", {
-  //       headers: {
-  //         "Cache-Control": "no-store",
-  //       },
-  //     });
-  //     /** DATA JSON */
-  //     const DATA = await RESPONSE.json();
-  //     /** Lưu dữ liệu product */
-  //     // setProduct(DATA);
-  //     setProducts(DATA);
-  //     console.log(DATA, "DATA");
-  //   } catch (error) {
-  //     console.error("Error fetching products:", error);
-  //   }
-  // };
 
   /**
    * Hàm xử lý tạo món ăn trên server
@@ -782,6 +733,17 @@ const MainLayout = () => {
                 console.log(e);
                 console.log(data_input, "data_input");
                 updateField("data_input", { ...form_data.data_input, ...e });
+
+                /**
+                 * Gán giá trị vào shop detected
+                 */
+                if (e?.shop_name) {
+                  updateField("shop_name_detected", e?.shop_name);
+                }
+                if (e?.shop_address) {
+                  updateField("shop_address_detected", e?.shop_address);
+                }
+
                 /** Compare dữ liệu */
                 if (!e || typeof e !== "object") {
                   return;
@@ -800,10 +762,7 @@ const MainLayout = () => {
               }}
               list_products={form_data.list_products}
               setListProducts={(e) => {
-                updateField("list_products", [
-                  ...form_data.list_products,
-                  ...e,
-                ]);
+                updateField("list_products", [...e]);
                 setIsEdit(true);
               }}
               errors={form_data?.errors}

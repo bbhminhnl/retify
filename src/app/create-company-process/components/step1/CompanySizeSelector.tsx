@@ -71,7 +71,7 @@ const CompanySizeSelector: React.FC<Props> = ({ onSelect, defaultValue }) => {
         <div
           key={size.value}
           onClick={() => handleSelect(size.value)}
-          className={`cursor-pointer border rounded-lg p-3 gap-2.5 text-left font-medium transition text-sm ${
+          className={`cursor-pointer border rounded-lg p-3 gap-2.5 text-left  transition text-sm ${
             selected === size.value
               ? "bg-blue-700 text-white border-blue-700 shadow"
               : "bg-white hover:border-blue-400"

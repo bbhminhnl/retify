@@ -19,6 +19,10 @@ interface FormDataType {
   access_token: string;
   /** Thông tin shop */
   shop_information: Record<string, any>;
+  /** Địa chỉ cửa hàng */
+  shop_address_detected: string;
+  /** Thống tin cửa hàng */
+  shop_name_detected: string;
 }
 interface FormErrors {
   /** Thống tin cửa hàng */

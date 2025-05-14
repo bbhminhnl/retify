@@ -30,7 +30,7 @@ const SelectPOS: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <h2 className="text-sm text-left font-normal">{t("Option3")}</h2>
+      <h2 className="text-sm text-left font-normal">{t("Option2")}</h2>
       <div className="flex flex-col gap-2">
         {
           /** Render list option */
@@ -40,7 +40,7 @@ const SelectPOS: React.FC = () => {
               name={option.value}
               Icon={option.Icon}
               onConnect={() => {
-                toast.warn("Tính năng này đang phát triển");
+                toast.warn(t("feature_not_available"));
               }}
             />
           ))

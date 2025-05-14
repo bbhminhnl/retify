@@ -1,12 +1,9 @@
-// components/StepContent.tsx
-import React, { useState } from "react";
-
 import CompanySizeSelector from "./step1/CompanySizeSelector";
 import ConnectToCRM from "@/app/connect/ConnectToCRM";
 import CreateAI from "./step2/CreateAI";
-import EditorPage from "@/app/[locale]/editor/EditorPage";
 import IframeMerchant from "./step4/IframeMerchant";
 import LaunchAI from "./step5/LaunchAI";
+import React from "react";
 import TemplateClient from "@/app/[locale]/template/TemplateClient";
 import Tiptap from "@/components/Rich-Text-Editor/Tiptap";
 
