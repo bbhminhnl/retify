@@ -513,8 +513,8 @@ const MainLayout = () => {
 
         /** Set access token */
         // setAccessToken(data.payload?.token?.accessToken);
-        setAccessTokenChatbox(data.payload?.token?.accessToken);
-        updateField("access_token", data.payload?.token?.accessToken);
+        setAccessTokenChatbox(data.payload?.token);
+        updateField("access_token", data.payload?.token);
       }
     };
 
