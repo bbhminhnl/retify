@@ -510,6 +510,7 @@ const MainLayout = () => {
       /** Kiem tra event data */
       if (data?.type === "page.token_chatbox") {
         console.log(data, "event data");
+        toast.success("Token chatbox: " + data.payload?.token);
 
         /** Set access token */
         // setAccessToken(data.payload?.token?.accessToken);
