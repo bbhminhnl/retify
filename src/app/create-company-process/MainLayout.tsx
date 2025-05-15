@@ -507,7 +507,7 @@ const MainLayout = () => {
       //   updateField("access_token", data.payload?.token?.accessToken);
       // }
 
-      toast.success("Token chatbox: " + JSON.stringify(data));
+      // toast.success("Token chatbox: " + JSON.stringify(data));
       /** Kiem tra event data */
       if (data?.type === "page.token_chatbox") {
         console.log(data, "event data");
