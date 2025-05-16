@@ -230,8 +230,9 @@ export default function TemplateClient({
           value_input={data_input_local?.shop_name || ""}
           setValueInput={(e) => {
             // setShopname(e);
-            setDataInputLocal({ ...data_input_local, shop_name: e });
-            setDataInput && setDataInput({ ...data_input, shop_name: e });
+            setDataInputLocal({ ...data_input_local, shop_name: e.trim() });
+            setDataInput &&
+              setDataInput({ ...data_input, shop_name: e.trim() });
             setErrors({ ...errors, shop_name: "" });
             setErrorsInput &&
               setErrorsInput({ ...errors_input, shop_name: "" });
@@ -244,8 +245,9 @@ export default function TemplateClient({
           value_input={data_input_local?.shop_address || ""}
           setValueInput={(e) => {
             // setShopAddress(e);
-            setDataInputLocal({ ...data_input_local, shop_address: e });
-            setDataInput && setDataInput({ ...data_input, shop_address: e });
+            setDataInputLocal({ ...data_input_local, shop_address: e.trim() });
+            setDataInput &&
+              setDataInput({ ...data_input, shop_address: e.trim() });
             setErrors({ ...errors, shop_address: "" });
             setErrorsInput &&
               setErrorsInput({ ...errors_input, shop_address: "" });

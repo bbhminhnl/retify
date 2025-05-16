@@ -19,6 +19,43 @@ interface Props {
 const Download = ({ name, onConnect, Icon, src }: Props) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
+
+  /** Hàm xử lý tải ảnh base64 */
+  const handleDownload = () => {
+    /** QR.src vì ảnh import từ file */
+    const IMAGE_SRC = src || QR.src;
+    /**
+     * Kiểm tra xâu nây co phai base64 khong
+     */
+    if (!IMAGE_SRC.startsWith("data:image")) {
+      console.error("Không phải ảnh base64.");
+      return;
+    }
+    /**
+     * Tạo link download
+     */
+    const LINK = document.createElement("a");
+    /**
+     * Thiet lap thong tin link
+     */
+    LINK.href = IMAGE_SRC;
+    /**
+     * Thiet lap thong tin download
+     */
+    LINK.download = `${name || "qr-code"}.png`;
+    /**
+     * Them link vao body
+     */
+    document.body.appendChild(LINK);
+    /**
+     * Click vao link
+     */
+    LINK.click();
+    /**
+     * Xoa link
+     */
+    document.body.removeChild(LINK);
+  };
   return (
     <div className="flex flex-col items-center justify-between p-3 gap-2.5 rounded-lg border border-slate-200">
       <div className="flex items-center justify-between w-full">
@@ -34,7 +71,7 @@ const Download = ({ name, onConnect, Icon, src }: Props) => {
           <span className="text-sm font-semibold">QR - Code</span>
         </div>
         <div
-          onClick={() => onConnect && onConnect()}
+          onClick={handleDownload}
           className="py-2 px-10 text-white rounded-md gap-1 text-sm font-semibold bg-blue-700 cursor-pointer hover:bg-blue-500"
         >
           {t("download")}

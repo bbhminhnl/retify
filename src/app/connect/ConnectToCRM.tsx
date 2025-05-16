@@ -1,12 +1,12 @@
 "use client";
 
 import { create, find, forEach, get, has, keys, set } from "lodash";
+import { generateQRCodeImage, toRenderDomain } from "@/utils";
 import { useEffect, useState } from "react";
 
 import Loading from "@/components/loading/Loading";
 import { UserProfile } from "@/types";
 import { apiCommon } from "@/services/fetchApi";
-import { generateQRCodeImage } from "@/utils";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 
@@ -47,6 +47,8 @@ const ConnectToCRM = ({
   document,
   updateQRCode,
   setParentPageId,
+  is_need_to_update_crm,
+  setIsNeedToUpdateCrm,
 }: {
   access_token_global: string;
   onFinish?: (page_id: string, org_id: string) => void;
@@ -56,6 +58,13 @@ const ConnectToCRM = ({
   updateQRCode?: (value: any) => void;
   parent_page_id?: string;
   setParentPageId?: (value: string) => void;
+
+  /** is_need_to_update_crm */
+  is_need_to_update_crm?: boolean;
+  /**
+   * setIsNeedToUpdateCrm
+   */
+  setIsNeedToUpdateCrm?: (value: boolean) => void;
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -529,7 +538,7 @@ const ConnectToCRM = ({
     const END_POINT = "app/page/create_website_page";
     /** Tạo QR code */
     const BASE_64_IMG = await generateQRCodeImage(
-      `https://${page_name}.retify.ai`
+      toRenderDomain(page_name || "")
     );
     /**
      * Update QR code
@@ -989,13 +998,13 @@ const ConnectToCRM = ({
     /** update message đã tạo sản phẩm thành công */
     setLoadingText(t("product_sync_success"));
 
+    onFinish && onFinish(PAGE_ID, ORG_ID);
     /**
      * Xoá text sau 5s
      */
     setTimeout(() => {
       // setLoadingText("");
       // setFinishInstalling(true);
-      onFinish && onFinish(PAGE_ID, ORG_ID);
       /** Tắt loading */
       setLoading(false);
     }, 2000);

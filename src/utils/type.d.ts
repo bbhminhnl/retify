@@ -31,6 +31,8 @@ interface FormDataType {
   qr_code: string;
   /** page id */
   parent_page_id: string;
+  /** is need to update */
+  is_need_to_update_crm: boolean;
 }
 interface FormErrors {
   /** Thống tin cửa hàng */

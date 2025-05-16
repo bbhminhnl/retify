@@ -18,6 +18,7 @@ Yêu cầu:
    - Tách mỗi size thành một dòng
    - Thêm size vào tên món, ví dụ: "Trà Sữa (M) - 35000 - VND"
 2. Nếu không có size, giữ nguyên
+3. Tuyệt đối không được thêm - vào trước món ăn, gây nhàm lẫn
 
 Chỉ trả lại danh sách món chuẩn, không tiêu đề, không đánh số.
 `;

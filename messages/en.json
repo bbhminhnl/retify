@@ -99,5 +99,6 @@
   "not_JSON": "Not a JSON, skipped: ",
   "something_went_wrong": "Something went wrong, please check again.",
   "copy": "Copy",
-  "creating_page": "Creating Page"
+  "creating_page": "Creating Page",
+  "error_update_setup_status": "An error occurred while updating the setup status."
 }

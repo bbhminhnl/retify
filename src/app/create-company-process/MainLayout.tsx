@@ -1,5 +1,6 @@
 "use client";
 
+import { apiCommon, callStepAPI } from "@/services/fetchApi";
 import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
 import { loadFormData, saveFormData } from "@/utils/formStore";
 import { useEffect, useState } from "react";
@@ -12,7 +13,6 @@ import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
-import { callStepAPI } from "@/services/fetchApi";
 import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
@@ -54,6 +54,7 @@ const DEFAULT_FORM_DATA: FormDataType = {
   on_finish_all: false,
   qr_code: "",
   parent_page_id: "",
+  is_need_to_update_crm: false,
 };
 const MainLayout = () => {
   /** Đa ngôn ngữ */
@@ -181,6 +182,7 @@ const MainLayout = () => {
       if (file_image) {
         /** Xử lý tạo món ăn */
         handleProcessProductStep2();
+        updateField("is_need_to_update_crm", true);
       } else {
         /** Cập nhật step */
         updateField("step", form_data.step + 1);
@@ -201,19 +203,53 @@ const MainLayout = () => {
       //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI"
       // );
 
-      // updateField(
-      //   "access_token",
-      //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI"
-      // );
+      updateField(
+        "access_token",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI"
+      );
       /** setStep */
       // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
       updateField("connect_to_crm", true);
+      /** Nếu k cần update thông tin thì sang luôn b6 */
+      if (!form_data.is_need_to_update_crm) {
+        updateField("step", form_data.step + 1);
+      }
     } else if (form_data.step === 6) {
-      updateField("on_finish_all", true);
+      /** Cập nhật api status septup */
+      updateSetupStatus();
     } else {
       /** setStep */
       // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
       updateField("step", form_data.step + 1);
+    }
+  };
+  /**
+   * Hàm cập nhật trạng thái setup
+   * @returns
+   */
+  const updateSetupStatus = async () => {
+    try {
+      /** End point */
+      const END_POINT = "app/chatbot_user/update_setup_status";
+
+      /** Gọi api cập nhật trạng thái setup */
+      await apiCommon({
+        end_point: END_POINT,
+        method: "POST",
+        body: {
+          is_setup_completed: true,
+        },
+        headers: {
+          Authorization: form_data.access_token,
+        },
+        service_type: "service",
+      });
+
+      /** Hoàn thành */
+      updateField("on_finish_all", true);
+    } catch (error) {
+      toast.error(t("error_update_setup_status"));
+    } finally {
     }
   };
   /** Hàm xử lý khi nhấn nút lưu */
@@ -293,7 +329,8 @@ const MainLayout = () => {
       setIsEdit(false);
       return;
     }
-
+    /** Cập nhật trạng thái, cần update lại thông tin */
+    updateField("is_need_to_update_crm", true);
     try {
       setLoadingShop(true);
       /** Key word search */
@@ -861,6 +898,7 @@ const MainLayout = () => {
                 updateField("step", TOTAL_STEPS);
                 setSelectedPage(selected_page);
                 setSelectedOrganization(selected_organization);
+                updateField("is_need_to_update_crm", false);
               }}
               connect_to_crm={form_data.connect_to_crm}
               on_finish_all={form_data.on_finish_all}
@@ -872,6 +910,10 @@ const MainLayout = () => {
               setParentPageId={(e) => {
                 updateField("parent_page_id", e);
               }}
+              is_need_to_update_crm={form_data.is_need_to_update_crm}
+              // setIsNeedToUpdateCrm={(e: boolean) => {
+              //   updateField("is_need_to_update_crm", e);
+              // }}
             />
           </div>
           {(!form_data?.on_finish_all || form_data?.connect_to_crm) && (

@@ -6,6 +6,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 
 import Loading from "@/components/loading/Loading";
+import { run } from "node:test";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 
@@ -33,10 +34,14 @@ const IframeMerchant = ({
 
   /** Fetch products when step === 4 */
   useEffect(() => {
+    console.log("run here");
     /** Bước 5 thì lấy dữ liệu */
     if (step === 5) {
       // fetchProducts();
       setData(products);
+      if (products && products.length === 0) {
+        toast.warning(t("error_fetching_products"));
+      }
     }
   }, [products]);
 

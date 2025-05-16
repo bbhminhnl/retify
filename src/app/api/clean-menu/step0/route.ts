@@ -17,6 +17,7 @@ Yêu cầu:
 2. Tách từ dính liền
 3. Hoàn chỉnh từ bị thiếu do OCR
 4. Dòng quá lỗi thì bỏ
+5. Tuyệt đối không được thêm - vào trước món ăn, gây nhầm lẫn
 
 Chỉ trả lại văn bản đã sửa lỗi, mỗi dòng là một món hoặc mô tả.
 `;

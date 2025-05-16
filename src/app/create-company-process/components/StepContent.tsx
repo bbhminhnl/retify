@@ -71,6 +71,13 @@ type Props = {
   parent_page_id?: string;
   /** setParentPageId */
   setParentPageId?: (value: string) => void;
+
+  /** is_need_to_update_crm */
+  is_need_to_update_crm?: boolean;
+  /**
+   * setIsNeedToUpdateCrm
+   */
+  setIsNeedToUpdateCrm?: (value: boolean) => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -101,6 +108,8 @@ const StepContent: React.FC<Props> = ({
   qr_code,
   parent_page_id,
   setParentPageId,
+  is_need_to_update_crm,
+  setIsNeedToUpdateCrm,
 }) => {
   console.log(company_size, "company_size");
   return (
@@ -158,7 +167,7 @@ const StepContent: React.FC<Props> = ({
           />
         </div>
       )}
-      {step === 5 && connect_to_crm && (
+      {step === 5 && connect_to_crm && is_need_to_update_crm && (
         <div>
           <ConnectToCRM
             access_token_global={access_token}
@@ -170,6 +179,8 @@ const StepContent: React.FC<Props> = ({
             document={markdown_parent}
             updateQRCode={updateQRCode}
             setParentPageId={setParentPageId}
+            is_need_to_update_crm={is_need_to_update_crm}
+            setIsNeedToUpdateCrm={setIsNeedToUpdateCrm}
           />
         </div>
       )}

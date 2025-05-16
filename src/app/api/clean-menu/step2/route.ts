@@ -27,6 +27,7 @@ Yêu cầu:
 
 ❌ Không thêm tiêu đề như "Danh sách món ăn:"
 ❌ Không đánh số thứ tự dòng (1., 2., ...)
+✅ Nếu trước tên món phát hiện "-" hoặc "1." thì tự động xoá đi
 ✅ Chỉ mỗi dòng là một món.
 `;
 
