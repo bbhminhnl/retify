@@ -591,7 +591,7 @@ const MainLayout = () => {
 
     /** Add event listener */
     window.addEventListener("message", handleMessage);
-    updateField("access_token", MOCK_TOKEN);
+    // updateField("access_token", MOCK_TOKEN);
 
     /** Remove event listener */
     return () => {
