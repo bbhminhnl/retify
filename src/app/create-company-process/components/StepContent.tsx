@@ -194,6 +194,7 @@ const StepContent: React.FC<Props> = ({
           loading={loading}
           qr_code={qr_code}
           page_id={parent_page_id}
+          page_name={data_input.shop_name.toLowerCase()}
         />
       )}
     </div>

@@ -298,7 +298,10 @@ const MainLayout = () => {
       updateField("connect_to_crm", false);
       /** Cập nhật trạng thái update CRM */
       updateField("is_need_to_update_crm", true);
-
+      /**
+       * cập nhật trạng thái update loading b5
+       */
+      updateField("fetching_step_4_5", false);
       /** Update step */
       updateField("step", form_data.step + 1);
     } catch (error) {
@@ -896,10 +899,14 @@ const MainLayout = () => {
               markdown_parent={form_data.markdown}
               setMarkdownParent={(e) => {
                 updateField("markdown", e);
+                /** Nếu có chỉnh sửa thì set trạng thái */
+                updateField("fetching_step_4_5", true);
               }}
               internal_markdown_parent={form_data.internal_markdown}
               setInternalMarkdownParent={(e) => {
                 updateField("internal_markdown", e);
+                /** Nếu có chỉnh sửa thì set trạng thái */
+                updateField("fetching_step_4_5", true);
               }}
               /** Bước 5 */
 

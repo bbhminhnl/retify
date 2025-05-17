@@ -65,6 +65,8 @@ interface ConnectChannelProps {
   qr_code?: string;
   /** page_id */
   page_id?: string;
+  /** page_name  */
+  page_name?: string;
 }
 
 const LaunchAI = ({
@@ -72,6 +74,7 @@ const LaunchAI = ({
   loading,
   qr_code,
   page_id,
+  page_name,
 }: ConnectChannelProps) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -122,6 +125,7 @@ const LaunchAI = ({
                     toast.warn(t("feature_not_available"));
                   }}
                   src={qr_code}
+                  page_name={page_name}
                 />
               )}
             </div>
