@@ -2,6 +2,7 @@
 
 import { EditorContent, useEditor } from "@tiptap/react";
 import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 import Highlight from "@tiptap/extension-highlight";
 import { Markdown } from "tiptap-markdown";
@@ -9,7 +10,6 @@ import MenuBar from "./MenuBar";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import { debounce } from "lodash";
-import { useTranslations } from "next-intl";
 
 /**
  * type sản phẩm
@@ -58,6 +58,7 @@ const Tiptap = ({
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
+
   /** Markdown*/
   const [markdown, setMarkdown] = useState("");
   /** Nội dung markdown */

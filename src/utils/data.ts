@@ -1,6 +1,38 @@
 export const MOCK_DATA = `Câu hỏi: Nhà hàng có khu vực VIP không? \n\nCâu trả lời: **Dạ có, nhà hàng có khu vực VIP với không gian riêng tư, phù hợp cho tiệc gia đình và gặp gỡ đối tác (hình ảnh cung cấp). Anh/chị có muốn đặt trước không ạ?**\n\nCâu hỏi: Quán có tính phí ship ko? \n\nCâu trả lời: *Dạ bên em có, phí ship được tính theo bên giao hàng xanhsm, be.*\n\nCâu hỏi: Cửa hàng mình có thanh toán bằng thẻ Visa không? \n\nCâu trả lời: ***Cửa hàng chấp nhận thanh toán bằng tiền mặt, thẻ tín dụng và ví điện tử như \\[Momo, ZaloPay,…\\]. Anh/chị muốn thanh toán bằng phương thức nào ạ?***\n\nCâu phản hồi: Cửa hàng đẹp, thức ăn tươi, nhân viên tận tình BBH Tea & Coffee xin cảm ơn bạn đã đóng góp phản hồi! Em rất vui khi biết anh/chị đã có trải nghiệm tuyệt vời khi ghé qua cửa hàng. Cửa hàng sẽ tiếp tục nỗ lực để mang đến sự hài lòng cho quý khách. Mong gặp lại anh chị lần tới! Chúng mình xin cảm ơn!\n\nCâu phản hồi: Phục vụ món ăn quá lâu, dọn bàn chậm. BBH Tea & Coffee xin cảm ơn anh/chị đã đóng góp phản hồi! Bên em xin lỗi vì những trải nghiệm không tốt của anh/chị khi ghé quán ạ! Bên em sẽ kiểm tra lại quy trình phục vụ để cải thiện tốt hơn ạ! Mong vẫn sẽ nhận được sự ủng hộ từ anh/chị trong những lần tới! BBH Tea & Coffee xin cảm ơn!\n\nCâu phản hồi: Thức ăn quá mặn/nhạt, tôi chưa hài lòng! BBH Tea & Coffee xin cảm ơn anh/chị đã đóng góp phản hồi! Bên em xin lỗi vì những trải nghiệm không tốt của anh/chị khi ghé quán ạ! Bên em hiểu rằng phải luôn mang lại những khẩu vị tốt nhất cho từng khách hàng khi đến quán. Nên mong những lần sau quý khách có thể báo trước khẩu vị để bếp điều chỉnh cho phù hợp ạ! Bên em xin cảm ơn!\n\nCâu phản hồi: Cửa hàng quá ồn, không gian không đủ thoải mái! BBH Tea & Coffee xin cảm ơn anh/chị đã đóng góp phản hồi! Bên em xin lỗi vì những trải nghiệm không tốt của anh/chị khi ghé quán ạ! Cửa hàng có những không gian yên tĩnh, anh chị có thể đặt lịch trước với em hoặc khi anh chị ở cửa hàng có thể báo các bạn nhân viên cửa hàng. Em xin cảm ơn.\n\nCâu phản hồi: Bên mình có ưu đãi gì không? Hiện tại bên em đang có chương trình “Giảm 50% hóa đơn không quá 50.000đ” áp dụng với khách hàng đặt hàng lần đầu qua Zalo / Messenger. Mỗi khách hàng được sử dụng mã ưu đãi này 3 lần ạ. Ngoài ra bên em còn có chương trình tích điểm dành cho thành viên quen thuộc của quán ạ.\n\nCâu hỏi: Nhà hàng mình có nhận đặt tiệc, sinh nhật hoặc cho cơ quan, gia đình số lượng lớn không? Câu trả lời:Dạ cửa hàng có phục vụ tiệc sinh nhật và sự kiện ạ! Bên em có không gian riêng, trang trí theo yêu cầu và menu tiệc đa dạng. Anh/chị có thể cho em biết số lượng khách và ngày tổ chức để em tư vấn gói phù hợp không ạ? Nếu đặt tiệc sinh nhật hay sự kiện số lượng thì anh/chị được nhận ưu đãi giảm giá của cửa hàng bên em ạ! Xin cảm ơn anh/chị!\n\nCâu hỏi: Cửa hàng mình có tính phí dịch vụ hay xuất hóa đơn đỏ không? Câu trả lời: Nếu có phí dịch vụ cho một số trường hợp cụ thể, cửa hàng sẽ áp dụng phí dịch vụ cho những trường hợp như phí phục vụ bàn riêng/phòng VIP, phí trang trí tiệc sinh nhật/sự kiện. Anh/chị đang quan tâm đến dịch vụ nào để em tư vấn chi tiết hơn ạ? Dạ, nhà hàng bên em có hỗ trợ xuất hóa đơn VAT ạ! Anh/chị vui lòng cung cấp thông tin xuất hóa đơn (tên công ty, mã số thuế, địa chỉ) khi thanh toán hoặc gửi trước qua email/Zalo. Hóa đơn sẽ được gửi trong vòng 3 ngày sau khi thanh toán ạ.\n\nCâu hỏi: Menu, sản phẩm, đồ uống của cửa hàng Câu trả lời: Đây là menu, danh sách sản phẩm, đồ uống của cửa hàng bên em ạ:
-
 `;
+export const MOCK_DATA_EN = `Question: Does the restaurant have a VIP area?
+
+Answer: **Yes, we have a VIP area with private space, suitable for family gatherings and business meetings (image provided). Would you like to make a reservation?**
+
+Question: Does your shop charge for delivery?
+
+Answer: *Yes, we do. The delivery fee is calculated according to the shipping service, such as xanhSM or Be.*
+
+Question: Does your store accept Visa card payments?
+
+Answer: ***Yes, the store accepts cash, credit cards, and e-wallets like Momo, ZaloPay, etc. Which payment method would you prefer?***
+
+Feedback: The store is beautiful, the food is fresh, and the staff is attentive. BBH Tea & Coffee sincerely thanks you for your feedback! We're very happy to know you had a great experience at our store. We'll keep working hard to bring satisfaction to our customers. Hope to see you again soon!
+
+Feedback: Food service was too slow, and tables were not cleaned promptly. BBH Tea & Coffee sincerely thanks you for your feedback! We apologize for your unpleasant experience. We'll review our service process to make improvements. We hope to continue receiving your support. Thank you!
+
+Feedback: The food was too salty/bland, I wasn't satisfied! BBH Tea & Coffee sincerely thanks you for your feedback! We apologize for your unsatisfactory experience. We understand how important taste is for each guest. In the future, please feel free to let us know your preferences so the kitchen can adjust accordingly. Thank you!
+
+Feedback: The store was too noisy, and the space wasn't comfortable! BBH Tea & Coffee sincerely thanks you for your feedback! We’re sorry about the unpleasant experience. Our store has quieter areas — you may book in advance or inform our staff upon arrival. Thank you!
+
+Feedback: Are there any promotions? Currently, we are offering a “50% discount up to 50,000 VND” for first-time orders via Zalo or Messenger. Each customer may use this offer up to 3 times. We also have a points program for our loyal customers.
+
+Question: Does the restaurant take bookings for events, birthdays, or large groups (family, company)?
+
+Answer: Yes, we provide birthday and event services! We have private spaces, customizable decorations, and a diverse party menu. Could you let us know your number of guests and preferred date so we can recommend a suitable package? Group bookings are also eligible for special discounts. Thank you!
+
+Question: Does your store charge a service fee or issue red invoices (VAT)?
+
+Answer: Service fees may apply in certain cases — for example, private rooms/VIP table service, or decoration for birthdays/events. May I ask which service you're interested in so I can provide more details? Yes, our restaurant can issue VAT invoices. Please provide company name, tax code, and address during payment or send it in advance via email/Zalo. The invoice will be sent within 3 working days after payment.
+
+Question: Menu, products, drinks at your store.
+
+Answer: Here's our store's menu and list of products and drinks:`;
 
 /** Dữ liệu mock */
 export const MOCK_CATEGORIES = [

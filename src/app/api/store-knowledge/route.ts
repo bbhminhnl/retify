@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   /**
    * Nhận dữ liệu từ client
    */
-  const { query } = await req.json(); // Ví dụ: "Tiệm Bánh ABC, Quận 3"
+  const { query, locale } = await req.json(); // Ví dụ: "Tiệm Bánh ABC, Quận 3"
 
   try {
     /** 1️⃣ Gọi Google Search */
@@ -88,6 +88,48 @@ Ví dụ:
   Snippet: Cửa hàng Cô Hồng nằm gần chợ Bến Thành, không gian ấm cúng, giờ hoạt động: 06:00 - 21:00, liên hệ qua 0909123456.
   Link: https://reviewfood.vn/...
     `;
+
+    const GPT_PROMPT_EN = `
+You are an AI assistant specializing in collecting and synthesizing business information from online search results. I will provide you with a list of search results (from Google Search, review sites, blogs, etc.) related to a specific store. These results may contain inconsistent or incomplete information.
+
+Your task:
+
+1. **Extract and consolidate the most accurate and relevant information** about the store from all results, including:
+   - "name": The exact name of the store
+   - "address": Physical address (if available)
+   - "phone": Primary phone number(s), including store and hotline numbers if mentioned. If there are multiple numbers, return them as an array or prioritize the main one if clearly indicated. Make sure the phone number corresponds to the specific address, to avoid mismatch across branches.
+   - "hours": Opening hours — include both opening and closing times or operating range during the day. If formats vary (e.g., "Opens at 6:00 AM, closes at 9:00 PM" vs. "Hours: 6:00 AM - 9:00 PM"), normalize them to a clear and consistent format. Again, be mindful of mismatched hours between branches if the address is provided.
+   - "website": Official website link or main reference link (if available).
+
+2. If any information is missing, set its value as "null" or an empty string "" (do not make up or assume any data).
+
+3. Additionally, create useful reference content in a Q&A format for an AI Agent to respond:
+   - A short, professional overview of the store written in **markdown**.
+   - A list of **frequently asked questions (FAQs)** with brief and clear answers related to hours, contact, service quality, etc.
+     + Format each Q&A clearly using this pattern:
+         Question: What is the name of the store?  
+         Answer: It's **Bún Bò Cô Hồng – Authentic Hue-style noodles**  
+       Normalize inconsistent formatting like random spacing or line breaks for clarity.
+
+### Note: Do not translate or alter brand names, phone numbers, or website URLs such as "xanhSM", "BBH", etc.
+
+### Search data provided:
+${FORMATTED_DATA}
+
+Example:
+- Title: Bún Bò Cô Hồng – Authentic Hue-style noodles  
+  Snippet: A popular spot at 45 Nguyễn Trãi, District 1, Ho Chi Minh City. Call 0909123456 or hotline 1900 1234 to place orders. Open from 6:00 AM to 9:00 PM.  
+  Link: https://maps.google.com/bunbo1
+
+- Title: Bún Bò Cô Hồng on Foody  
+  Snippet: Address: 45 Nguyễn Trãi, District 1, HCMC. Delivery available, but phone number is not clearly listed.  
+  Link: https://foody.vn/...
+
+- Title: Best Bún Bò spots in Saigon  
+  Snippet: Cô Hồng restaurant near Bến Thành Market. Cozy space. Hours: 6:00 AM - 9:00 PM. Contact: 0909123456.  
+  Link: https://reviewfood.vn/...
+`;
+
     /**
      * Gọi OpenAI API để xử lý dữ liệu
      * Với Prompt custom
@@ -97,7 +139,9 @@ Ví dụ:
      */
     const GPT_RESPONSE = await OPEN_AI.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: GPT_PROMPT }],
+      messages: [
+        { role: "user", content: locale === "en" ? GPT_PROMPT_EN : GPT_PROMPT },
+      ],
       temperature: 0.3, // Giảm nhiệt độ để kết quả ổn định
     });
     /**

@@ -1,12 +1,13 @@
 "use client";
 
+import { MOCK_DATA, MOCK_DATA_EN } from "@/utils/data";
 import { apiCommon, callStepAPI } from "@/services/fetchApi";
 import { generateSessionId, getSessionId, storeSessionId } from "@/lib/session";
 import { loadFormData, saveFormData } from "@/utils/formStore";
 import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 import ConnectDone from "./components/step6/ConnectDone";
-import { MOCK_DATA } from "@/utils/data";
 import Product from "../products/Products";
 import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
@@ -14,7 +15,6 @@ import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
 import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
-import { useTranslations } from "next-intl";
 
 /**
  * Interface Props
@@ -34,7 +34,9 @@ declare global {
 }
 /** Mock token */
 const MOCK_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTkyOTMzNDI0MzMyNTE5IiwiZmJfc3RhZmZfaWQiOiIyNjkzOTE5NDU0MTExODczIiwiaXNfZGlzYWJsZSI6ZmFsc2UsIl9pZCI6IjY3ODA4NjdiYzVmNDNjODU1NmY1OGQ2YyIsImlhdCI6MTc0NzQ2OTU4MywiZXhwIjozMTU1MzQ3NDY5NTgzfQ.iAq5CIxrpmeSxm_Oh1rxnx09uIfWwnYK776LD0QQP7Y";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3NDk5MjQ5LCJleHAiOjMxNTUzNDc0OTkyNDl9.Lj83AFAcQHWuTSq-hf40JpTfzAeDFHvxYKvF-61PLW0";
+// const MOCK_TOKEN =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTkyOTMzNDI0MzMyNTE5IiwiZmJfc3RhZmZfaWQiOiIyNjkzOTE5NDU0MTExODczIiwiaXNfZGlzYWJsZSI6ZmFsc2UsIl9pZCI6IjY3ODA4NjdiYzVmNDNjODU1NmY1OGQ2YyIsImlhdCI6MTc0NzQ2OTU4MywiZXhwIjozMTU1MzQ3NDY5NTgzfQ.iAq5CIxrpmeSxm_Oh1rxnx09uIfWwnYK776LD0QQP7Y";
 // /** Mock token */
 // const MOCK_TOKEN =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI";
@@ -66,10 +68,14 @@ const DEFAULT_FORM_DATA: FormDataType = {
 const MainLayout = () => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
+
+  /** Locale hiện tại */
+  const LOCALE = useLocale();
   /** Khai báo form_data */
   const [form_data, setFormData] = useState<FormDataType>(DEFAULT_FORM_DATA);
   /** Gọi lần đầu lấy data ở localStorage */
   useEffect(() => {
+    /** Lấy data ở localStorage */
     const SAVED = loadFormData();
     if (SAVED) {
       setFormData({ ...DEFAULT_FORM_DATA, ...SAVED });
@@ -373,7 +379,7 @@ const MainLayout = () => {
       /** Tìm kiếm thông tin cửa hàng */
       const RES = await fetch("/api/store-knowledge", {
         method: "POST",
-        body: JSON.stringify({ query: key_word }),
+        body: JSON.stringify({ query: key_word, locale: LOCALE }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -438,32 +444,39 @@ const MainLayout = () => {
    * @param shop Thông tin cửa hàng
    */
   const processDocument = (item: Product[], shop: string) => {
+    /** Dữ liệu mẫu */
+    const EXISTING_DATA =
+      LOCALE === "en"
+        ? typeof MOCK_DATA_EN === "string"
+          ? MOCK_DATA_EN
+          : ""
+        : typeof MOCK_DATA === "string"
+        ? MOCK_DATA
+        : "";
+
     /** Thông tin cửa hàng */
-    const SHOP_INFO_BLOCK = shop ? `## 🏪 Thông tin cửa hàng\n${shop}` : "";
-    /** THông tin Sản phẩm */
+    const SHOP_INFO_BLOCK = shop ? `## ${t("shop_info")}\n${shop}` : "";
+
+    /** Thông tin sản phẩm */
     const PRODUCT_BLOCK =
       item.length > 0
-        ? `${item
+        ? item
             .map(
               (product) =>
                 `- **${product.name}**: ${product.price.toLocaleString(
-                  "vi-VN"
+                  LOCALE === "en" ? "en-US" : "vi-VN"
                 )} đ`
             )
-            .join("\n")}`
+            .join("\n")
         : "";
-    /** Lấy dữ liệu từ Mock data */
-    const EXISTING_DATA = typeof MOCK_DATA === "string" ? MOCK_DATA : "";
-    /** Cập nhật Thông tin sản phẩm và Thông tin Shop */
+
+    /** Tổng hợp nội dung */
     const UPDATED_DATA = [EXISTING_DATA, PRODUCT_BLOCK, SHOP_INFO_BLOCK]
       .filter(Boolean)
       .join("\n\n");
 
-    /** Cập nhật cả markdown và internal_markdown */
-    // setMarkdown(UPDATED_DATA);
+    /** Cập nhật dữ liệu */
     updateField("markdown", UPDATED_DATA);
-    /** Cập nhật nội dung editor */
-    // setInternalMarkdown(UPDATED_DATA);
     updateField("internal_markdown", UPDATED_DATA);
   };
 

@@ -484,7 +484,11 @@ const ConnectToCRM = ({
 
     setPartnerToken(PARTNER_TOKEN);
     /** Gọi hàm lấy Token merchant */
-    const TOKEN_MERCHANT = await fetchTokenMerchant(PARTNER_TOKEN, PAGE_ID);
+    const TOKEN_MERCHANT = await fetchTokenMerchant(
+      PARTNER_TOKEN,
+      PAGE_ID,
+      ACCESS_TOKEN
+    );
     setTokenMerchant(TOKEN_MERCHANT);
 
     /** Tạo sản phẩm đồng bộ sang Merchant */
@@ -846,6 +850,8 @@ const ConnectToCRM = ({
           time: 0,
         },
       },
+      page_language: "en",
+      default_language: "en",
     };
     /** Khai báo Header */
     const HEADERS = {
@@ -921,9 +927,59 @@ const ConnectToCRM = ({
    * @param page_id
    * @returns
    */
-  const fetchClientId = async (page_id: string) => {
+  const fetchClientId = async (page_id: string, ACCESS_TOKEN: string) => {
+    /** Domain read conversation */
+    const DOMAIN_READ = `app/conversation/read_conversation`;
+    /** Call API read conversation */
+    const DATA_READ = await apiCommon({
+      end_point: DOMAIN_READ,
+      method: "POST",
+      body: {
+        page_id: page_id,
+        conversation_type: "CHAT",
+        is_spam_fb: "NO",
+        limit: 40,
+      },
+      headers: {
+        Authorization: ACCESS_TOKEN,
+      },
+      service_type: "service",
+    });
+
+    console.log(DATA_READ, "DATA READ");
+    /** Kiểm tra đã có hội thoại chưa */
+    const IS_EXIST_CONVERSATION = DATA_READ?.data?.result.length > 0;
+    /** Nếu có thì gửi 1 tin nhắn từ page cho hội thoại 1 */
+    if (IS_EXIST_CONVERSATION) {
+      const DOMAIN_2 = `embed/message/send_message`;
+
+      await apiCommon({
+        end_point: DOMAIN_2,
+        method: "POST",
+        body: {
+          page_id: page_id,
+          from: "PAGE",
+          client_id: DATA_READ?.data?.result[0]?.fb_client_id,
+          text: `Welcome to Retify!
+To start experiencing automated ordering:
+ • Step 1: Click the link https://retify.ai/c/${page_id} . You can embed this link into Facebook, WhatsApp, or QR codes for customers to access.
+ 
+ • Step 2: Pretend to be a customer and chat with the virtual assistant to place an order.
+ • Step 3: A new order will appear, and you can proceed to process it.
+ 
+ Additionally, you can train the virtual assistant to be smarter by following this guide: https://docs.retify.ai/training-ai
+ 
+ If you need further assistance, visit https://retify.ai to get free support from the Retify Team.`,
+        },
+        service_type: "public",
+      });
+      return DATA_READ?.data?.result[0]?.fb_client_id;
+    }
+
+    // (Click Demo Link: https://embed-trial-preview.vercel.app/?page_id=${page_id}&locale=vn )
+    // (Click Demo Link: https://embed-trial-preview.vercel.app/?page_id=${page_id}&locale=vn )
     /** Domain Merchant */
-    const DOMAIN = `embed/conversation/init_identify?name=anonymous&page_id=${page_id}`;
+    const DOMAIN = `embed/conversation/init_identify?name=Welcome+to+Retify&page_id=${page_id}`;
 
     const RES = await apiCommon({
       end_point: DOMAIN,
@@ -934,7 +990,32 @@ const ConnectToCRM = ({
     if (RES?.code !== 200) {
       throw RES?.message;
     }
+
+    const DOMAIN_2 = `embed/message/send_message`;
+    /** Gửi tin nhắn đến client mới tạo ra */
+    const RES_2 = await apiCommon({
+      end_point: DOMAIN_2,
+      method: "POST",
+      body: {
+        page_id: page_id,
+        from: "PAGE",
+        client_id: RES?.data,
+        text: `Welcome to Retify!
+To start experiencing automated ordering:
+ • Step 1: Click the link https://retify.ai/c/${page_id} . You can embed this link into Facebook, WhatsApp, or QR codes for customers to access.
+
+ • Step 2: Pretend to be a customer and chat with the virtual assistant to place an order.
+ • Step 3: A new order will appear, and you can proceed to process it.
+
+Additionally, you can train the virtual assistant to be smarter by following this guide: https://docs.retify.ai/training-ai
+
+If you need further assistance, visit https://retify.ai to get free support from the Retify Team.`,
+      },
+      service_type: "public",
+    });
+
     console.log(RES, "RESPONSE");
+    console.log(RES_2, "RESPONSE");
     /** Trả ra client ID */
     return RES?.data;
   };
@@ -944,12 +1025,16 @@ const ConnectToCRM = ({
    * @param ACCESS_TOKEN
    * @param PAGE_ID
    */
-  const fetchTokenMerchant = async (ACCESS_TOKEN: string, PAGE_ID: string) => {
+  const fetchTokenMerchant = async (
+    ACCESS_TOKEN: string,
+    PAGE_ID: string,
+    CHATBOX_TOKEN: string
+  ) => {
     /** Chat Domain */
     const END_POINT = `v1/public/chatbox/get_config`;
 
     /** Khai báo body*/
-    const CLIENT_ID = await fetchClientId(PAGE_ID);
+    const CLIENT_ID = await fetchClientId(PAGE_ID, CHATBOX_TOKEN);
 
     /** Body*/
     const BODY = {

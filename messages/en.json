@@ -5,7 +5,7 @@
 
   "step1": "What is your company size?",
   "step2": "Create Your AI Assistant & Sales Page",
-  "step3": "Menu and Shop Information",
+  "step3": "Menu and Store Information",
   "step4": "Customize Documents",
   "step5": "Preview Sales Page & AI Assistant",
   "step6": "Launch AI Assistant and Online Store",
@@ -112,5 +112,6 @@
       "step4": "Processing step 4 / 4",
       "done": "Processing completed."
     }
-  }
+  },
+  "shop_info": "Store Information"
 }
