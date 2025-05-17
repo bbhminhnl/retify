@@ -42,6 +42,7 @@ const Download = ({ name, onConnect, Icon, src, page_name }: Props) => {
 
     /** CHeck xem có phải mobile thì gửi postMessage */
     if (IS_MOBILE()) {
+      /** Render domain */
       const DOMAIN = toRenderDomain(page_name || "");
 
       /** Gửi postMessage nếu đang chạy trong WebView của app */

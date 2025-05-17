@@ -78,6 +78,8 @@ type Props = {
    * setIsNeedToUpdateCrm
    */
   setIsNeedToUpdateCrm?: (value: boolean) => void;
+  /** Hiển thị loading message */
+  loading_message?: string;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -110,6 +112,7 @@ const StepContent: React.FC<Props> = ({
   setParentPageId,
   is_need_to_update_crm,
   setIsNeedToUpdateCrm,
+  loading_message,
 }) => {
   console.log(company_size, "company_size");
   return (
@@ -130,6 +133,7 @@ const StepContent: React.FC<Props> = ({
             /** callback function */
             onSelectMenu && onSelectMenu(value);
           }}
+          loading_message={loading_message}
           defaultValue={fixed_menu}
         />
       )}

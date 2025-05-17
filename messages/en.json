@@ -100,5 +100,18 @@
   "something_went_wrong": "Something went wrong, please check again.",
   "copy": "Copy",
   "creating_page": "Creating Page",
-  "error_update_setup_status": "An error occurred while updating the setup status."
+  "error_update_setup_status": "An error occurred while updating the setup status.",
+  "uploading_image": "Uploading image...",
+  "detecting_text": "Detecting text...",
+  "menu": {
+    "process": {
+      "step0": "Fixing OCR text...",
+      "step1": "Filtering valid menu lines...",
+      "step2": "Normalizing prices...",
+      "step3": "Extracting sizes and formatting data...",
+      "done": "Menu processing completed!"
+    }
+  },
+  "menu.processing.step": "Processing step {{current}}/{{total}}...",
+  "menu.processing.done": "Processing complete."
 }

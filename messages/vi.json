@@ -101,5 +101,16 @@
   "something_went_wrong": "Đã xảy ra lỗi, vui lòng kiểm tra lai.",
   "copy": "Sao chép",
   "creating_page": "Đang tạo trang",
-  "error_update_setup_status": "Có lỗi xảy ra khi update trạng thái cài đặt"
+  "error_update_setup_status": "Có lỗi xảy ra khi update trạng thái cài đặt",
+  "uploading_image": "Đang tải lên hình ảnh...",
+  "detecting_text": "Đang nhận diện văn bản...",
+  "menu": {
+    "process": {
+      "step1": "Đang xử lý bước 1 / 4",
+      "step2": "Đang xử lý bước 2 / 4",
+      "step3": "Đang xử lý bước 3 / 4",
+      "step4": "Đang xử lý bước 4 / 4",
+      "done": "Đã xử lý xong."
+    }
+  }
 }

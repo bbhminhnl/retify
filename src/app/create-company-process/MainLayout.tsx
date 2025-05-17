@@ -113,8 +113,8 @@ const MainLayout = () => {
   /** File ảnh đã upload */
   const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
 
-  /** Token chatbox */
-  const [access_token_chatbox, setAccessTokenChatbox] = useState<string>("");
+  /** step 2 message */
+  const [step2_message, setStep2Message] = useState("");
 
   /** Disable next button */
   const checkDisableNextButton = () => {
@@ -662,18 +662,29 @@ const MainLayout = () => {
 
   /**
    * Hàm xử lý menu
-   * @param raw_text
+   * @param rawText
    * @returns
    */
+
   async function processMenu(rawText: string) {
-    /** Fix text */
+    /** Bước 1 */
+    setStep2Message(t("menu.process.step1")); // key cố định, không có biến
     const { fixedText } = await callStepAPI("step0", { rawText });
-    /** Filter text*/
+
+    /** Bước 2 */
+    setStep2Message(t("menu.process.step2"));
     const { filteredText } = await callStepAPI("step1", { fixedText });
-    /** Normalize text*/
+
+    /** Bước 3 */
+    setStep2Message(t("menu.process.step3"));
     const { normalizedText } = await callStepAPI("step2", { filteredText });
-    /** Get menu items */
+
+    /** Bước 4 */
+    setStep2Message(t("menu.process.step4"));
     const { menuItems } = await callStepAPI("step3", { normalizedText });
+
+    /** Hoàn tất */
+    setStep2Message(t("menu.process.done"));
 
     return menuItems;
   }
@@ -684,7 +695,7 @@ const MainLayout = () => {
    * @returns
    */
   const handleCleanMenu = async (raw_text: any) => {
-    // /** Xử lý tổng hợp thông tin món ăn */
+    /** Xử lý tổng hợp thông tin món ăn */
 
     const CLEAN_MENU = await processMenu(raw_text?.join("\n"));
 
@@ -704,10 +715,20 @@ const MainLayout = () => {
    */
   const handleSaveProducts = async (menu_items: any) => {
     /** Bước 2: Tách tên và giá */
-    const PARSED_MENU = menu_items.map((item: string) => {
+    // const PARSED_MENU = menu_items.map((item: string) => {
+    //   /** Tách tên và giá , đơn vị*/
+    //   const [name, price, unit] = item.split(" - ");
+    //   return { name, price, unit };
+    // });
+
+    /** Bước 2: Tách tên và giá */
+    const PARSED_MENU = menu_items.map((item: any) => {
       /** Tách tên và giá , đơn vị*/
-      const [name, price, unit] = item.split(" - ");
-      return { name, price, unit };
+      return {
+        name: item.name,
+        price: item.price,
+        unit: item.currency,
+      };
     });
     /** Lưu menu về redis */
     // await saveMenuToRedisClient("user_id_test", JSON.stringify(PARSED_MENU));
@@ -723,7 +744,7 @@ const MainLayout = () => {
     const NEW_PRODUCT = PARSED_MENU.map((product: any) => ({
       id: simpleUUID(),
       name: product.name,
-      price: Number(product.price) || product.price,
+      price: Number(product.price) || product.price || 0,
       product_image: product.image_url,
       type: "product",
       unit: product.unit,
@@ -755,8 +776,15 @@ const MainLayout = () => {
     try {
       /** Setloading */
       setLoading(true);
+
+      /** Xử lý upload hình ảnh */
+      setStep2Message(t("uploading_image"));
+
       /** Upload hình ảnh lên Merchant và lấy url*/
       const IMAGE_URL = await fetchUploadImage(file_image);
+
+      // const IMAGE_URL =
+      //   "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1747476643816.jpeg";
 
       /** Xử lý tạo menu */
       // const VISION_DATA = await googleVisionAPI(IMAGE_URL);
@@ -764,6 +792,8 @@ const MainLayout = () => {
       let VISION_DATA = null;
       /** Không gây break luồng */
       try {
+        setStep2Message(t("detecting_text"));
+        /** AI detect text from image */
         VISION_DATA = await googleVisionAPI(IMAGE_URL);
       } catch (visionError) {
         console.error("Google Vision API error:", visionError);
@@ -777,6 +807,9 @@ const MainLayout = () => {
       const PRODUCTS = await handleSaveProducts(MENU_ITEMS);
 
       console.log(PRODUCTS, "products");
+      /** Tắt message */
+      setStep2Message("");
+
       /** Update danh sách sản phẩm */
       updateField("list_products", [...PRODUCTS]);
 
@@ -949,6 +982,7 @@ const MainLayout = () => {
               // setIsNeedToUpdateCrm={(e: boolean) => {
               //   updateField("is_need_to_update_crm", e);
               // }}
+              loading_message={step2_message}
             />
           </div>
           {(!form_data?.on_finish_all || form_data?.connect_to_crm) && (
