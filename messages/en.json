@@ -101,17 +101,16 @@
   "copy": "Copy",
   "creating_page": "Creating Page",
   "error_update_setup_status": "An error occurred while updating the setup status.",
+
   "uploading_image": "Uploading image...",
   "detecting_text": "Detecting text...",
   "menu": {
     "process": {
-      "step0": "Fixing OCR text...",
-      "step1": "Filtering valid menu lines...",
-      "step2": "Normalizing prices...",
-      "step3": "Extracting sizes and formatting data...",
-      "done": "Menu processing completed!"
+      "step1": "Processing step 1 / 4",
+      "step2": "Processing step 2 / 4",
+      "step3": "Processing step 3 / 4",
+      "step4": "Processing step 4 / 4",
+      "done": "Processing completed."
     }
-  },
-  "menu.processing.step": "Processing step {{current}}/{{total}}...",
-  "menu.processing.done": "Processing complete."
+  }
 }
