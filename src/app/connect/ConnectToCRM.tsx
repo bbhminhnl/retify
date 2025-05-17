@@ -120,6 +120,8 @@ const ConnectToCRM = ({
 
   useEffect(() => {
     if (access_token_chatbox) {
+      console.log(access_token_chatbox);
+
       // fetchListOrg(access_token_chatbox);
       handleLoginChatbox(access_token_chatbox);
     }

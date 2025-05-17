@@ -174,14 +174,19 @@ const MainLayout = () => {
   const onNextFn = () => {
     /** Bước hiện tại */
     const CURRENT_STEP = form_data?.step ?? 1;
-
+    /** Xử lý các bước */
     switch (CURRENT_STEP) {
       case 2: {
         if (file_image) {
-          // Xử lý tạo sản phẩm từ ảnh
+          /** Xử lý tạo sản phẩm từ ảnh */
           handleProcessProductStep2();
+          /**
+           * Cập nhật trạng thái update crm
+           */
           updateField("is_need_to_update_crm", true);
+          /** bước 3 cần call */
           updateField("fetching_step_3_4", true);
+          /** Bước 4 cần call */
           updateField("fetching_step_4_5", true);
         } else {
           goToNextStep(CURRENT_STEP);
@@ -191,10 +196,18 @@ const MainLayout = () => {
 
       case 3: {
         if (form_data?.fetching_step_3_4) {
-          const shopName = form_data?.data_input?.shop_name || "";
-          const shopAddress = form_data?.data_input?.shop_address || "";
-          const query = `${shopName} - ${shopAddress}`;
-          searchShopInfoStep3(query, form_data.list_products);
+          /**
+           * Tên cửa hàng
+           */
+          const SHOP_NAME = form_data?.data_input?.shop_name || "";
+          /** Địa chỉ cửa hàng */
+          const SHOP_ADDRESS = form_data?.data_input?.shop_address || "";
+          /**
+           * Query
+           */
+          const QUERY = `${SHOP_NAME} - ${SHOP_ADDRESS}`;
+          /** GỌi hàm search */
+          searchShopInfoStep3(QUERY, form_data.list_products);
         } else {
           goToNextStep(CURRENT_STEP);
         }
@@ -202,6 +215,7 @@ const MainLayout = () => {
       }
 
       case 4: {
+        /** Nếu bước 4 cần update */
         if (form_data?.fetching_step_4_5) {
           handleSaveStep4();
         } else {
@@ -211,9 +225,9 @@ const MainLayout = () => {
       }
 
       case 5: {
-        updateField("access_token", MOCK_TOKEN);
+        /** Cập nhật trạng thái */
         updateField("connect_to_crm", true);
-
+        /** NẾu k cần update thông tin cửa hàng */
         if (!form_data?.is_need_to_update_crm) {
           goToNextStep(CURRENT_STEP); // Sang bước 6 luôn
         }
@@ -221,11 +235,13 @@ const MainLayout = () => {
       }
 
       case 6: {
-        updateSetupStatus(); // Gọi API cập nhật trạng thái
+        /** Gọi API cập nhật trạng thái */
+        updateSetupStatus();
         break;
       }
 
       default: {
+        /** mặc định sang bước tiếp */
         goToNextStep(CURRENT_STEP);
         break;
       }
@@ -572,6 +588,7 @@ const MainLayout = () => {
 
     /** Add event listener */
     window.addEventListener("message", handleMessage);
+    updateField("access_token", MOCK_TOKEN);
 
     /** Remove event listener */
     return () => {

@@ -173,6 +173,8 @@ const StepContent: React.FC<Props> = ({
             access_token_global={access_token}
             onFinish={(selected_page, selected_organization) => {
               onFinish && onFinish(selected_page, selected_organization);
+
+              setIsNeedToUpdateCrm && setIsNeedToUpdateCrm(false);
             }}
             access_token_chatbox={access_token_chatbox}
             page_name={data_input.shop_name.toLowerCase()}
