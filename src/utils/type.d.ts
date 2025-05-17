@@ -33,6 +33,10 @@ interface FormDataType {
   parent_page_id: string;
   /** is need to update */
   is_need_to_update_crm: boolean;
+  /** fetching step 3-4 */
+  fetching_step_3_4: boolean;
+  /** fetching step 5 */
+  fetching_step_4_5: boolean;
 }
 interface FormErrors {
   /** Thống tin cửa hàng */

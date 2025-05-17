@@ -6,7 +6,6 @@ import { loadFormData, saveFormData } from "@/utils/formStore";
 import { useEffect, useState } from "react";
 
 import ConnectDone from "./components/step6/ConnectDone";
-import { IProductItem } from "@/types";
 import { MOCK_DATA } from "@/utils/data";
 import Product from "../products/Products";
 import Progress from "./components/Progress";
@@ -33,6 +32,12 @@ declare global {
     };
   }
 }
+/** Mock token */
+const MOCK_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTkyOTMzNDI0MzMyNTE5IiwiZmJfc3RhZmZfaWQiOiIyNjkzOTE5NDU0MTExODczIiwiaXNfZGlzYWJsZSI6ZmFsc2UsIl9pZCI6IjY3ODA4NjdiYzVmNDNjODU1NmY1OGQ2YyIsImlhdCI6MTc0NzQ2OTU4MywiZXhwIjozMTU1MzQ3NDY5NTgzfQ.iAq5CIxrpmeSxm_Oh1rxnx09uIfWwnYK776LD0QQP7Y";
+// /** Mock token */
+// const MOCK_TOKEN =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI";
 /** Form data type */
 const DEFAULT_FORM_DATA: FormDataType = {
   step: 1,
@@ -55,11 +60,13 @@ const DEFAULT_FORM_DATA: FormDataType = {
   qr_code: "",
   parent_page_id: "",
   is_need_to_update_crm: false,
+  fetching_step_3_4: false,
+  fetching_step_4_5: false,
 };
 const MainLayout = () => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
-
+  /** Khai báo form_data */
   const [form_data, setFormData] = useState<FormDataType>(DEFAULT_FORM_DATA);
   /** Gọi lần đầu lấy data ở localStorage */
   useEffect(() => {
@@ -87,19 +94,9 @@ const MainLayout = () => {
   };
   /** Tổng số Step */
   const TOTAL_STEPS = 6;
-  /** Step hiện tại */
-  // const [step, setStep] = useState(1);
-  /** company size */
-  const [company_size, setCompanySize] = useState("");
-  /** onFinish */
-  const [on_finish, setOnFinish] = useState(false);
   /**Loading */
   const [loading, setLoading] = useState(false);
-  /** Image url  - mock link ảnh để test*/
-  const [image_url, setImage] = useState(
-    ""
-    // "https://static.botbanhang.vn/merchant/files/business_642655457c339f9194288da9/1746516949858.jpeg"
-  );
+
   /** File ảnh đã upload */
   const [file_image, setFileImage] = useState<File | null>(null);
   /** Data input */
@@ -110,17 +107,13 @@ const MainLayout = () => {
   const [selected_page, setSelectedPage] = useState("");
   /** selected organization */
   const [selected_organization, setSelectedOrganization] = useState("");
-  /** data Product */
-  const [products, setProducts] = useState<IProductItem[]>([]);
   /** Loading shop */
   const [loading_shop, setLoadingShop] = useState(false);
 
   /** File ảnh đã upload */
   const [file_logo_image, setFileLogoImage] = useState<File | null>(null);
 
-  /** Data input */
-  const [is_edit, setIsEdit] = useState(false);
-
+  /** Token chatbox */
   const [access_token_chatbox, setAccessTokenChatbox] = useState<string>("");
 
   /** Disable next button */
@@ -151,7 +144,6 @@ const MainLayout = () => {
   const onBackFn = () => {
     /** nếu step 4 */
     if (form_data.step === 4) {
-      setIsEdit(false);
       setDataInput({
         ...form_data.data_input,
       });
@@ -165,9 +157,7 @@ const MainLayout = () => {
 
     /** nếu step 5 */
     if (form_data.step === 6) {
-      /** Xoá token */
-      // setAccessToken("");
-      // updateField("access_token", "");
+      /** Cập nhật trạng thái connect to crm */
       updateField("connect_to_crm", false);
     }
     /** setStep  */
@@ -175,54 +165,73 @@ const MainLayout = () => {
     updateField("step", form_data.step - 1);
   };
 
-  /** Hàm xử lý Next */
+  /**
+   * Hàm chuyển sang bước tiếp theo
+   */
+  const goToNextStep = (current_step: number) => {
+    updateField("step", current_step + 1);
+  };
   const onNextFn = () => {
-    /** Bước 2 */
-    if (form_data?.step === 2) {
-      if (file_image) {
-        /** Xử lý tạo món ăn */
-        handleProcessProductStep2();
-        updateField("is_need_to_update_crm", true);
-      } else {
-        /** Cập nhật step */
-        updateField("step", form_data.step + 1);
-      }
-      /** Bước 3 */
-    } else if (form_data?.step === 3) {
-      /** Set trạng thái preview */
-      searchShopInfoStep3(
-        form_data?.data_input?.shop_name +
-          " - " +
-          form_data?.data_input?.shop_address,
-        form_data.list_products
-      );
-    } else if (form_data.step === 4) {
-      handleSaveStep4();
-    } else if (form_data.step === 5) {
-      // setAccessTokenChatbox(
-      //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI"
-      // );
+    /** Bước hiện tại */
+    const CURRENT_STEP = form_data?.step ?? 1;
 
-      updateField(
-        "access_token",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI"
-      );
-      /** setStep */
-      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-      updateField("connect_to_crm", true);
-      /** Nếu k cần update thông tin thì sang luôn b6 */
-      if (!form_data.is_need_to_update_crm) {
-        updateField("step", form_data.step + 1);
+    switch (CURRENT_STEP) {
+      case 2: {
+        if (file_image) {
+          // Xử lý tạo sản phẩm từ ảnh
+          handleProcessProductStep2();
+          updateField("is_need_to_update_crm", true);
+          updateField("fetching_step_3_4", true);
+          updateField("fetching_step_4_5", true);
+        } else {
+          goToNextStep(CURRENT_STEP);
+        }
+        break;
       }
-    } else if (form_data.step === 6) {
-      /** Cập nhật api status septup */
-      updateSetupStatus();
-    } else {
-      /** setStep */
-      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
-      updateField("step", form_data.step + 1);
+
+      case 3: {
+        if (form_data?.fetching_step_3_4) {
+          const shopName = form_data?.data_input?.shop_name || "";
+          const shopAddress = form_data?.data_input?.shop_address || "";
+          const query = `${shopName} - ${shopAddress}`;
+          searchShopInfoStep3(query, form_data.list_products);
+        } else {
+          goToNextStep(CURRENT_STEP);
+        }
+        break;
+      }
+
+      case 4: {
+        if (form_data?.fetching_step_4_5) {
+          handleSaveStep4();
+        } else {
+          goToNextStep(CURRENT_STEP);
+        }
+        break;
+      }
+
+      case 5: {
+        updateField("access_token", MOCK_TOKEN);
+        updateField("connect_to_crm", true);
+
+        if (!form_data?.is_need_to_update_crm) {
+          goToNextStep(CURRENT_STEP); // Sang bước 6 luôn
+        }
+        break;
+      }
+
+      case 6: {
+        updateSetupStatus(); // Gọi API cập nhật trạng thái
+        break;
+      }
+
+      default: {
+        goToNextStep(CURRENT_STEP);
+        break;
+      }
     }
   };
+
   /**
    * Hàm cập nhật trạng thái setup
    * @returns
@@ -268,6 +277,13 @@ const MainLayout = () => {
       });
       /** setStep */
       // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+
+      /** Cập nhật trạng thái connect to crm */
+      updateField("connect_to_crm", false);
+      /** Cập nhật trạng thái update CRM */
+      updateField("is_need_to_update_crm", true);
+
+      /** Update step */
       updateField("step", form_data.step + 1);
     } catch (error) {
       console.error(error);
@@ -322,13 +338,13 @@ const MainLayout = () => {
       });
     }
 
-    console.log(is_edit, "isEdit");
-    /** Nếu isEdit false thì Next luôn */
-    if (!is_edit) {
-      updateField("step", form_data.step + 1);
-      setIsEdit(false);
-      return;
-    }
+    // console.log(is_edit, "isEdit");
+    // /** Nếu isEdit false thì Next luôn */
+    // if (!is_edit) {
+    //   updateField("step", form_data.step + 1);
+    //   setIsEdit(false);
+    //   return;
+    // }
     /** Cập nhật trạng thái, cần update lại thông tin */
     updateField("is_need_to_update_crm", true);
     try {
@@ -384,12 +400,12 @@ const MainLayout = () => {
       // updateField("shop_address_detected", SHOP_INFO?.ai_detect_shop_address);
       // updateField("shop_name_detected", SHOP_INFO?.ai_detect_shop_name);
 
-      /** Set isEdit */
-      setIsEdit(false);
       /** Reset file */
       setFileLogoImage(null);
+      /** Cập nhật trạng thái cần update set 3-> 4 */
+      updateField("fetching_step_3_4", false);
+
       /** setStep */
-      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
       updateField("step", form_data.step + 1);
     } catch (error) {
       toast.error(t("something_went_wrong"));
@@ -550,8 +566,6 @@ const MainLayout = () => {
         console.log(data, "event data");
 
         /** Set access token */
-        // setAccessToken(data.payload?.token?.accessToken);
-        setAccessTokenChatbox(data.payload?.token);
         updateField("access_token", data.payload?.token);
       }
     };
@@ -723,13 +737,6 @@ const MainLayout = () => {
       setLoading(true);
       /** Upload hình ảnh lên Merchant và lấy url*/
       const IMAGE_URL = await fetchUploadImage(file_image);
-      // const IMAGE_URL = image_url;
-      // console.log(IMAGE_URL, "IMAGE_URL");
-      /** Lưu lại URL ảnh */
-      setImage(IMAGE_URL);
-
-      form_data.image_url = IMAGE_URL;
-      // updateField("image_url", IMAGE_URL);
 
       /** Xử lý tạo menu */
       // const VISION_DATA = await googleVisionAPI(IMAGE_URL);
@@ -750,13 +757,15 @@ const MainLayout = () => {
       const PRODUCTS = await handleSaveProducts(MENU_ITEMS);
 
       console.log(PRODUCTS, "products");
-
+      /** Update danh sách sản phẩm */
       updateField("list_products", [...PRODUCTS]);
+
+      /** Update image */
+      updateField("image_url", IMAGE_URL);
 
       setFileImage(null);
 
       /** Next step */
-      // setStep((s) => Math.min(s + 1, TOTAL_STEPS));
       updateField("step", form_data.step + 1);
     } catch (error) {
       if (error instanceof Error) {
@@ -847,17 +856,19 @@ const MainLayout = () => {
                 });
                 /** Nội dung thay đổi thì set trạng thái */
                 if (IS_CHANGED) {
-                  setIsEdit(true);
+                  // setIsEdit(true);
+                  updateField("fetching_step_3_4", true);
                 }
               }}
               updateLogo={(e) => {
                 setFileLogoImage(e);
-                setIsEdit(true);
+                updateField("fetching_step_3_4", true);
               }}
               list_products={form_data.list_products}
               setListProducts={(e) => {
                 updateField("list_products", [...e]);
-                setIsEdit(true);
+                // setIsEdit(true);
+                updateField("fetching_step_3_4", true);
               }}
               errors={form_data?.errors}
               setErrors={(e) => {

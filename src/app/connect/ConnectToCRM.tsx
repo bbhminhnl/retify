@@ -58,12 +58,9 @@ const ConnectToCRM = ({
   updateQRCode?: (value: any) => void;
   parent_page_id?: string;
   setParentPageId?: (value: string) => void;
-
   /** is_need_to_update_crm */
   is_need_to_update_crm?: boolean;
-  /**
-   * setIsNeedToUpdateCrm
-   */
+  /** setIsNeedToUpdateCrm */
   setIsNeedToUpdateCrm?: (value: boolean) => void;
 }) => {
   /** Đa ngôn ngữ */
@@ -74,8 +71,6 @@ const ConnectToCRM = ({
   const [pages, setPages] = useState<UserProfile[]>([]);
   /** Danh sách product */
   const [products, setProducts] = useState<Product[]>([]);
-  /** Page đã chọn */
-  const [selected_page, setSelectedPage] = useState<string>("");
   /** Chatbox token */
   const [chatbox_token, setChatboxToken] = useState<string>("");
   /** Token merchant */
@@ -95,6 +90,9 @@ const ConnectToCRM = ({
   /** Partner Token */
   const [partner_token, setPartnerToken] = useState("");
 
+  /** Domain */
+  const [domain, setDomain] = useState("");
+
   /** Hàm Error
    * @param message
    * @returns void
@@ -113,46 +111,14 @@ const ConnectToCRM = ({
     setTimeout(() => setLoadingText(""), 2000);
   };
 
-  useEffect(() => {
-    /** Nhậnd dược token global */
-    if (access_token_global) {
-      setAccessToken(access_token_global);
-    }
-  }, [access_token_global]);
-
-  /** Lấy đata products */
-  const fetchProducts = async () => {
-    try {
-      /** Gọi API lấy products*/
-      const RESPONSE = await fetch("/api/products", {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      });
-      /** DATA JSON */
-      const DATA = await RESPONSE.json();
-      /** Lưu dữ liệu product */
-      setProducts(DATA);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error(t("error_fetching_products") + error);
-    }
-  };
-
   // useEffect(() => {
-  //   /**
-  //    * Nếu có token thì lấy danh sách page
-  //    */
-  //   if (access_token) {
-  //     /** Lấy danh sách page */
-  //     fetchPageFacebook();
-  //     /** Lấy danh sách sản phẩm */
-  //     fetchProducts();
+  //   /** Nhậnd dược token global */
+  //   if (access_token_global) {
+  //     setAccessToken(access_token_global);
   //   }
-  // }, [access_token]);
+  // }, [access_token_global]);
 
   useEffect(() => {
-    console.log(access_token_chatbox, "access_token_chatbox");
     if (access_token_chatbox) {
       // fetchListOrg(access_token_chatbox);
       handleLoginChatbox(access_token_chatbox);
@@ -502,7 +468,8 @@ const ConnectToCRM = ({
   const handleConnectToMerchant = async (
     ORG_ID: string,
     PAGE_ID: string,
-    ACCESS_TOKEN: string
+    ACCESS_TOKEN: string,
+    DOMAIN: string
   ) => {
     /** Cập nhật Loading Text */
     setLoadingText(t("connecting_to_merchant"));
@@ -521,36 +488,39 @@ const ConnectToCRM = ({
     /** Tạo sản phẩm đồng bộ sang Merchant */
     setLoadingText(t("syncing_product_with_merchant"));
     /** GỌi hàm Tạo sản phẩm Merchant */
-    await createAllProducts(TOKEN_MERCHANT, PAGE_ID, ORG_ID);
+    await createAllProducts(TOKEN_MERCHANT, PAGE_ID, ORG_ID, DOMAIN);
   };
 
   /**
    *  Hàm tạo page
    * @param ORG_ID
    * @param ACCESS_TOKEN
+   * @param DOMAIN
    * @returns
    */
-  const createPage = async (ORG_ID: string, ACCESS_TOKEN: string) => {
+  const createPage = async (
+    ORG_ID: string,
+    ACCESS_TOKEN: string,
+    DOMAIN: string
+  ) => {
     setLoadingText(t("creating_page"));
     /**
      * Endpoint tạo page
      */
     const END_POINT = "app/page/create_website_page";
     /** Tạo QR code */
-    const BASE_64_IMG = await generateQRCodeImage(
-      toRenderDomain(page_name || "")
-    );
+    const BASE_64_IMG = await generateQRCodeImage(`https://${DOMAIN}`);
     /**
      * Update QR code
      */
     updateQRCode && updateQRCode(BASE_64_IMG);
-
+    /** Tạo page */
     const RES = await apiCommon({
       end_point: END_POINT,
       method: "POST",
       body: {
         org_id: ORG_ID,
-        name: `${page_name}.retify.ai`,
+        name: DOMAIN,
       },
       headers: {
         Authorization: ACCESS_TOKEN,
@@ -560,6 +530,25 @@ const ConnectToCRM = ({
     return RES?.data?.fb_page_id;
   };
 
+  const changePageName = async (
+    page_id: string,
+    name: string,
+    ACCESS_TOKEN: string
+  ) => {
+    apiCommon({
+      end_point: "app/page/update_page_setting",
+      method: "POST",
+      body: {
+        page_id,
+        name,
+      },
+      headers: {
+        Authorization: ACCESS_TOKEN,
+      },
+      service_type: "service",
+    });
+  };
+
   /** Function chính
    * @param ORG_ID
    * @param PAGE_ID
@@ -567,18 +556,67 @@ const ConnectToCRM = ({
    */
   const mainFunction = async (ORG_ID: string, ACCESS_TOKEN: string) => {
     try {
-      console.log(ORG_ID, "ORG_ID");
+      /** Cập nhật org id */
       setSelectedOrganization(ORG_ID);
+      /** Cập nhật loading */
       setLoading(true);
 
-      /** Create Page */
-      const PAGE_ID = await createPage(ORG_ID, ACCESS_TOKEN);
-      /** Cập nhật page id */
-      setParentPageId && setParentPageId(PAGE_ID);
-      /** Kết nối Chatbox */
-      await handleConnectToChatBox(ORG_ID, PAGE_ID, ACCESS_TOKEN);
-      /** Kết nối Merchant */
-      await handleConnectToMerchant(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+      /** Kiểm tra trong list page đã có page dạng **.retify.ai chưa */
+      const LIST_INSTALLED_PAGE = await checkInstalledPage(
+        ORG_ID,
+        ACCESS_TOKEN
+      );
+      console.log(LIST_INSTALLED_PAGE, "LIST_INSTALLED_PAGE");
+      /** Page id */
+      let list_page = [];
+      /** Lưu page trùng với tên mới tạo */
+      if (LIST_INSTALLED_PAGE) {
+        list_page = LIST_INSTALLED_PAGE?.filter((item: any) =>
+          item?.page_info?.name.includes(".retify.ai")
+        );
+      }
+      console.log(list_page, "LIST_PAGE_ID");
+      /** Domain */
+      const DOMAIN = toRenderDomain(page_name || "");
+
+      /** check page
+       * Nếu không có page nào trùng với form tên page mới tạo
+       */
+      if (list_page.length === 0 || !list_page) {
+        /** Tạo page */
+        const PAGE_ID = await createPage(ORG_ID, ACCESS_TOKEN, DOMAIN);
+        /** Cập nhật page id */
+        setParentPageId && setParentPageId(PAGE_ID);
+        /** Kết nối Chatbox */
+        await handleConnectToChatBox(ORG_ID, PAGE_ID, ACCESS_TOKEN);
+        /** Kết nối Merchant */
+        await handleConnectToMerchant(ORG_ID, PAGE_ID, ACCESS_TOKEN, DOMAIN);
+      }
+
+      /** check page
+       * Nếu có 1 page trùng với form tên page mới tạo
+       */
+      if (list_page.length > 0) {
+        /** Cập nhật page id */
+        setParentPageId && setParentPageId(list_page[0]?.page_id);
+
+        /** Đổi tên page */
+        await changePageName(list_page[0]?.page_id, DOMAIN, ACCESS_TOKEN);
+
+        /** Kết nối Chatbox */
+        await handleConnectToChatBox(
+          ORG_ID,
+          list_page[0]?.page_id,
+          ACCESS_TOKEN
+        );
+        /** Kết nối Merchant */
+        await handleConnectToMerchant(
+          ORG_ID,
+          list_page[0]?.page_id,
+          ACCESS_TOKEN,
+          DOMAIN
+        );
+      }
     } catch (error) {
       /** Hiện lỗi */
       handleErrorByCode(error, handleError);
@@ -626,6 +664,40 @@ const ConnectToCRM = ({
     }
   }
 
+  /**
+   * Hàm chọn BM để add Page vào
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param ACCESS_TOKEN
+   */
+  const checkInstalledPage = async (ORG_ID: string, ACCESS_TOKEN: string) => {
+    console.log(ACCESS_TOKEN, "access_token");
+
+    /** Domain add page*/
+    const END_POINT = `app/owner_ship/read_page`;
+    /** Khai báo body */
+    const BODY = {
+      org_id: ORG_ID,
+    };
+    /** Khai báo Header */
+    const HEADERS = {
+      Authorization: ACCESS_TOKEN,
+    };
+    /** Thêm page vào Tổ chức */
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "billing",
+    });
+    /** Throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
+    }
+    /** Return list data */
+    return DATA.data;
+  };
   /**
    * Hàm chọn BM để add Page vào
    * @param ORG_ID
@@ -987,7 +1059,8 @@ const ConnectToCRM = ({
   const createAllProducts = async (
     ACCESS_TOKEN: string,
     PAGE_ID: string,
-    ORG_ID: string
+    ORG_ID: string,
+    DOMAIN: string
   ) => {
     /** Dùng Promise.all để gửi nhiều request cùng lúc */
     await Promise.all(
@@ -997,8 +1070,16 @@ const ConnectToCRM = ({
     );
     /** update message đã tạo sản phẩm thành công */
     setLoadingText(t("product_sync_success"));
+    /** Tạo QR code */
+    const BASE_64_IMG = await generateQRCodeImage(`https://${DOMAIN}`);
+
+    /**
+     * Update QR code
+     */
+    updateQRCode && updateQRCode(BASE_64_IMG);
 
     onFinish && onFinish(PAGE_ID, ORG_ID);
+
     /**
      * Xoá text sau 5s
      */
@@ -1278,6 +1359,7 @@ const ConnectToCRM = ({
       method: "POST",
       service_type: "llm_no_proxy",
       body: BODY,
+      headers: HEADERS,
     });
     /** Nếu code !== 200 thì throw lỗi */
     if (DATA?.code !== 200) {
@@ -1300,8 +1382,6 @@ const ConnectToCRM = ({
     /**================== Login =================== */
     /** Cập nhạt Text tiến trình */
     setLoadingText(t("setting_up"));
-    /**  */
-    // const ACCESS_TOKEN = await onLogin(PAGE_ID);
     /** Kiểm tra token được return */
     if (access_token === "error" || !access_token) {
       /** Gọi handle Error */
@@ -1324,6 +1404,15 @@ const ConnectToCRM = ({
 
       return;
     }
+    /** Nếu chỉ có 1 tổ chức, thì auto pick luôn, tránh user mới phải thao tác */
+    if (LIST_ORG.length === 1) {
+      /** Tắt loading và call function luôn */
+      setLoading(false);
+      setLoadingText("");
+      await mainFunction(LIST_ORG[0].org_id, access_token);
+      return;
+    }
+
     /** Lưu danh sách Tổ chức */
     setOrganization(LIST_ORG);
     setLoading(false);
@@ -1380,7 +1469,7 @@ const ConnectToCRM = ({
             </div>
           </div>
         )} */}
-      {organization?.length > 0 && !loading && (
+      {organization?.length > 1 && !loading && (
         <div className="h-full w-full">
           <h4>{t("select_your_organization")}</h4>
           <div className="flex flex-col gap-y-2 w-full">

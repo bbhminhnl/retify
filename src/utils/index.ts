@@ -179,7 +179,7 @@ export function toRenderDomain(name: string): string {
     /** Gộp các dấu - liên tiếp thành 1 */
     .replace(/-+/g, "-");
 
-  return `https://${NORMALIZED}.retify.ai`;
+  return `${NORMALIZED}.retify.ai`;
 }
 
 /** Hàm loại bỏ dấu tiếng Việt

@@ -4,7 +4,6 @@ import ChatEmbedCode from "@/app/components/Embed";
 import Image from "next/image";
 import Loading from "@/components/loading/Loading";
 import Shopify from "@/assets/icons/shopify.svg";
-import { copyToClipboard } from "@/utils";
 import { useTranslations } from "next-intl";
 
 /**
