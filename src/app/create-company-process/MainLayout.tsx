@@ -39,8 +39,8 @@ declare global {
 // const MOCK_TOKEN =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTkyOTMzNDI0MzMyNTE5IiwiZmJfc3RhZmZfaWQiOiIyNjkzOTE5NDU0MTExODczIiwiaXNfZGlzYWJsZSI6ZmFsc2UsIl9pZCI6IjY3ODA4NjdiYzVmNDNjODU1NmY1OGQ2YyIsImlhdCI6MTc0NzQ2OTU4MywiZXhwIjozMTU1MzQ3NDY5NTgzfQ.iAq5CIxrpmeSxm_Oh1rxnx09uIfWwnYK776LD0QQP7Y";
 // /** Mock token */
-const MOCK_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI";
+// const MOCK_TOKEN =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI";
 /** Form data type */
 const DEFAULT_FORM_DATA: FormDataType = {
   step: 1,
@@ -622,7 +622,7 @@ const MainLayout = () => {
 
     /** Add event listener */
     window.addEventListener("message", handleMessage);
-    updateField("access_token", MOCK_TOKEN);
+    // updateField("access_token", MOCK_TOKEN);
 
     /** Remove event listener */
     return () => {
