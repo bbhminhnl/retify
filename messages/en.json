@@ -2,7 +2,7 @@
   "greeting": "Hello, World!",
   "title": "Welcome to my app",
   "notFound": "Page not found",
-
+  "loading_init": "Initializing data",
   "step1": "What is your company size?",
   "step2": "Create Your AI Assistant & Sales Page",
   "step3": "Menu and Store Information",

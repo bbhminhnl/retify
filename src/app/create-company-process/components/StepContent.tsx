@@ -114,7 +114,6 @@ const StepContent: React.FC<Props> = ({
   setIsNeedToUpdateCrm,
   loading_message,
 }) => {
-  console.log(company_size, "company_size");
   return (
     <div className="rounded w-full text-center h-full">
       {step === 1 && (

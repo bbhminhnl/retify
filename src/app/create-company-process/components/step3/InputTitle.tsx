@@ -21,16 +21,16 @@ const InputTitle = ({
   }, [value_input]);
 
   /** Debounce and call setValueInput after 500ms of inactivity */
-  useEffect(() => {
-    const HANDLER = setTimeout(() => {
-      setValueInput(value);
-    }, 500);
+  // useEffect(() => {
+  //   // const HANDLER = setTimeout(() => {
+  //   setValueInput(value);
+  //   // }, 500);
 
-    /** Cleanup if user types again before 500ms */
-    return () => {
-      clearTimeout(HANDLER);
-    };
-  }, [value]);
+  //   // /** Cleanup if user types again before 500ms */
+  //   // return () => {
+  //   //   clearTimeout(HANDLER);
+  //   // };
+  // }, [value]);
 
   /**
    * Hàm xuất lý khi người dùng nhập dữ liệu
@@ -38,6 +38,7 @@ const InputTitle = ({
    */
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value); // Just update local state
+    setValueInput(event.target.value);
   };
 
   return (

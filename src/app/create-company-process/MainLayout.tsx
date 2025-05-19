@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import ConnectDone from "./components/step6/ConnectDone";
+import Loading from "@/components/loading/Loading";
 import Product from "../products/Products";
 import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
@@ -38,8 +39,8 @@ declare global {
 // const MOCK_TOKEN =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTkyOTMzNDI0MzMyNTE5IiwiZmJfc3RhZmZfaWQiOiIyNjkzOTE5NDU0MTExODczIiwiaXNfZGlzYWJsZSI6ZmFsc2UsIl9pZCI6IjY3ODA4NjdiYzVmNDNjODU1NmY1OGQ2YyIsImlhdCI6MTc0NzQ2OTU4MywiZXhwIjozMTU1MzQ3NDY5NTgzfQ.iAq5CIxrpmeSxm_Oh1rxnx09uIfWwnYK776LD0QQP7Y";
 // /** Mock token */
-// const MOCK_TOKEN =
-//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI";
+const MOCK_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI";
 /** Form data type */
 const DEFAULT_FORM_DATA: FormDataType = {
   step: 1,
@@ -123,6 +124,19 @@ const MainLayout = () => {
 
   /** step 2 message */
   const [step2_message, setStep2Message] = useState("");
+
+  /** loading Init */
+  const [loading_init, setLoadingInit] = useState(true);
+  /** Cập nhật lại trạng thái */
+  useEffect(() => {
+    /** Nếu loading_init */
+    if (loading_init) {
+      /** Nâng cấp trên 1 step */
+      if (form_data?.access_token) {
+        setLoadingInit(false);
+      }
+    }
+  }, [loading_init, form_data?.access_token]);
 
   /** Disable next button */
   const checkDisableNextButton = () => {
@@ -601,12 +615,14 @@ const MainLayout = () => {
 
         /** Set access token */
         updateField("access_token", data.payload?.token);
+        /** Tắt loading init */
+        setLoadingInit(false);
       }
     };
 
     /** Add event listener */
     window.addEventListener("message", handleMessage);
-    // updateField("access_token", MOCK_TOKEN);
+    updateField("access_token", MOCK_TOKEN);
 
     /** Remove event listener */
     return () => {
@@ -882,160 +898,179 @@ const MainLayout = () => {
   };
 
   return (
-    <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
-      {!form_data?.on_finish_all && (
-        <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
-          <Progress currentStep={form_data?.step} totalSteps={TOTAL_STEPS} />
-          <StepTitle step={form_data.step} />
-          <div className="w-full flex-grow min-h-0  overflow-hidden overflow-y-auto">
-            <StepContent
-              // step={step}
-              step={form_data.step}
-              /** Bước 1 */
-              onSelectCompanySize={(value) => {
-                // setCompanySize(value);
-                updateField("company_size", value);
-              }}
-              company_size={form_data.company_size}
-              /** Bước 2 */
-              onSelectMenu={(value) => {
-                setFileImage(value);
-              }}
-              fixed_menu={form_data.image_url}
-              /** Bước 3 */
-              data_input={form_data.data_input}
-              setDataInput={(e) => {
-                console.log(e);
-                console.log(data_input, "data_input");
-                updateField("data_input", { ...form_data.data_input, ...e });
-
-                /**
-                 * Gán giá trị vào shop detected
-                 */
-                if (e?.shop_name) {
-                  updateField("shop_name_detected", e?.shop_name);
-                }
-                if (e?.shop_address) {
-                  updateField("shop_address_detected", e?.shop_address);
-                }
-
-                /** Compare dữ liệu */
-                if (!e || typeof e !== "object") {
-                  return;
-                }
-                const IS_CHANGED = Object.keys(e).some((key) => {
-                  return e[key] !== (data_input ?? {})[key];
-                });
-                /** Nội dung thay đổi thì set trạng thái */
-                if (IS_CHANGED) {
-                  // setIsEdit(true);
-                  updateField("fetching_step_3_4", true);
-                }
-              }}
-              updateLogo={(e) => {
-                setFileLogoImage(e);
-                updateField("fetching_step_3_4", true);
-              }}
-              list_products={form_data.list_products}
-              setListProducts={(e) => {
-                updateField("list_products", [...e]);
-                // setIsEdit(true);
-                updateField("fetching_step_3_4", true);
-              }}
-              errors={form_data?.errors}
-              setErrors={(e) => {
-                updateField("errors", { ...form_data.errors, ...e });
-              }}
-              /** Bước 4 */
-
-              markdown_parent={form_data.markdown}
-              setMarkdownParent={(e) => {
-                updateField("markdown", e);
-                /** Nếu có chỉnh sửa thì set trạng thái */
-                updateField("fetching_step_4_5", true);
-              }}
-              internal_markdown_parent={form_data.internal_markdown}
-              setInternalMarkdownParent={(e) => {
-                updateField("internal_markdown", e);
-                /** Nếu có chỉnh sửa thì set trạng thái */
-                updateField("fetching_step_4_5", true);
-              }}
-              /** Bước 5 */
-
-              /** Bước 6 */
-              handleConnectChannel={() => {
-                console.log("Connect channel");
-                setLoading(true);
-                window.ReactNativeWebView?.postMessage(
-                  JSON.stringify({ type: "page.loginFB", message: "" })
-                );
-                setTimeout(() => {
-                  setLoading(false);
-                }, 2000);
-              }}
-              loading={loading}
-              /** Bước 6 Finish */
-              access_token={""}
-              access_token_chatbox={form_data.access_token}
-              onFinish={(
-                selected_page: string,
-                selected_organization: string
-              ) => {
-                // setOnFinish(true);
-                updateField("step", TOTAL_STEPS);
-                // setSelectedPage(selected_page);
-                // setSelectedOrganization(selected_organization);
-                /** Update org */
-                updateField("org_id", selected_organization);
-                /** Update page */
-                updateField("page_id", selected_page);
-                /** Update trạng thái CRM */
-                updateField("is_need_to_update_crm", false);
-              }}
-              connect_to_crm={form_data.connect_to_crm}
-              on_finish_all={form_data.on_finish_all}
-              updateQRCode={(e) => {
-                updateField("qr_code", e);
-              }}
-              qr_code={form_data.qr_code}
-              parent_page_id={form_data.parent_page_id}
-              setParentPageId={(e) => {
-                updateField("parent_page_id", e);
-              }}
-              is_need_to_update_crm={form_data.is_need_to_update_crm}
-              // setIsNeedToUpdateCrm={(e: boolean) => {
-              //   updateField("is_need_to_update_crm", e);
-              // }}
-              loading_message={step2_message}
-            />
+    <div className="flex flex-col h-screen w-screen">
+      {loading_init && (
+        <div className="flex flex-col justify-center items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
+          <div>
+            <Loading size="lg" />
           </div>
-          {(!form_data?.on_finish_all || form_data?.connect_to_crm) && (
-            <StepNavigator
-              step={form_data.step}
-              maxSteps={TOTAL_STEPS}
-              onBack={() => {
-                onBackFn();
-              }}
-              onNext={() => {
-                onNextFn();
-              }}
-              disabledNext={checkDisableNextButton()}
-              disabledBack={form_data.step === 1}
-              loading={loading || loading_shop}
-            />
+          <h4 className="text-xl font-medium">{t("loading_init")}</h4>
+        </div>
+      )}
+      {!loading_init && (
+        <div className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
+          {!form_data?.on_finish_all && (
+            <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
+              <Progress
+                currentStep={form_data?.step}
+                totalSteps={TOTAL_STEPS}
+              />
+              <StepTitle step={form_data.step} />
+              <div className="w-full flex-grow min-h-0  overflow-hidden overflow-y-auto">
+                <StepContent
+                  // step={step}
+                  step={form_data.step}
+                  /** Bước 1 */
+                  onSelectCompanySize={(value) => {
+                    // setCompanySize(value);
+                    updateField("company_size", value);
+                  }}
+                  company_size={form_data.company_size}
+                  /** Bước 2 */
+                  onSelectMenu={(value) => {
+                    setFileImage(value);
+                  }}
+                  fixed_menu={form_data.image_url}
+                  /** Bước 3 */
+                  data_input={form_data.data_input}
+                  setDataInput={(e) => {
+                    // console.log(e);
+                    // console.log(data_input, "data_input");
+                    updateField("data_input", {
+                      ...form_data.data_input,
+                      ...e,
+                    });
+
+                    /**
+                     * Gán giá trị vào shop detected
+                     */
+                    if (e?.shop_name) {
+                      updateField("shop_name_detected", e?.shop_name);
+                    }
+                    if (e?.shop_address) {
+                      updateField("shop_address_detected", e?.shop_address);
+                    }
+
+                    /** Compare dữ liệu */
+                    if (!e || typeof e !== "object") {
+                      return;
+                    }
+                    /** Kiêm tra nội dung thay đổi */
+                    const IS_CHANGED = Object.keys(e).some((key) => {
+                      return e[key] !== (data_input ?? {})[key];
+                    });
+                    /** Nội dung thay đổi thì set trạng thái */
+                    if (IS_CHANGED) {
+                      // setIsEdit(true);
+                      updateField("fetching_step_3_4", true);
+                    }
+                  }}
+                  updateLogo={(e) => {
+                    setFileLogoImage(e);
+                    updateField("fetching_step_3_4", true);
+                  }}
+                  list_products={form_data.list_products}
+                  setListProducts={(e) => {
+                    updateField("list_products", [...e]);
+                    // setIsEdit(true);
+                    updateField("fetching_step_3_4", true);
+                  }}
+                  errors={form_data?.errors}
+                  setErrors={(e) => {
+                    updateField("errors", { ...form_data.errors, ...e });
+                  }}
+                  /** Bước 4 */
+
+                  markdown_parent={form_data.markdown}
+                  setMarkdownParent={(e) => {
+                    updateField("markdown", e);
+                    /** Nếu có chỉnh sửa thì set trạng thái */
+                    updateField("fetching_step_4_5", true);
+                  }}
+                  internal_markdown_parent={form_data.internal_markdown}
+                  setInternalMarkdownParent={(e) => {
+                    updateField("internal_markdown", e);
+                    /** Nếu có chỉnh sửa thì set trạng thái */
+                    updateField("fetching_step_4_5", true);
+                  }}
+                  /** Bước 5 */
+
+                  /** Bước 6 */
+                  handleConnectChannel={() => {
+                    console.log("Connect channel");
+                    setLoading(true);
+                    window.ReactNativeWebView?.postMessage(
+                      JSON.stringify({ type: "page.loginFB", message: "" })
+                    );
+                    setTimeout(() => {
+                      setLoading(false);
+                    }, 2000);
+                  }}
+                  loading={loading}
+                  /** Bước 6 Finish */
+                  access_token={""}
+                  access_token_chatbox={form_data.access_token}
+                  onFinish={(
+                    selected_page: string,
+                    selected_organization: string
+                  ) => {
+                    // setOnFinish(true);
+                    updateField("step", TOTAL_STEPS);
+                    // setSelectedPage(selected_page);
+                    // setSelectedOrganization(selected_organization);
+                    /** Update org */
+                    updateField("org_id", selected_organization);
+                    /** Update page */
+                    updateField("page_id", selected_page);
+                    /** Update trạng thái CRM */
+                    updateField("is_need_to_update_crm", false);
+                  }}
+                  connect_to_crm={form_data.connect_to_crm}
+                  on_finish_all={form_data.on_finish_all}
+                  updateQRCode={(e) => {
+                    updateField("qr_code", e);
+                  }}
+                  qr_code={form_data.qr_code}
+                  parent_page_id={form_data.parent_page_id}
+                  setParentPageId={(e) => {
+                    updateField("parent_page_id", e);
+                  }}
+                  is_need_to_update_crm={form_data.is_need_to_update_crm}
+                  // setIsNeedToUpdateCrm={(e: boolean) => {
+                  //   updateField("is_need_to_update_crm", e);
+                  // }}
+                  loading_message={step2_message}
+                />
+              </div>
+              {(!form_data?.on_finish_all || form_data?.connect_to_crm) && (
+                <StepNavigator
+                  step={form_data.step}
+                  maxSteps={TOTAL_STEPS}
+                  onBack={() => {
+                    onBackFn();
+                  }}
+                  onNext={() => {
+                    onNextFn();
+                  }}
+                  disabledNext={checkDisableNextButton()}
+                  disabledBack={form_data.step === 1}
+                  loading={loading || loading_shop}
+                />
+              )}
+            </div>
+          )}
+          {form_data?.on_finish_all && (
+            <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
+              <ConnectDone
+                page_id={form_data.page_id}
+                org_id={form_data.org_id}
+                resetForm={resetForm}
+              />
+            </div>
           )}
         </div>
       )}
-      {form_data?.on_finish_all && (
-        <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
-          <ConnectDone
-            page_id={form_data.page_id}
-            org_id={form_data.org_id}
-            resetForm={resetForm}
-          />
-        </div>
-      )}
-    </main>
+    </div>
   );
 };
 

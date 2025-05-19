@@ -11,6 +11,7 @@ export default async function Page({ params }: PageProps) {
   /** Validate ID */
   if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
     return notFound();
+    // return <div>Invalid ID</div>;
   }
 
   /** Iframe URL */
