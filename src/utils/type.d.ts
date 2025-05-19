@@ -37,6 +37,10 @@ interface FormDataType {
   fetching_step_3_4: boolean;
   /** fetching step 5 */
   fetching_step_4_5: boolean;
+  /** org id */
+  org_id: string;
+  /** page id */
+  page_id: string;
 }
 interface FormErrors {
   /** Thống tin cửa hàng */

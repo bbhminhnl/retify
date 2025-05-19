@@ -64,6 +64,8 @@ const DEFAULT_FORM_DATA: FormDataType = {
   is_need_to_update_crm: false,
   fetching_step_3_4: false,
   fetching_step_4_5: false,
+  org_id: "",
+  page_id: "",
 };
 const MainLayout = () => {
   /** Đa ngôn ngữ */
@@ -875,6 +877,10 @@ const MainLayout = () => {
     };
   }, []);
 
+  const resetForm = () => {
+    setFormData(DEFAULT_FORM_DATA);
+  };
+
   return (
     <main className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
       {!form_data?.on_finish_all && (
@@ -977,8 +983,13 @@ const MainLayout = () => {
               ) => {
                 // setOnFinish(true);
                 updateField("step", TOTAL_STEPS);
-                setSelectedPage(selected_page);
-                setSelectedOrganization(selected_organization);
+                // setSelectedPage(selected_page);
+                // setSelectedOrganization(selected_organization);
+                /** Update org */
+                updateField("org_id", selected_organization);
+                /** Update page */
+                updateField("page_id", selected_page);
+                /** Update trạng thái CRM */
                 updateField("is_need_to_update_crm", false);
               }}
               connect_to_crm={form_data.connect_to_crm}
@@ -1017,7 +1028,11 @@ const MainLayout = () => {
       )}
       {form_data?.on_finish_all && (
         <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
-          <ConnectDone page_id={selected_page} org_id={selected_organization} />
+          <ConnectDone
+            page_id={form_data.page_id}
+            org_id={form_data.org_id}
+            resetForm={resetForm}
+          />
         </div>
       )}
     </main>

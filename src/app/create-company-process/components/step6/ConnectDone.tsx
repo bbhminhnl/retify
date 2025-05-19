@@ -4,9 +4,12 @@ import { useTranslations } from "next-intl";
 const ConnectDone = ({
   page_id,
   org_id,
+
+  resetForm,
 }: {
   page_id: string;
   org_id: string;
+  resetForm?: () => void;
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -30,6 +33,8 @@ const ConnectDone = ({
                 },
               })
             );
+
+            resetForm && resetForm();
           }}
           className="py-3 px-6 w-full text-white rounded-full gap-1 text-sm font-semibold bg-blue-700 cursor-pointer hover:bg-blue-500"
         >

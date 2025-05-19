@@ -1,12 +1,15 @@
+import "../globals.css";
+
 export const metadata = {
   title: "Retify",
   description: "Chat Embed",
 };
 
-export default function RootLayout({
+export default function IdLayout({
   children,
 }: {
   children: React.ReactNode;
+  params: { id: string };
 }) {
   return (
     <html lang="en">
