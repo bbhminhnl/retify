@@ -1,16 +1,15 @@
 import "../globals.css";
 
-export const metadata = {
-  title: "Retify",
-  description: "Chat Embed",
+import { ReactNode } from "react";
+
+/** Define the correct props type */
+type LayoutProps = {
+  children: ReactNode;
+  /** params is a Promise for [id] */
+  params: Promise<{ id: string }>;
 };
 
-export default function IdLayout({
-  children,
-}: {
-  children: React.ReactNode;
-  params: { id: string };
-}) {
+export default async function IdLayout({ children, params }: LayoutProps) {
   return (
     <html lang="en">
       <body className="flex w-screen h-screen">{children}</body>

@@ -1,32 +1,29 @@
-import { getLocale, getMessages } from "next-intl/server";
-
 import { notFound } from "next/navigation";
 
-interface PageProps {
-  params: Record<string, string>;
-}
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
 export default async function Page({ params }: PageProps) {
-  /** Bắt buộc chờ params trước khi truy cập id */
-  const id = (await params)?.id;
+  /** Lấy id từ params */
+  const { id } = await params;
 
-  /** Lấy locale và messages */
-  const locale = await getLocale();
-  const messages = await getMessages();
+  /** Validate ID */
+  if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+    return notFound();
+  }
 
-  if (!id) return notFound();
+  /** Iframe URL */
+  const IFRAME_URL = process.env.IFRAME_BASE_URL || "http://localhost:5173";
+  /** IFRAME SOURCE */
+  const SRC = `${IFRAME_URL}/view-screen?page_id=${encodeURIComponent(id)}`;
 
   return (
-    <div className="flex w-screen h-screen">
-      {/* <h1>Trang doanh nghiệp ID: {id}</h1> */}
-      {/* <p>Locale hiện tại: {locale}</p> */}
-
-      <div className="flex w-screen h-screen">
-        <iframe
-          src="http://localhost:5173/view-screen?page_id=752538628164226"
-          className="w-screen h-screen"
-        />
-      </div>
-    </div>
+    <iframe
+      src={SRC}
+      className="w-full h-full"
+      title="Embedded Content"
+      sandbox="allow-scripts allow-same-origin"
+    />
   );
 }
