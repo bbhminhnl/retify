@@ -1,4 +1,4 @@
-import MainLayout from "../create-company-process/MainLayout";
+import HomeLayout from "../home/Home";
 import { useTranslations } from "next-intl";
 
 export default function Home() {
@@ -6,8 +6,8 @@ export default function Home() {
   const t = useTranslations();
 
   return (
-    <div className="flex flex-col gap-y-4 flex-grow min-h-0 h-screen md:p-4 bg-red-50 overflow-hidden overflow-y-auto">
-      <MainLayout />
+    <div className="w-screen h-screen">
+      <HomeLayout />
     </div>
   );
 }
