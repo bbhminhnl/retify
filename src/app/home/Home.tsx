@@ -21,7 +21,7 @@ function HomeLayout() {
             <main className="w-full flex flex-col overflow-auto">
               <div className="flex flex-col md:flex-row justify-between">
                 <div className="flex md:pt-20 pt-0 p-3 md:pl-5 md:pr-0 flex-col gap-6">
-                  <h1 className="text-3xl md:text-[52px] md:leading-[64px] font-semibold text-left">
+                  <h1 className="text-4xl md:text-[52px] md:leading-[64px] font-semibold text-left">
                     Supercharge Retail
                     <br />
                     Engagements with
@@ -33,11 +33,21 @@ function HomeLayout() {
                     businesses to connect, convert, and thrive.
                   </p>
                 </div>
-                <img
+                {/* <img
                   className="max-w-[416px] max-h-[663px] p-3 md:p-0"
                   src="/images/retify_preview.png"
                   alt="Retify AI messaging illustration"
-                />
+                /> */}
+                <div className="relative w-full md:w-[416px] h-[663px] p-3 md:p-0">
+                  <Image
+                    src="/images/retify_preview.png"
+                    alt="Retify AI messaging illustration"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 416px"
+                    className="object-contain p-3 md:p-0"
+                    priority
+                  />
+                </div>
               </div>
             </main>
             <footer className="flex text-xs px-3 leading-4 font-medium justify-between items-center flex-shrink-0">
