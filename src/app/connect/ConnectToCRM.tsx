@@ -514,12 +514,7 @@ const ConnectToCRM = ({
      * Endpoint tạo page
      */
     const END_POINT = "app/page/create_website_page";
-    /** Tạo QR code */
-    const BASE_64_IMG = await generateQRCodeImage(`https://${DOMAIN}`);
-    /**
-     * Update QR code
-     */
-    updateQRCode && updateQRCode(BASE_64_IMG);
+
     /** Tạo page */
     const RES = await apiCommon({
       end_point: END_POINT,
@@ -533,6 +528,15 @@ const ConnectToCRM = ({
       },
       service_type: "service",
     });
+
+    /** Tạo QR code */
+    const BASE_64_IMG = await generateQRCodeImage(
+      `https://retify.ai/c/${RES?.data?.fb_page_id}`
+    );
+    /**
+     * Update QR code
+     */
+    updateQRCode && updateQRCode(BASE_64_IMG);
     return RES?.data?.fb_page_id;
   };
 
@@ -1158,7 +1162,9 @@ If you need further assistance, visit https://retify.ai to get free support from
     /** update message đã tạo sản phẩm thành công */
     setLoadingText(t("product_sync_success"));
     /** Tạo QR code */
-    const BASE_64_IMG = await generateQRCodeImage(`https://${DOMAIN}`);
+    const BASE_64_IMG = await generateQRCodeImage(
+      `https://retify.ai/c/${PAGE_ID}`
+    );
 
     /**
      * Update QR code
