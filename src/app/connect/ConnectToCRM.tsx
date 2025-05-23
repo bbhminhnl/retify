@@ -49,6 +49,7 @@ const ConnectToCRM = ({
   setParentPageId,
   is_need_to_update_crm,
   setIsNeedToUpdateCrm,
+  list_products,
 }: {
   access_token_global: string;
   onFinish?: (page_id: string, org_id: string) => void;
@@ -62,6 +63,8 @@ const ConnectToCRM = ({
   is_need_to_update_crm?: boolean;
   /** setIsNeedToUpdateCrm */
   setIsNeedToUpdateCrm?: (value: boolean) => void;
+  /** Products */
+  list_products: Product[];
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -473,6 +476,7 @@ const ConnectToCRM = ({
     ACCESS_TOKEN: string,
     DOMAIN: string
   ) => {
+    console.log("handleConnectToMerchant ==============================");
     /** Cập nhật Loading Text */
     setLoadingText(t("connecting_to_merchant"));
     /** Gọi hàm lấy Token Partner */
@@ -481,14 +485,16 @@ const ConnectToCRM = ({
       ORG_ID,
       PAGE_ID
     );
-
+    /** Lưu token */
     setPartnerToken(PARTNER_TOKEN);
+
     /** Gọi hàm lấy Token merchant */
     const TOKEN_MERCHANT = await fetchTokenMerchant(
       PARTNER_TOKEN,
       PAGE_ID,
       ACCESS_TOKEN
     );
+    /** Lưu token merchant*/
     setTokenMerchant(TOKEN_MERCHANT);
 
     /** Tạo sản phẩm đồng bộ sang Merchant */
@@ -1155,7 +1161,7 @@ If you need further assistance, visit https://retify.ai to get free support from
   ) => {
     /** Dùng Promise.all để gửi nhiều request cùng lúc */
     await Promise.all(
-      products.map((product) =>
+      list_products.map((product) =>
         createProductMerchant(ACCESS_TOKEN, PAGE_ID, product)
       )
     );

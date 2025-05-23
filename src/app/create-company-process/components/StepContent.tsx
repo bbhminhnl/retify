@@ -186,6 +186,7 @@ const StepContent: React.FC<Props> = ({
             setParentPageId={setParentPageId}
             is_need_to_update_crm={is_need_to_update_crm}
             setIsNeedToUpdateCrm={setIsNeedToUpdateCrm}
+            list_products={list_products}
           />
         </div>
       )}
