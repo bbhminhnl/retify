@@ -71,6 +71,7 @@ const DEFAULT_FORM_DATA: FormDataType = {
   org_id: "",
   page_id: "",
   token_merchant: "",
+  type_connect: "",
 };
 const MainLayout = () => {
   /** Đa ngôn ngữ */
@@ -1129,6 +1130,11 @@ const MainLayout = () => {
               token_merchant={form_data.token_merchant}
               setTokenMerchant={(e) => {
                 updateField("token_merchant", e);
+              }}
+              list_products={form_data.list_products}
+              setListProducts={(e) => {
+                updateField("list_products", e);
+                updateField("type_connect", "shopify");
               }}
             />
           )}

@@ -1611,26 +1611,6 @@ If you need further assistance, visit https://retify.ai to get free support from
         {finish_installing && (
           <div className="flex flex-col items-center justify-center h-12">
             <p className="text-lg text-green-500">{t("connect_success")}</p>
-            {/* <div className="flex flex-col items-center justify-center gap-y-2">
-              <a
-                // href="https://m.me/414786618395170"
-                href={`https://merchant.vn/login?chat_access_token=${partner_token}&redirect=https://merchant.vn/a/product`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white px-4 py-2 rounded-md bg-blue-500"
-              >
-                Mở Merchant
-              </a>
-
-              <a
-                href={`https://m.me/${selected_page}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white px-4 py-2 rounded-md bg-blue-500"
-              >
-                Mở Messenger
-              </a>
-            </div> */}
           </div>
         )}
       </div>

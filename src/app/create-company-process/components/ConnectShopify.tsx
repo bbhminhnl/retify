@@ -13,6 +13,8 @@ type IProps = {
   chatbox_token?: string;
   token_merchant?: string;
   setTokenMerchant?: (value: string) => void;
+  list_products?: any[];
+  setListProducts?: (value: any) => void;
 };
 const ConnectShopify = ({
   is_open,
@@ -22,6 +24,8 @@ const ConnectShopify = ({
   chatbox_token,
   token_merchant,
   setTokenMerchant,
+  list_products,
+  setListProducts,
 }: IProps) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -165,6 +169,39 @@ const ConnectShopify = ({
     return DATA.url;
   };
 
+  const fetchMerchantProduct = async () => {
+    /**
+     * End point
+     */
+    const END_POINT = `https://api-product.merchant.vn/product/get_product`;
+    /**
+     *   Khai báo body
+     */
+    const BODY = {
+      sort: {
+        createdAt: "desc",
+      },
+      limit: 50,
+      skip: 0,
+      variant_options: true,
+    };
+    /** call api */
+    const RES = await fetch(END_POINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "token-business": token_business,
+      },
+      body: JSON.stringify(BODY),
+    });
+    /**
+     * parse data
+     */
+    const DATA = await RES.json();
+    console.log(DATA, "DATA");
+    return DATA;
+  };
+
   /**
    * Hàm submit
    * @param shopify_name
@@ -173,7 +210,7 @@ const ConnectShopify = ({
     /**
      * Tạo store
      */
-    const RES_ADD_STORE = await addStoreName(shopify_name);
+    await addStoreName(shopify_name);
     /**
      * Uỷ quyền truy cập
      */
@@ -185,7 +222,19 @@ const ConnectShopify = ({
     /** Pull product */
     const PULL_PRODUCT = await pullProduct();
     console.log(PULL_PRODUCT, "PULL_PRODUCT");
+    /**
+     * Lấy danh sách san pham
+     */
+    const PRODUCT_LIST = await fetchMerchantProduct();
 
+    /** Lưu danh sách san pham */
+    setListProducts && setListProducts(PRODUCT_LIST);
+
+    /** Dong modal */
+    closeModal();
+    /**
+     * Tắt loading
+     */
     setLoading?.(false);
   };
 
