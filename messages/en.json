@@ -113,5 +113,7 @@
       "done": "Processing completed."
     }
   },
-  "shop_info": "Store Information"
+  "shop_info": "Store Information",
+  "connect_shopify_title": "Connect to Shopify",
+  "connect_shopify_description": "Please enter your store name accurately"
 }

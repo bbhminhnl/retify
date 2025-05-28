@@ -114,5 +114,7 @@
       "done": "Đã xử lý xong."
     }
   },
-  "shop_info": "Thông tin cửa hàng"
+  "shop_info": "Thông tin cửa hàng",
+  "connect_shopify_title": "Kết nối với Shopify",
+  "connect_shopify_description": "Vui lòng nhập chính xác tên cửa hàng của bạn"
 }

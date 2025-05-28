@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import ConnectDone from "./components/step6/ConnectDone";
+import InputTitle from "./components/step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import Product from "../products/Products";
 import Progress from "./components/Progress";
@@ -34,8 +35,8 @@ declare global {
   }
 }
 /** Mock token */
-const MOCK_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3NDk5MjQ5LCJleHAiOjMxNTUzNDc0OTkyNDl9.Lj83AFAcQHWuTSq-hf40JpTfzAeDFHvxYKvF-61PLW0";
+// const MOCK_TOKEN =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3NDk5MjQ5LCJleHAiOjMxNTUzNDc0OTkyNDl9.Lj83AFAcQHWuTSq-hf40JpTfzAeDFHvxYKvF-61PLW0";
 // const MOCK_TOKEN =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3OTkxNjczLCJleHAiOjMxNTUzNDc5OTE2NzN9.X-lUMmhkdC9SaCLRFUg9djQ26JP3u_ahgiLQmXR-MPk";
 // /** Mock token */
@@ -127,6 +128,12 @@ const MainLayout = () => {
 
   /** loading Init */
   const [loading_init, setLoadingInit] = useState(true);
+
+  /** Open modal nhập trên shop shopify */
+  const [openModalConnectShopify, setOpenModalConnectShopify] = useState(false);
+  /** Nhập trên shopify */
+  const [shopify_name, setShopifyName] = useState("");
+
   /** Cập nhật lại trạng thái */
   useEffect(() => {
     /** Nếu loading_init */
@@ -622,7 +629,7 @@ const MainLayout = () => {
 
     /** Add event listener */
     window.addEventListener("message", handleMessage);
-    updateField("access_token", MOCK_TOKEN);
+    // updateField("access_token", MOCK_TOKEN);
 
     /** Remove event listener */
     return () => {
@@ -898,7 +905,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen">
+    <div className="flex flex-col h-full w-full">
       {loading_init && (
         <div className="flex flex-col justify-center items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
           <div>
@@ -908,7 +915,7 @@ const MainLayout = () => {
         </div>
       )}
       {!loading_init && (
-        <div className="flex flex-col items-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
+        <div className="flex flex-col items-center justify-center px-3 py-5 gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
           {!form_data?.on_finish_all && (
             <div className="flex flex-col items-center gap-4 w-full md:max-w-[400px] md:mx-auto bg-white h-full">
               <Progress
@@ -939,7 +946,7 @@ const MainLayout = () => {
                     /**
                      * setLoading
                      */
-                    setLoading(true);
+                    // setLoading(true);
                     /** Gọi tới RN để xử lý mở popup */
                     // window.ReactNativeWebView?.postMessage(
                     //   JSON.stringify({
@@ -947,14 +954,15 @@ const MainLayout = () => {
                     //     message: "",
                     //   })
                     // );
-                    window.open(
-                      "https://jackhoang.myshopify.com/admin/oauth/authorize?client_id=dcfdf1b266b408747855729056ac5e32&scope=read_analytics%20read_assigned_fulfillment_orders%20write_assigned_fulfillment_orders%20read_customer_merge%20write_customer_merge%20read_customers%20write_customers%20read_discounts%20write_discounts%20read_draft_orders%20write_draft_orders%20read_files%20write_files%20read_fulfillments%20write_fulfillments%20read_gdpr_data_request%20read_gift_cards%20write_gift_cards%20read_inventory%20write_inventory%20read_legal_policies%20write_legal_policies%20read_locations%20read_marketing_events%20write_marketing_events%20read_merchant_managed_fulfillment_orders%20write_merchant_managed_fulfillment_orders%20read_metaobject_definitions%20write_metaobject_definitions%20read_metaobjects%20write_metaobjects%20read_online_store_navigation%20read_online_store_pages%20write_online_store_pages%20read_order_edits%20write_order_edits%20read_orders%20write_orders%20read_price_rules%20write_price_rules%20read_products%20write_products%20read_product_listings%20write_product_listings%20read_reports%20write_reports%20read_resource_feedbacks%20write_resource_feedbacks%20read_script_tags%20write_script_tags%20read_shipping%20write_shipping%20read_shopify_payments_accounts%20read_shopify_payments_bank_accounts%20read_shopify_payments_disputes%20read_shopify_payments_payouts%20read_content%20write_content%20read_themes%20write_themes%20read_third_party_fulfillment_orders%20write_third_party_fulfillment_orders%20read_translations%20write_translations&redirect_uri=https://merchant.vn/oauth/shopify&state=672d9e84fde3544cbb940f89",
-                      "_blank"
-                    );
+                    // window.open(
+                    //   "https://jackhoang.myshopify.com/admin/oauth/authorize?client_id=dcfdf1b266b408747855729056ac5e32&scope=read_analytics%20read_assigned_fulfillment_orders%20write_assigned_fulfillment_orders%20read_customer_merge%20write_customer_merge%20read_customers%20write_customers%20read_discounts%20write_discounts%20read_draft_orders%20write_draft_orders%20read_files%20write_files%20read_fulfillments%20write_fulfillments%20read_gdpr_data_request%20read_gift_cards%20write_gift_cards%20read_inventory%20write_inventory%20read_legal_policies%20write_legal_policies%20read_locations%20read_marketing_events%20write_marketing_events%20read_merchant_managed_fulfillment_orders%20write_merchant_managed_fulfillment_orders%20read_metaobject_definitions%20write_metaobject_definitions%20read_metaobjects%20write_metaobjects%20read_online_store_navigation%20read_online_store_pages%20write_online_store_pages%20read_order_edits%20write_order_edits%20read_orders%20write_orders%20read_price_rules%20write_price_rules%20read_products%20write_products%20read_product_listings%20write_product_listings%20read_reports%20write_reports%20read_resource_feedbacks%20write_resource_feedbacks%20read_script_tags%20write_script_tags%20read_shipping%20write_shipping%20read_shopify_payments_accounts%20read_shopify_payments_bank_accounts%20read_shopify_payments_disputes%20read_shopify_payments_payouts%20read_content%20write_content%20read_themes%20write_themes%20read_third_party_fulfillment_orders%20write_third_party_fulfillment_orders%20read_translations%20write_translations&redirect_uri=https://merchant.vn/oauth/shopify&state=672d9e84fde3544cbb940f89",
+                    //   "_blank"
+                    // );
+                    setOpenModalConnectShopify(true);
                     /** Delay 2s để tắt loading */
-                    setTimeout(() => {
-                      setLoading(false);
-                    }, 2000);
+                    // setTimeout(() => {
+                    //   setLoading(false);
+                    // }, 2000);
                   }}
                   fixed_menu={form_data.image_url}
                   /** Bước 3 */
@@ -1092,6 +1100,54 @@ const MainLayout = () => {
                 org_id={form_data.org_id}
                 resetForm={resetForm}
               />
+            </div>
+          )}
+          {openModalConnectShopify && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+              <div className="flex flex-col bg-white w-full md:max-w-[400px] mx-4 md:mx-auto gap-4 rounded-2xl p-6 shadow-lg">
+                <div className="flex flex-col gap-4">
+                  <h2 className="text-lg font-semibold">
+                    {t("connect_shopify_title")}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {t("connect_shopify_description")}
+                  </p>
+                </div>
+                <InputTitle
+                  value_input={shopify_name || ""}
+                  setValueInput={(e) => {
+                    setShopifyName(e);
+                  }}
+                  title={t("shop_name")}
+                  placeholder={t("enter_shop_name")}
+                />
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => setOpenModalConnectShopify(false)}
+                    className="px-4 py-2 text-sm font-medium text-white bg-gray-500 rounded-lg"
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      /** Nếu chưa nhập tên cửa hàng thì show toast lỗi và return */
+                      if (shopify_name === "") {
+                        toast.error(t("enter_shop_name"));
+                        return;
+                      }
+                      window.open(
+                        `https://${shopify_name}.myshopify.com/admin/oauth/authorize?client_id=dcfdf1b266b408747855729056ac5e32&scope=read_analytics%20read_assigned_fulfillment_orders%20write_assigned_fulfillment_orders%20read_customer_merge%20write_customer_merge%20read_customers%20write_customers%20read_discounts%20write_discounts%20read_draft_orders%20write_draft_orders%20read_files%20write_files%20read_fulfillments%20write_fulfillments%20read_gdpr_data_request%20read_gift_cards%20write_gift_cards%20read_inventory%20write_inventory%20read_legal_policies%20write_legal_policies%20read_locations%20read_marketing_events%20write_marketing_events%20read_merchant_managed_fulfillment_orders%20write_merchant_managed_fulfillment_orders%20read_metaobject_definitions%20write_metaobject_definitions%20read_metaobjects%20write_metaobjects%20read_online_store_navigation%20read_online_store_pages%20write_online_store_pages%20read_order_edits%20write_order_edits%20read_orders%20write_orders%20read_price_rules%20write_price_rules%20read_products%20write_products%20read_product_listings%20write_product_listings%20read_reports%20write_reports%20read_resource_feedbacks%20write_resource_feedbacks%20read_script_tags%20write_script_tags%20read_shipping%20write_shipping%20read_shopify_payments_accounts%20read_shopify_payments_bank_accounts%20read_shopify_payments_disputes%20read_shopify_payments_payouts%20read_content%20write_content%20read_themes%20write_themes%20read_third_party_fulfillment_orders%20write_third_party_fulfillment_orders%20read_translations%20write_translations&redirect_uri=https://merchant.vn/oauth/shopify&state=672d9e84fde3544cbb940f89`,
+                        "_blank"
+                      );
+                      /** tắt Trạng thái mở modal */
+                      setOpenModalConnectShopify(false);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg"
+                  >
+                    {t("connect")}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
