@@ -934,17 +934,22 @@ const MainLayout = () => {
                     /** Bước 2 Lựa chọn clover thì toast warning */
                     if (value === "Clover") {
                       toast.warn(t("feature_not_available"));
+                      return;
                     }
                     /**
                      * setLoading
                      */
                     setLoading(true);
                     /** Gọi tới RN để xử lý mở popup */
-                    window.ReactNativeWebView?.postMessage(
-                      JSON.stringify({
-                        type: "page.connect_shopify",
-                        message: "",
-                      })
+                    // window.ReactNativeWebView?.postMessage(
+                    //   JSON.stringify({
+                    //     type: "page.connect_shopify",
+                    //     message: "",
+                    //   })
+                    // );
+                    window.open(
+                      "https://{shop}.myshopify.com/admin/oauth/authorize?...",
+                      "_blank"
                     );
                     /** Delay 2s để tắt loading */
                     setTimeout(() => {
