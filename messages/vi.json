@@ -116,5 +116,7 @@
   },
   "shop_info": "Thông tin cửa hàng",
   "connect_shopify_title": "Kết nối với Shopify",
-  "connect_shopify_description": "Vui lòng nhập chính xác tên cửa hàng của bạn"
+  "connect_shopify_description": "Vui lòng nhập chính xác tên cửa hàng của bạn",
+  "connect_shopify_success": "Kết nối với Shopify thành công",
+  "authorization_shopify_success": "Uỷ quyền với Shopify thành công"
 }

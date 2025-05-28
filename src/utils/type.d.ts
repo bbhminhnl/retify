@@ -41,6 +41,8 @@ interface FormDataType {
   org_id: string;
   /** page id */
   page_id: string;
+  /** token merchant */
+  token_merchant: string;
 }
 interface FormErrors {
   /** Thống tin cửa hàng */
