@@ -6,7 +6,12 @@ import Shopify from "@/assets/icons/icons8-shopify.svg";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 
-const SelectPOS: React.FC = () => {
+/** Kiểu dữ liệu POS */
+type IPOS = {
+  onConnect: (value: string) => void;
+  loading?: boolean;
+};
+const SelectPOS = ({ onConnect, loading }: IPOS) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
   /** State lưu giá trị nhập */
@@ -40,8 +45,9 @@ const SelectPOS: React.FC = () => {
               name={option.value}
               Icon={option.Icon}
               onConnect={() => {
-                toast.warn(t("feature_not_available"));
+                onConnect(option.value);
               }}
+              loading={loading}
             />
           ))
         }

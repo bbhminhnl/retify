@@ -57,14 +57,17 @@ const ConnectChannel = ({
           </div>
           <span className="text-sm font-semibold">{name || "Shopify"}</span>
         </div>
-        <div
+        <button
           onClick={() => {
+            /** Nếu Case website thì set trạng thái */
             if (name === "Website") {
+              /** Cho phép copy */
               setOnCopy(true);
               return;
             }
             onConnect && onConnect();
           }}
+          disabled={loading}
           className="flex gap-x-2 py-2 px-10 border border-blue-700 rounded-md gap-1 text-sm font-semibold text-blue-700 bg-blue-100 cursor-pointer hover:bg-blue-200"
         >
           {btn_text || t("connect")}
@@ -73,7 +76,7 @@ const ConnectChannel = ({
               <Loading size="sm" />
             </div>
           )}
-        </div>
+        </button>
       </div>
       {name === "Website" && (
         <div className="flex flex-grow min-w-0 overflow-hidden overflow-x-auto">

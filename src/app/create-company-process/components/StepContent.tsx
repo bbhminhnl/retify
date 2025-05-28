@@ -80,6 +80,10 @@ type Props = {
   setIsNeedToUpdateCrm?: (value: boolean) => void;
   /** Hiển thị loading message */
   loading_message?: string;
+  /**
+   * onConnect
+   */
+  onConnectStep2?: (e: string) => void;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -113,6 +117,7 @@ const StepContent: React.FC<Props> = ({
   is_need_to_update_crm,
   setIsNeedToUpdateCrm,
   loading_message,
+  onConnectStep2,
 }) => {
   return (
     <div className="rounded w-full text-center h-full">
@@ -134,6 +139,8 @@ const StepContent: React.FC<Props> = ({
           }}
           loading_message={loading_message}
           defaultValue={fixed_menu}
+          onConnectStep2={onConnectStep2}
+          loading={loading}
         />
       )}
       {step === 3 && (

@@ -9,7 +9,7 @@ import SelectPOS from "./SelectPOS";
 /**
  * Interface Props
  */
-type Props = {
+type IProps = {
   /**
    *  Hàm xuất lý khi chọn size
    * @param value Size selected
@@ -24,24 +24,40 @@ type Props = {
    * Loading
    */
   loading_message?: string;
+  /**
+   * Kiểu dữ liệu connect channel
+   */
+  onConnectStep2?: (e: string) => void;
+  /**
+   * Kiểu dữ liệu connect channel
+   */
+  loading?: boolean;
 };
 
-const CreateAI: React.FC<Props> = ({
+const CreateAI = ({
   onSelect,
   defaultValue,
   loading_message,
-}) => {
+  onConnectStep2,
+  loading,
+}: IProps) => {
   return (
     <div className="w-full grid gap-4 p-1">
       <OptionUpload onSelect={onSelect} defaultValue={defaultValue} />
       {/* <OptionInput /> */}
-      <SelectPOS />
-      {loading_message && (
-        <div>
-          <Loading size="md" />
-          <span>{loading_message}</span>
-        </div>
-      )}
+      <SelectPOS
+        onConnect={(e) => {
+          onConnectStep2 && onConnectStep2(e);
+        }}
+        loading={loading}
+      />
+      {loading_message ||
+        (loading && (
+          <div>
+            <Loading size="md" />
+            <span>{loading_message}</span>
+          </div>
+        ))}
     </div>
   );
 };

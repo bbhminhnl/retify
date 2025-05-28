@@ -34,8 +34,8 @@ declare global {
   }
 }
 /** Mock token */
-// const MOCK_TOKEN =
-//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3NDk5MjQ5LCJleHAiOjMxNTUzNDc0OTkyNDl9.Lj83AFAcQHWuTSq-hf40JpTfzAeDFHvxYKvF-61PLW0";
+const MOCK_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3NDk5MjQ5LCJleHAiOjMxNTUzNDc0OTkyNDl9.Lj83AFAcQHWuTSq-hf40JpTfzAeDFHvxYKvF-61PLW0";
 // const MOCK_TOKEN =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3OTkxNjczLCJleHAiOjMxNTUzNDc5OTE2NzN9.X-lUMmhkdC9SaCLRFUg9djQ26JP3u_ahgiLQmXR-MPk";
 // /** Mock token */
@@ -622,7 +622,7 @@ const MainLayout = () => {
 
     /** Add event listener */
     window.addEventListener("message", handleMessage);
-    // updateField("access_token", MOCK_TOKEN);
+    updateField("access_token", MOCK_TOKEN);
 
     /** Remove event listener */
     return () => {
@@ -929,6 +929,27 @@ const MainLayout = () => {
                   /** Bước 2 */
                   onSelectMenu={(value) => {
                     setFileImage(value);
+                  }}
+                  onConnectStep2={(value) => {
+                    /** Bước 2 Lựa chọn clover thì toast warning */
+                    if (value === "Clover") {
+                      toast.warn(t("feature_not_available"));
+                    }
+                    /**
+                     * setLoading
+                     */
+                    setLoading(true);
+                    /** Gọi tới RN để xử lý mở popup */
+                    window.ReactNativeWebView?.postMessage(
+                      JSON.stringify({
+                        type: "page.connect_shopify",
+                        message: "",
+                      })
+                    );
+                    /** Delay 2s để tắt loading */
+                    setTimeout(() => {
+                      setLoading(false);
+                    }, 2000);
                   }}
                   fixed_menu={form_data.image_url}
                   /** Bước 3 */
