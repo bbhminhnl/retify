@@ -1,5 +1,6 @@
 import React, { use, useEffect, useState } from "react";
 
+import IframeModal from "./IframeModal";
 import InputTitle from "./step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import { apiCommon } from "@/services/fetchApi";
@@ -490,6 +491,16 @@ const ConnectShopify = ({
   };
 
   /**
+   * Iframe url
+   */
+  const [iframe_url, setIframeUrl] = useState<string | null>(null);
+  /**
+   * After iframe callback
+   */
+  const [afterIframeCallback, setAfterIframeCallback] = useState<() => void>(
+    () => () => {}
+  );
+  /**
    * Hàm submit
    * @param shopify_name
    */
@@ -498,32 +509,90 @@ const ConnectShopify = ({
      * Tạo store
      */
     await addStoreName(shopify_name);
-    /**
-     * Uỷ quyền truy cập
-     */
+    /** Lấy link shopify */
     const RES_SYNC_MERCHANT = await fetchShopifyLink();
-    /** Link truy cập */
-    if (RES_SYNC_MERCHANT) {
-      window.open(RES_SYNC_MERCHANT, "_blank");
+
+    /** Nếu k có thì return */
+    if (!RES_SYNC_MERCHANT) return;
+
+    /** 1. Check nếu là WebView thì gửi postMessage cho native app */
+    const IS_MOBILE_WEBVIEW =
+      /wv|WebView|(iPhone|Android).*(Version\/[\d.]+)? Chrome\/[.0-9]* Mobile/.test(
+        navigator.userAgent
+      );
+    /**
+     * Check có phải webview k
+     */
+    if (IS_MOBILE_WEBVIEW) {
+      /**
+       * Payload
+       */
+      const PAYLOAD = {
+        type: "page.OPEN_SHOPIFY_OAUTH",
+        url: RES_SYNC_MERCHANT,
+      };
+
+      /** Android WebView */
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(PAYLOAD));
+      }
+
+      return;
     }
-    /** Pull product */
-    const PULL_PRODUCT = await pullProduct();
-    console.log(PULL_PRODUCT, "PULL_PRODUCT");
-    /**
-     * Lấy danh sách san pham
-     */
-    const PRODUCT_LIST = await fetchMerchantProduct();
 
-    /** Lưu danh sách san pham */
-    setListProducts && setListProducts(PRODUCT_LIST);
-
-    /** Dong modal */
-    closeModal();
+    /** 2. Nếu là web browser, mở iframe */
+    setIframeUrl(RES_SYNC_MERCHANT);
     /**
-     * Tắt loading
+     * Sử dụng callback sau khi iframe hóa
      */
-    setLoading?.(false);
+    setAfterIframeCallback(() => async () => {
+      /**
+       * Pull product
+       */
+      const PULL_PRODUCT = await pullProduct();
+      console.log(PULL_PRODUCT, "PULL_PRODUCT");
+      /**
+       * Lấy danh sách san pham
+       */
+      const PRODUCT_LIST = await fetchMerchantProduct();
+      /** Lưu danh sách sản phẩm */
+      setListProducts?.(PRODUCT_LIST);
+      closeModal();
+      setLoading?.(false);
+    });
   };
+
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      try {
+        /**
+         * Parse data
+         */
+        const DATA =
+          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        /** Check sự kiện */
+        if (DATA?.type === "page.SHOPIFY_OAUTH_SUCCESS") {
+          /**
+           * Pull product
+           */
+          const PULL_PRODUCT = await pullProduct();
+          console.log(PULL_PRODUCT, "PULL_PRODUCT");
+          /** Lấy list sản phẩm từ merchant */
+          const PRODUCT_LIST = await fetchMerchantProduct();
+          /** Gọi hàm và callback data */
+          setListProducts?.(PRODUCT_LIST);
+          closeModal();
+          setLoading?.(false);
+        }
+      } catch (e) {
+        console.error("Error handling native message:", e);
+      }
+    };
+    /** Nhận message */
+    window.addEventListener("message", handleMessage);
+    /** unmount */
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
@@ -618,6 +687,15 @@ const ConnectShopify = ({
             </button>
           </div>
         </div>
+      )}
+      {iframe_url && (
+        <IframeModal
+          url={iframe_url}
+          onClose={() => {
+            setIframeUrl(null);
+            afterIframeCallback?.();
+          }}
+        />
       )}
     </div>
   );

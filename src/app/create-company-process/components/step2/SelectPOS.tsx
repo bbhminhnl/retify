@@ -50,6 +50,11 @@ const SelectPOS = ({ onConnect, loading, connected }: IPOS) => {
               }}
               loading={loading}
               connected={connected}
+              btn_text={
+                option.value === "Shopify" && connected
+                  ? t("connected")
+                  : t("connect")
+              }
             />
           ))
         }
