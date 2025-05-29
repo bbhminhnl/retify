@@ -291,7 +291,7 @@ export default function TemplateClient({
                     key={item.id}
                     name={item.name}
                     price={item.price}
-                    product_image={item.image_url}
+                    product_image={item.image_url || item?.images?.[0]}
                     unit={item?.unit}
                     type="product"
                     onUpdate={(product) => {

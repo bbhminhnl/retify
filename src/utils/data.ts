@@ -487,7 +487,7 @@ export const MOCK_STORE_DATA = {
  */
 export const MOCK_SETTING_DATA = {
   image:
-    "https://static.botbanhang.vn/merchant/files/business_665da961b7d61ac3ad457bae/1744627965726.jpeg",
+    "https://static.botbanhang.vn/merchant/files/business_/1748504082447.png",
   maintain: {
     is_active: false,
     notification: "shop nghỉ, vui lòng k đặt hàng :)))",

@@ -135,8 +135,6 @@ const MainLayout = () => {
   /** Open modal nhập trên shop shopify */
   const [open_modal_connect_shopify, setOpenModalConnectShopify] =
     useState(false);
-  /** Nhập trên shopify */
-  const [shopify_name, setShopifyName] = useState("");
 
   /** Cập nhật lại trạng thái */
   useEffect(() => {
@@ -161,8 +159,17 @@ const MainLayout = () => {
      * Bước 2: Chọn menu, Nếu chưa tải file lên thì khóa next button
      */
     if (form_data?.step === 2 && !file_image && !form_data?.image_url) {
-      // if (step === 2 && image_url === "") {
-      return true;
+      const isUploadOption = file_image || form_data?.image_url;
+
+      // Nếu là upload mà chưa có ảnh thì disable
+      if (isUploadOption && !file_image && !form_data?.image_url) {
+        return true;
+      }
+
+      // Nếu là Shopify và chưa kết nối hoặc đang loading thì disable
+      if (!isUploadOption && !form_data?.list_products) {
+        return true;
+      }
     }
 
     /**
@@ -871,7 +878,13 @@ const MainLayout = () => {
       /** Update image */
       updateField("image_url", IMAGE_URL);
 
+      /** Xoá file upload */
       setFileImage(null);
+      /** Tắt trạng thái kết nối shopify */
+      updateField("shopify_connected", false);
+
+      /** Reset các field của case shopify */
+      updateField("type_connect", "upload");
 
       /** Next step */
       updateField("step", form_data.step + 1);
@@ -1077,6 +1090,7 @@ const MainLayout = () => {
                     /** Update trạng thái CRM */
                     updateField("is_need_to_update_crm", false);
                   }}
+                  type_connect={form_data.type_connect}
                   connect_to_crm={form_data.connect_to_crm}
                   on_finish_all={form_data.on_finish_all}
                   updateQRCode={(e) => {
@@ -1092,6 +1106,8 @@ const MainLayout = () => {
                   //   updateField("is_need_to_update_crm", e);
                   // }}
                   loading_message={step2_message}
+                  org_id={form_data.org_id}
+                  page_id={form_data.page_id}
                 />
               </div>
               {(!form_data?.on_finish_all || form_data?.connect_to_crm) && (
@@ -1137,7 +1153,17 @@ const MainLayout = () => {
                 updateField("type_connect", "shopify");
                 // Trạng thái updated
                 updateField("shopify_connected", true);
+
+                /** reset data upload */
+                updateField("image_url", "");
+                /** Tự động next trạng thái luôn */
                 updateField("step", 3);
+              }}
+              handleOrgId={(e) => {
+                updateField("org_id", e);
+              }}
+              handlePageId={(e) => {
+                updateField("page_id", e);
               }}
             />
           )}

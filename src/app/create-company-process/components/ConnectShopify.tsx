@@ -17,6 +17,8 @@ type IProps = {
   setTokenMerchant?: (value: string) => void;
   list_products?: any[];
   setListProducts?: (value: any) => void;
+  handleOrgId?: (value?: string) => void;
+  handlePageId?: (value?: string) => void;
 };
 const ConnectShopify = ({
   is_open,
@@ -28,6 +30,8 @@ const ConnectShopify = ({
   setTokenMerchant,
   list_products,
   setListProducts,
+  handleOrgId,
+  handlePageId,
 }: IProps) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -263,6 +267,8 @@ const ConnectShopify = ({
         /** Tạo page */
         const PAGE_ID = await createPage(ORG_ID, ACCESS_TOKEN, DOMAIN);
         setIsCheckingPage(true);
+        /** Cập nhật page id */
+        handlePageId && handlePageId(PAGE_ID);
 
         setLoadingInModal(false);
       }
@@ -272,7 +278,7 @@ const ConnectShopify = ({
        */
       if (list_page.length > 0) {
         /** Cập nhật page id */
-        // setParentPageId && setParentPageId(list_page[0]?.page_id);
+        handlePageId && handlePageId(list_page[0]?.page_id);
 
         /** Đổi tên page */
         // await changePageName(list_page[0]?.page_id, DOMAIN, ACCESS_TOKEN);
@@ -338,6 +344,9 @@ const ConnectShopify = ({
     }
     /** Nếu chỉ có 1 tổ chức, thì auto pick luôn, tránh user mới phải thao tác */
     if (LIST_ORG.length === 1) {
+      /** Cập nhật Tổ chức */
+      handleOrgId && handleOrgId(LIST_ORG[0]?.org_id || "");
+
       /** Tắt loading và call function luôn */
       // setLoading(false);
       // setLoadingText("");
@@ -531,6 +540,7 @@ const ConnectShopify = ({
                     onClick={() => {
                       mainChatboxFunction(org?.org_id, chatbox_token || "");
                       // setOrganization([]);
+                      handleOrgId && handleOrgId(org?.org_id);
                     }}
                   >
                     <img

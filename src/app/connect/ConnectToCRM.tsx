@@ -1,6 +1,6 @@
 "use client";
 
-import { create, find, forEach, get, has, keys, set } from "lodash";
+import { find, forEach, get, has, keys } from "lodash";
 import { generateQRCodeImage, toRenderDomain } from "@/utils";
 import { useEffect, useState } from "react";
 
@@ -50,6 +50,9 @@ const ConnectToCRM = ({
   is_need_to_update_crm,
   setIsNeedToUpdateCrm,
   list_products,
+  type_connect,
+  org_id,
+  page_id,
 }: {
   access_token_global: string;
   onFinish?: (page_id: string, org_id: string) => void;
@@ -65,6 +68,12 @@ const ConnectToCRM = ({
   setIsNeedToUpdateCrm?: (value: boolean) => void;
   /** Products */
   list_products: Product[];
+  /** type connect */
+  type_connect: string;
+  /**org_id */
+  org_id?: string;
+  /** page_id */
+  page_id?: string;
 }) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -123,10 +132,8 @@ const ConnectToCRM = ({
 
   useEffect(() => {
     if (access_token_chatbox) {
-      console.log(access_token_chatbox);
-
       // fetchListOrg(access_token_chatbox);
-      handleLoginChatbox(access_token_chatbox);
+      handleLoginChatbox(access_token_chatbox, org_id, page_id);
     }
   }, [access_token_chatbox]);
 
@@ -570,7 +577,11 @@ const ConnectToCRM = ({
    * @param PAGE_ID
    * @param ACCESS_TOKEN
    */
-  const mainFunction = async (ORG_ID: string, ACCESS_TOKEN: string) => {
+  const mainFunction = async (
+    ORG_ID: string,
+    ACCESS_TOKEN: string,
+    page_id?: string
+  ) => {
     try {
       /** Cập nhật org id */
       setSelectedOrganization(ORG_ID);
@@ -582,6 +593,26 @@ const ConnectToCRM = ({
         ORG_ID,
         ACCESS_TOKEN
       );
+
+      /** Đã có page id  */
+      if (page_id) {
+        /** Kết nối Chatbox */
+        await handleConnectToChatBox(ORG_ID, page_id, ACCESS_TOKEN);
+        /** Tạo QR code */
+        const BASE_64_IMG = await generateQRCodeImage(
+          `https://retify.ai/c/${page_id}`
+        );
+
+        /**
+         * Update QR code
+         */
+        updateQRCode && updateQRCode(BASE_64_IMG);
+        /** Gọi hàm finish, vì đấy là case kết nối với shopify */
+        onFinish && onFinish(page_id, ORG_ID);
+
+        return;
+      }
+
       console.log(LIST_INSTALLED_PAGE, "LIST_INSTALLED_PAGE");
       /** Page id */
       let list_page = [];
@@ -1471,7 +1502,11 @@ If you need further assistance, visit https://retify.ai to get free support from
    * Handle connect page
    * @param PAGE_ID
    */
-  const handleLoginChatbox = async (access_token: string) => {
+  const handleLoginChatbox = async (
+    access_token: string,
+    org_id?: string,
+    page_id?: string
+  ) => {
     /**================== Cập nhật trạng thái =================== */
     /** Bắt đầu loading */
     setLoading(true);
@@ -1490,6 +1525,17 @@ If you need further assistance, visit https://retify.ai to get free support from
     }
     /** Lưu token và state */
     setChatboxToken(access_token);
+
+    /** Nếu có org_id rồi thì  */
+
+    if (org_id) {
+      /** Tắt loading và call function luôn */
+      setLoading(false);
+      setLoadingText("");
+      await mainFunction(org_id, access_token, page_id);
+      return;
+    }
+
     /** ======================= Lấy danh sách page Retion ======================== */
     setLoadingText(t("fetching_organization_data"));
     /** Danh sách Tổ chức */

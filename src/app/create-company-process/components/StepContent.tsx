@@ -89,6 +89,17 @@ type Props = {
    * shopify connected
    */
   shopify_connected?: boolean;
+
+  /** type connect */
+  type_connect: string;
+  /**
+   * org_id
+   */
+  org_id: string;
+  /**
+   * page_id
+   */
+  page_id: string;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -124,6 +135,9 @@ const StepContent: React.FC<Props> = ({
   loading_message,
   onConnectStep2,
   shopify_connected,
+  type_connect,
+  org_id,
+  page_id,
 }) => {
   return (
     <div className="rounded w-full text-center h-full">
@@ -201,6 +215,9 @@ const StepContent: React.FC<Props> = ({
             is_need_to_update_crm={is_need_to_update_crm}
             setIsNeedToUpdateCrm={setIsNeedToUpdateCrm}
             list_products={list_products}
+            type_connect={type_connect}
+            org_id={org_id}
+            page_id={page_id}
           />
         </div>
       )}
@@ -211,7 +228,7 @@ const StepContent: React.FC<Props> = ({
           // }}
           loading={loading}
           qr_code={qr_code}
-          page_id={parent_page_id}
+          page_id={parent_page_id || page_id}
           page_name={data_input.shop_name.toLowerCase()}
         />
       )}
