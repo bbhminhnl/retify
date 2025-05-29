@@ -10,8 +10,9 @@ import { useTranslations } from "next-intl";
 type IPOS = {
   onConnect: (value: string) => void;
   loading?: boolean;
+  connected?: boolean;
 };
-const SelectPOS = ({ onConnect, loading }: IPOS) => {
+const SelectPOS = ({ onConnect, loading, connected }: IPOS) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
   /** State lưu giá trị nhập */
@@ -48,6 +49,7 @@ const SelectPOS = ({ onConnect, loading }: IPOS) => {
                 onConnect(option.value);
               }}
               loading={loading}
+              connected={connected}
             />
           ))
         }

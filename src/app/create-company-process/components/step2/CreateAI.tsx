@@ -32,6 +32,8 @@ type IProps = {
    * Kiểu dữ liệu connect channel
    */
   loading?: boolean;
+  /** shopify connected */
+  shopify_connected?: boolean;
 };
 
 const CreateAI = ({
@@ -40,6 +42,7 @@ const CreateAI = ({
   loading_message,
   onConnectStep2,
   loading,
+  shopify_connected,
 }: IProps) => {
   return (
     <div className="w-full grid gap-4 p-1">
@@ -49,6 +52,7 @@ const CreateAI = ({
         onConnect={(e) => {
           onConnectStep2 && onConnectStep2(e);
         }}
+        connected={shopify_connected}
         loading={loading}
       />
       {loading_message ||

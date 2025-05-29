@@ -45,6 +45,8 @@ interface FormDataType {
   token_merchant: string;
   /** type connect */
   type_connect: string;
+  /** shopify connected */
+  shopify_connected: boolean;
 }
 interface FormErrors {
   /** Thống tin cửa hàng */

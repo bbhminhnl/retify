@@ -1582,7 +1582,7 @@ If you need further assistance, visit https://retify.ai to get free support from
                 }}
               >
                 <img
-                  src={org?.org_info?.org_avatar || "./imgs/BBH.png"}
+                  src={org?.org_info?.org_avatar || "/imgs/BBH.png"}
                   alt={"logo"}
                   style={{ objectFit: "cover" }}
                   className="w-8 h-8 rounded-lg flex justify-center items-center"

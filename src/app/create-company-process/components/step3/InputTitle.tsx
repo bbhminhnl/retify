@@ -43,7 +43,17 @@ const InputTitle = ({
 
   return (
     <div className="flex flex-col gap-1">
-      <h2 className="text-sm text-left font-normal">{title}</h2>
+      <h2
+        onMouseEnter={() => {
+          // Show tooltip
+        }}
+        onMouseLeave={() => {
+          // remove tooltip
+        }}
+        className="text-sm text-left font-normal"
+      >
+        {title}
+      </h2>
       <input
         type="text"
         value={value}

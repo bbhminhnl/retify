@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 
 import InputTitle from "./step3/InputTitle";
 import Loading from "@/components/loading/Loading";
+import { apiCommon } from "@/services/fetchApi";
+import { toRenderDomain } from "@/utils";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
 
@@ -29,12 +31,38 @@ const ConnectShopify = ({
 }: IProps) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
+  /** Hàm Error
+   * @param message
+   * @returns void
+   * @description setLoading false
+   * @description setLoadingText message
+   * @description setTimeOut 2s setLoadingText ''
+   */
+  const handleError = (message: string) => {
+    /** Tắt loading */
+    // setLoading(false);
+    // /** Hàm set loading text */
+    // setLoadingText(message);
+
+    toast.error(message);
+    /** Set timeout */
+    // setTimeout(() => setLoadingText(""), 2000);
+  };
 
   /** Nhập trên shopify */
   const [shopify_name, setShopifyName] = useState("");
 
   /** Chatbox token */
   const [token_business, setTokenBusiness] = useState("");
+  /**
+   * const checking page
+   */
+  const [is_checking_page, setIsCheckingPage] = useState(false);
+
+  /** Chọn Tổ chức để thêm page vào*/
+  const [organization, setOrganization] = useState([]);
+  /** Trạng thái loading modal */
+  const [loading_in_modal, setLoadingInModal] = useState(false);
 
   /** Hàm lấy token merchant
    * @param chatbox_token
@@ -62,16 +90,266 @@ const ConnectShopify = ({
   };
   /** Khi chatbox token thay đổi */
   useEffect(() => {
-    if (chatbox_token && !token_merchant) {
+    if (chatbox_token && !token_merchant && is_checking_page) {
       fetchMerchantToken(chatbox_token);
     }
-  }, [chatbox_token, token_merchant]);
+  }, [chatbox_token, token_merchant, is_checking_page]);
   /** Nếu đã có token merchant thì lưu lại */
   useEffect(() => {
-    if (token_merchant) {
+    if (token_merchant && is_checking_page) {
       setTokenBusiness(token_merchant);
     }
-  }, [token_merchant]);
+  }, [token_merchant, is_checking_page]);
+
+  useEffect(() => {
+    /** Khi vào lần đầu và có chatbox token */
+    const runChatboxProcess = async () => {
+      if (!is_checking_page && chatbox_token) {
+        /** Tạo chọn bm và tạo page moi */
+        await chatboxProcess(chatbox_token);
+      }
+    };
+
+    runChatboxProcess();
+  }, [is_checking_page, chatbox_token]);
+
+  /**
+   *  Hàm thêm page vào Tổ chức
+   * @param ACCESS_TOKEN
+   * @returns List org
+   */
+  const fetchListOrg = async (ACCESS_TOKEN: string) => {
+    try {
+      /**
+       * DOmain org
+       */
+      const ORG_END_POINT = `app/organization/read_org`;
+      /**
+       * Lay danh sach org
+       */
+      const ORG_DATA = await apiCommon({
+        end_point: ORG_END_POINT,
+        method: "POST",
+
+        headers: {
+          Authorization: ACCESS_TOKEN,
+        },
+        service_type: "billing",
+      });
+      /**
+       * Parse data
+       */
+      console.log(ORG_DATA, "org_data");
+
+      if (ORG_DATA?.code !== 200) {
+        return "error";
+      }
+      return ORG_DATA?.data;
+    } catch (error) {
+      return "error";
+    }
+  };
+
+  /**
+   * Hàm chọn BM để add Page vào
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param ACCESS_TOKEN
+   */
+  const checkInstalledPage = async (ORG_ID: string, ACCESS_TOKEN: string) => {
+    console.log(ACCESS_TOKEN, "access_token");
+
+    /** Domain add page*/
+    const END_POINT = `app/owner_ship/read_page`;
+    /** Khai báo body */
+    const BODY = {
+      org_id: ORG_ID,
+    };
+    /** Khai báo Header */
+    const HEADERS = {
+      Authorization: ACCESS_TOKEN,
+    };
+    /** Thêm page vào Tổ chức */
+    const DATA = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: BODY,
+      headers: HEADERS,
+      service_type: "billing",
+    });
+    /** Throw lỗi */
+    if (DATA?.code !== 200) {
+      throw DATA?.message;
+    }
+    /** Return list data */
+    return DATA.data;
+  };
+
+  /**
+   *  Hàm tạo page
+   * @param ORG_ID
+   * @param ACCESS_TOKEN
+   * @param DOMAIN
+   * @returns
+   */
+  const createPage = async (
+    ORG_ID: string,
+    ACCESS_TOKEN: string,
+    DOMAIN: string
+  ) => {
+    // setLoadingText(t("creating_page"));
+    /**
+     * Endpoint tạo page
+     */
+    const END_POINT = "app/page/create_website_page";
+
+    /** Tạo page */
+    const RES = await apiCommon({
+      end_point: END_POINT,
+      method: "POST",
+      body: {
+        org_id: ORG_ID,
+        name: DOMAIN,
+      },
+      headers: {
+        Authorization: ACCESS_TOKEN,
+      },
+      service_type: "service",
+    });
+
+    // /** Tạo QR code */
+    // const BASE_64_IMG = await generateQRCodeImage(
+    //   `https://retify.ai/c/${RES?.data?.fb_page_id}`
+    // );
+    // /**
+    //  * Update QR code
+    //  */
+    // updateQRCode && updateQRCode(BASE_64_IMG);
+    return RES?.data?.fb_page_id;
+  };
+
+  /** Function chính
+   * @param ORG_ID
+   * @param PAGE_ID
+   * @param ACCESS_TOKEN
+   */
+  const mainChatboxFunction = async (ORG_ID: string, ACCESS_TOKEN: string) => {
+    try {
+      /** Cập nhật loading */
+      // setLoading(true);
+
+      /** Kiểm tra trong list page đã có page dạng **.retify.ai chưa */
+      const LIST_INSTALLED_PAGE = await checkInstalledPage(
+        ORG_ID,
+        ACCESS_TOKEN
+      );
+      console.log(LIST_INSTALLED_PAGE, "LIST_INSTALLED_PAGE");
+      /** Page id */
+      let list_page = [];
+      /** Lưu page trùng với tên mới tạo */
+      if (LIST_INSTALLED_PAGE) {
+        list_page = LIST_INSTALLED_PAGE?.filter((item: any) =>
+          item?.page_info?.name.includes(".retify.ai")
+        );
+      }
+      console.log(list_page, "LIST_PAGE_ID");
+      /** Domain */
+      const DOMAIN = toRenderDomain("test");
+
+      /** check page
+       * Nếu không có page nào trùng với form tên page mới tạo
+       */
+      if (list_page.length === 0 || !list_page) {
+        /** Tạo page */
+        const PAGE_ID = await createPage(ORG_ID, ACCESS_TOKEN, DOMAIN);
+        setIsCheckingPage(true);
+
+        setLoadingInModal(false);
+      }
+
+      /** check page
+       * Nếu có 1 page trùng với form tên page mới tạo
+       */
+      if (list_page.length > 0) {
+        /** Cập nhật page id */
+        // setParentPageId && setParentPageId(list_page[0]?.page_id);
+
+        /** Đổi tên page */
+        // await changePageName(list_page[0]?.page_id, DOMAIN, ACCESS_TOKEN);
+
+        /** Kết nối Chatbox */
+        // await handleConnectToChatBox(
+        //   ORG_ID,
+        //   list_page[0]?.page_id,
+        //   ACCESS_TOKEN
+        // );
+        setIsCheckingPage(true);
+        setLoadingInModal(false);
+      }
+    } catch (error) {
+      /** Hiện lỗi */
+      // handleErrorByCode(error, handleError);
+      // setLoading(false);
+    }
+  };
+  /**
+   *  Đổi tên page
+   * @param page_id
+   * @param name
+   * @param ACCESS_TOKEN
+   */
+  const changePageName = async (
+    page_id: string,
+    name: string,
+    ACCESS_TOKEN: string
+  ) => {
+    apiCommon({
+      end_point: "app/page/update_page_setting",
+      method: "POST",
+      body: {
+        page_id,
+        name,
+      },
+      headers: {
+        Authorization: ACCESS_TOKEN,
+      },
+      service_type: "service",
+    });
+  };
+  /**
+   *  Kết nối Chatbox
+   * @param chatbox_token
+   * @returns
+   */
+  const chatboxProcess = async (chatbox_token: string) => {
+    /**
+     * setLoading process
+     */
+    setLoadingInModal(true);
+    const LIST_ORG = await fetchListOrg(chatbox_token);
+    /** Nếu không có Tổ chức, hoặc lỗi error */
+    if (LIST_ORG === "error" || !LIST_ORG) {
+      /**
+       * Gọi handle Error
+       */
+      handleError(t("fetch_organization_list_failed"));
+
+      return;
+    }
+    /** Nếu chỉ có 1 tổ chức, thì auto pick luôn, tránh user mới phải thao tác */
+    if (LIST_ORG.length === 1) {
+      /** Tắt loading và call function luôn */
+      // setLoading(false);
+      // setLoadingText("");
+      await mainChatboxFunction(LIST_ORG[0].org_id, chatbox_token);
+      return;
+    }
+
+    /** Lưu danh sách Tổ chức */
+    setOrganization(LIST_ORG);
+    setLoadingInModal(false);
+    // setLoadingText("");
+  };
 
   /**
    *  Hàm tạo store
@@ -240,60 +518,97 @@ const ConnectShopify = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div className="flex flex-col bg-white w-full md:max-w-[400px] mx-4 md:mx-auto gap-4 rounded-2xl p-6 shadow-lg">
-        <div className="flex flex-col gap-4">
-          <h2 className="text-lg font-semibold">
-            {t("connect_shopify_title")}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {t("connect_shopify_description")}
-          </p>
+      {!is_checking_page ? (
+        <div className="flex flex-col bg-white w-full md:max-w-[400px] mx-4 md:mx-auto gap-4 rounded-2xl p-6 shadow-lg">
+          {organization?.length > 1 && !loading_in_modal && (
+            <div className="h-full w-full">
+              <h4>{t("select_your_organization")}</h4>
+              <div className="flex flex-col gap-y-2 w-full">
+                {organization.map((org: any) => (
+                  <div
+                    key={org?.org_id}
+                    className="flex w-full items-center gap-x-2 border border-gray-200 hover:bg-gray-100 rounded p-2 cursor-pointer"
+                    onClick={() => {
+                      mainChatboxFunction(org?.org_id, chatbox_token || "");
+                      // setOrganization([]);
+                    }}
+                  >
+                    <img
+                      src={org?.org_info?.org_avatar || "/imgs/BBH.png"}
+                      alt={"logo"}
+                      style={{ objectFit: "cover" }}
+                      className="w-8 h-8 rounded-lg flex justify-center items-center"
+                    />
+                    <div className="flex flex-col text-left w-full">
+                      <h4 className="truncate w-full">
+                        {org?.org_info?.org_name}
+                      </h4>
+                      <p className="truncate text-sm">{org?.org_id}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {loading_in_modal && (
+            <div className="flex items-center justify-center h-full">
+              <Loading size="md" />
+            </div>
+          )}
         </div>
-        <InputTitle
-          value_input={shopify_name || ""}
-          setValueInput={(e) => {
-            setShopifyName(e);
-          }}
-          title={t("shop_name")}
-          placeholder={t("enter_shop_name")}
-        />
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={() => closeModal()}
-            className="px-4 py-2 cursor-pointer hover:bg-gray-600 text-sm font-medium text-white bg-gray-500 rounded-lg w-full"
-          >
-            {t("cancel")}
-          </button>
-          <button
-            onClick={async () => {
-              /** Nếu chưa nhập tên cửa hàng thì show toast lỗi và return */
-              if (shopify_name === "") {
-                toast.error(t("enter_shop_name"));
-                return;
-              }
-              setLoading?.(true);
-              //   window.open(
-              //     `https://${shopify_name}.myshopify.com/admin/oauth/authorize?client_id=dcfdf1b266b408747855729056ac5e32&scope=read_analytics%20read_assigned_fulfillment_orders%20write_assigned_fulfillment_orders%20read_customer_merge%20write_customer_merge%20read_customers%20write_customers%20read_discounts%20write_discounts%20read_draft_orders%20write_draft_orders%20read_files%20write_files%20read_fulfillments%20write_fulfillments%20read_gdpr_data_request%20read_gift_cards%20write_gift_cards%20read_inventory%20write_inventory%20read_legal_policies%20write_legal_policies%20read_locations%20read_marketing_events%20write_marketing_events%20read_merchant_managed_fulfillment_orders%20write_merchant_managed_fulfillment_orders%20read_metaobject_definitions%20write_metaobject_definitions%20read_metaobjects%20write_metaobjects%20read_online_store_navigation%20read_online_store_pages%20write_online_store_pages%20read_order_edits%20write_order_edits%20read_orders%20write_orders%20read_price_rules%20write_price_rules%20read_products%20write_products%20read_product_listings%20write_product_listings%20read_reports%20write_reports%20read_resource_feedbacks%20write_resource_feedbacks%20read_script_tags%20write_script_tags%20read_shipping%20write_shipping%20read_shopify_payments_accounts%20read_shopify_payments_bank_accounts%20read_shopify_payments_disputes%20read_shopify_payments_payouts%20read_content%20write_content%20read_themes%20write_themes%20read_third_party_fulfillment_orders%20write_third_party_fulfillment_orders%20read_translations%20write_translations&redirect_uri=https://merchant.vn/oauth/shopify&state=672d9e84fde3544cbb940f89`,
-              //     "_blank"
-              //   );
-              await handleSubmit(shopify_name);
-
-              /** Delay 2s để tắt loading */
-              //   setTimeout(() => {
-              //     /** tắt Trạng thái mở modal */
-              //     closeModal();
-              //     /** Tắt loading */
-              //     setLoading?.(false);
-              //   }, 2000);
+      ) : (
+        <div className="flex flex-col bg-white w-full md:max-w-[400px] mx-4 md:mx-auto gap-4 rounded-2xl p-6 shadow-lg">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-lg font-semibold">
+              {t("connect_shopify_title")}
+            </h2>
+            <p className="text-sm text-gray-600">
+              {t("connect_shopify_description")}
+            </p>
+          </div>
+          <InputTitle
+            value_input={shopify_name || ""}
+            setValueInput={(e) => {
+              setShopifyName(e);
             }}
-            disabled={loading}
-            className="flex justify-center cursor-pointer hover:bg-blue-500 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg w-full "
-          >
-            <div className="truncate w-full">{t("connect")}</div>
-            {loading && <Loading size="sm" color_white />}
-          </button>
+            title={t("shop_name")}
+            placeholder={t("enter_shop_name")}
+          />
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => closeModal()}
+              className="px-4 py-2 cursor-pointer hover:bg-gray-600 text-sm font-medium text-white bg-gray-500 rounded-lg w-full"
+            >
+              {t("cancel")}
+            </button>
+            <button
+              onClick={async () => {
+                /** Nếu chưa nhập tên cửa hàng thì show toast lỗi và return */
+                if (shopify_name === "") {
+                  toast.error(t("enter_shop_name"));
+                  return;
+                }
+                setLoading?.(true);
+
+                await handleSubmit(shopify_name);
+
+                /** Delay 2s để tắt loading */
+                //   setTimeout(() => {
+                //     /** tắt Trạng thái mở modal */
+                //     closeModal();
+                //     /** Tắt loading */
+                //     setLoading?.(false);
+                //   }, 2000);
+              }}
+              disabled={loading}
+              className="flex justify-center cursor-pointer hover:bg-blue-500 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg w-full "
+            >
+              <div className="truncate w-full">{t("connect")}</div>
+              {loading && <Loading size="sm" color_white />}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

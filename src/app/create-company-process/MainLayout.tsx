@@ -9,14 +9,12 @@ import { useLocale, useTranslations } from "next-intl";
 
 import ConnectDone from "./components/step6/ConnectDone";
 import ConnectShopify from "./components/ConnectShopify";
-import InputTitle from "./components/step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import Product from "../products/Products";
 import Progress from "./components/Progress";
 import StepContent from "./components/StepContent";
 import StepNavigator from "./components/StepNavigator";
 import StepTitle from "./components/StepTitle";
-import { set } from "lodash";
 import { simpleUUID } from "@/utils";
 import { toast } from "react-toastify";
 
@@ -39,8 +37,8 @@ declare global {
 /** Mock token */
 // const MOCK_TOKEN =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3NDk5MjQ5LCJleHAiOjMxNTUzNDc0OTkyNDl9.Lj83AFAcQHWuTSq-hf40JpTfzAeDFHvxYKvF-61PLW0";
-// const MOCK_TOKEN =
-//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3OTkxNjczLCJleHAiOjMxNTUzNDc5OTE2NzN9.X-lUMmhkdC9SaCLRFUg9djQ26JP3u_ahgiLQmXR-MPk";
+const MOCK_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTI3MTE2MTQ5NjY4MzA4IiwiX2lkIjoiNjdkN2Y3YTFjNWY0M2M4NTU2NTZkNjcyIiwiaWF0IjoxNzQ3OTkxNjczLCJleHAiOjMxNTUzNDc5OTE2NzN9.X-lUMmhkdC9SaCLRFUg9djQ26JP3u_ahgiLQmXR-MPk";
 // /** Mock token */
 // const MOCK_TOKEN =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmI1ZWNjZGIyZjk3NGRhNDkyNDBjNzM4YWI0MjZjNTQiLCJmYl9zdGFmZl9pZCI6IjEwNDkyMzQ4NzM0ODUwMjkiLCJpc19kaXNhYmxlIjpmYWxzZSwiX2lkIjoiNjcwMGI0ZGZkMDM4NTYwOTFlM2I5OGU3IiwiaWF0IjoxNzQ1ODIyNjg2LCJleHAiOjMxNTUzNDU4MjI2ODZ9.OE-dXcI-MPoCK6Ca0W8q9LRUGP2av1lY9BO_tV7A2DI";
@@ -72,6 +70,7 @@ const DEFAULT_FORM_DATA: FormDataType = {
   page_id: "",
   token_merchant: "",
   type_connect: "",
+  shopify_connected: false,
 };
 const MainLayout = () => {
   /** Đa ngôn ngữ */
@@ -634,7 +633,7 @@ const MainLayout = () => {
 
     /** Add event listener */
     window.addEventListener("message", handleMessage);
-    // updateField("access_token", MOCK_TOKEN);
+    updateField("access_token", MOCK_TOKEN);
 
     /** Remove event listener */
     return () => {
@@ -955,6 +954,7 @@ const MainLayout = () => {
                   onSelectMenu={(value) => {
                     setFileImage(value);
                   }}
+                  shopify_connected={form_data.shopify_connected}
                   onConnectStep2={(value) => {
                     /** Bước 2 Lựa chọn clover thì toast warning */
                     if (value === "Clover") {
@@ -1135,6 +1135,9 @@ const MainLayout = () => {
               setListProducts={(e) => {
                 updateField("list_products", e);
                 updateField("type_connect", "shopify");
+                // Trạng thái updated
+                updateField("shopify_connected", true);
+                updateField("step", 3);
               }}
             />
           )}

@@ -84,6 +84,11 @@ type Props = {
    * onConnect
    */
   onConnectStep2?: (e: string) => void;
+
+  /**
+   * shopify connected
+   */
+  shopify_connected?: boolean;
 };
 
 const StepContent: React.FC<Props> = ({
@@ -118,6 +123,7 @@ const StepContent: React.FC<Props> = ({
   setIsNeedToUpdateCrm,
   loading_message,
   onConnectStep2,
+  shopify_connected,
 }) => {
   return (
     <div className="rounded w-full text-center h-full">
@@ -141,6 +147,7 @@ const StepContent: React.FC<Props> = ({
           defaultValue={fixed_menu}
           onConnectStep2={onConnectStep2}
           loading={loading}
+          shopify_connected={shopify_connected}
         />
       )}
       {step === 3 && (
