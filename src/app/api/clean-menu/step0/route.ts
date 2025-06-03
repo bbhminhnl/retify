@@ -14,10 +14,13 @@ export async function POST(req: Request) {
 
 Yêu cầu:
 1. Sửa lỗi như "di ng", "đi ng", "di nóng" → "đá/nóng"
-2. Tách từ dính liền
-3. Hoàn chỉnh từ bị thiếu do OCR
-4. Dòng quá lỗi thì bỏ
-5. Tuyệt đối không được thêm - vào trước món ăn, gây nhầm lẫn
+  **Sửa lỗi chính tả và lỗi nhập liệu (ví dụ: "daining" → "đá/nóng", "loed" → "Iced")**
+2.**Xoá mọi số điện thoại, ví dụ như "0987.161.789".**
+3. Tách từ dính liền
+4. Hoàn chỉnh từ bị thiếu do OCR
+5. Dòng quá lỗi thì bỏ
+   **Loại bỏ nội dung trùng lặp, không cần thiết, hoặc không liên quan đến sản phẩm.**
+6. Tuyệt đối không được thêm - vào trước món ăn, gây nhầm lẫn
 
 Chỉ trả lại văn bản đã sửa lỗi, mỗi dòng là một món hoặc mô tả.
 `;

@@ -1158,6 +1158,13 @@ const MainLayout = () => {
                 updateField("image_url", "");
                 /** Tự động next trạng thái luôn */
                 updateField("step", 3);
+
+                /** Cập nhật trạng thái update crm*/
+                updateField("is_need_to_update_crm", true);
+                /** bước 3 cần call */
+                updateField("fetching_step_3_4", true);
+                /** Bước 4 cần call */
+                updateField("fetching_step_4_5", true);
               }}
               handleOrgId={(e) => {
                 updateField("org_id", e);
