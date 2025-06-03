@@ -27,11 +27,11 @@ const SelectPOS = ({ onConnect, loading, connected }: IPOS) => {
       label: "Shopify",
       Icon: Shopify,
     },
-    {
-      value: "Clover",
-      label: "Clover",
-      Icon: Clover,
-    },
+    // {
+    //   value: "Clover",
+    //   label: "Clover",
+    //   Icon: Clover,
+    // },
   ];
 
   return (

@@ -434,7 +434,7 @@ const ConnectShopify = ({
    *  pull sản phẩm về
    * @returns
    */
-  const pullProduct = async () => {
+  const pullProduct = async (token_business: string) => {
     /**
      * End point
      */
@@ -530,26 +530,7 @@ const ConnectShopify = ({
       window.ReactNativeWebView.postMessage(JSON.stringify(PAYLOAD));
     }
 
-    // return;
-    /**
-     * Check có phải webview k
-     */
-    // if (IS_MOBILE_WEBVIEW) {
-    //   /**
-    //    * Payload
-    //    */
-    //   const PAYLOAD = {
-    //     type: "page.OPEN_SHOPIFY_OAUTH",
-    //     url: RES_SYNC_MERCHANT,
-    //   };
-
-    //   /** Android WebView */
-    //   if (window.ReactNativeWebView) {
-    //     window.ReactNativeWebView.postMessage(JSON.stringify(PAYLOAD));
-    //   }
-
-    //   return;
-    // }
+    // window.open(RES_SYNC_MERCHANT, "_blank");
 
     /** 2. Nếu là web browser, mở iframe */
     // setIframeUrl(RES_SYNC_MERCHANT);
@@ -575,6 +556,7 @@ const ConnectShopify = ({
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
+      console.log(event.data, "event data");
       try {
         /**
          * Parse data
@@ -582,11 +564,9 @@ const ConnectShopify = ({
         const DATA =
           typeof event.data === "string" ? JSON.parse(event.data) : event.data;
         /** Check sự kiện */
-        if (DATA?.type === "page.SHOPIFY_OAUTH_SUCCESS") {
-          /**
-           * Pull product
-           */
-          const PULL_PRODUCT = await pullProduct();
+        if (DATA?.type === "page.shopify") {
+          /** Pull product*/
+          const PULL_PRODUCT = await pullProduct(token_business);
           console.log(PULL_PRODUCT, "PULL_PRODUCT");
           /** Lấy list sản phẩm từ merchant */
           const PRODUCT_LIST = await fetchMerchantProduct();
@@ -603,7 +583,7 @@ const ConnectShopify = ({
     window.addEventListener("message", handleMessage);
     /** unmount */
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [token_business]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
