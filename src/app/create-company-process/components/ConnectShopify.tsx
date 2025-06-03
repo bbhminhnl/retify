@@ -552,25 +552,25 @@ const ConnectShopify = ({
     // }
 
     /** 2. Nếu là web browser, mở iframe */
-    setIframeUrl(RES_SYNC_MERCHANT);
-    /**
-     * Sử dụng callback sau khi iframe hóa
-     */
-    setAfterIframeCallback(() => async () => {
-      /**
-       * Pull product
-       */
-      const PULL_PRODUCT = await pullProduct();
-      console.log(PULL_PRODUCT, "PULL_PRODUCT");
-      /**
-       * Lấy danh sách san pham
-       */
-      const PRODUCT_LIST = await fetchMerchantProduct();
-      /** Lưu danh sách sản phẩm */
-      setListProducts?.(PRODUCT_LIST);
-      closeModal();
-      setLoading?.(false);
-    });
+    // setIframeUrl(RES_SYNC_MERCHANT);
+    // /**
+    //  * Sử dụng callback sau khi iframe hóa
+    //  */
+    // setAfterIframeCallback(() => async () => {
+    //   /**
+    //    * Pull product
+    //    */
+    //   const PULL_PRODUCT = await pullProduct();
+    //   console.log(PULL_PRODUCT, "PULL_PRODUCT");
+    //   /**
+    //    * Lấy danh sách san pham
+    //    */
+    //   const PRODUCT_LIST = await fetchMerchantProduct();
+    //   /** Lưu danh sách sản phẩm */
+    //   setListProducts?.(PRODUCT_LIST);
+    //   closeModal();
+    //   setLoading?.(false);
+    // });
   };
 
   useEffect(() => {
