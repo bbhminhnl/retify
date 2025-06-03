@@ -63,7 +63,7 @@ export async function POST(req: Request) {
      * Nếu sản phẩm không có tên, giá hoặc hình ảnh thì trả về lỗi
      */
     const NEW_PRODUCT = PRODUCTS.map((product, index) => {
-      if (!product.name || !product.price) {
+      if (!product.name || (product.price && product.price === null)) {
         throw new Error(`Sản phẩm thứ ${index + 1} thiếu thông tin`);
       }
       /** Lưu lại đúng format upload lên Merchant */

@@ -564,7 +564,7 @@ const ConnectShopify = ({
         const DATA =
           typeof event.data === "string" ? JSON.parse(event.data) : event.data;
         /** Check sự kiện */
-        if (DATA?.type === "page.shopify") {
+        if (DATA?.type === "page.shopify_success") {
           /** Pull product*/
           const PULL_PRODUCT = await pullProduct(token_business);
           console.log(PULL_PRODUCT, "PULL_PRODUCT");
