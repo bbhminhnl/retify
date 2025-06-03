@@ -520,25 +520,36 @@ const ConnectShopify = ({
       /wv|WebView|(iPhone|Android).*(Version\/[\d.]+)? Chrome\/[.0-9]* Mobile/.test(
         navigator.userAgent
       );
+    const PAYLOAD = {
+      type: "page.OPEN_SHOPIFY_OAUTH",
+      url: RES_SYNC_MERCHANT,
+    };
+
+    /** Android WebView */
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify(PAYLOAD));
+    }
+
+    // return;
     /**
      * Check có phải webview k
      */
-    if (IS_MOBILE_WEBVIEW) {
-      /**
-       * Payload
-       */
-      const PAYLOAD = {
-        type: "page.OPEN_SHOPIFY_OAUTH",
-        url: RES_SYNC_MERCHANT,
-      };
+    // if (IS_MOBILE_WEBVIEW) {
+    //   /**
+    //    * Payload
+    //    */
+    //   const PAYLOAD = {
+    //     type: "page.OPEN_SHOPIFY_OAUTH",
+    //     url: RES_SYNC_MERCHANT,
+    //   };
 
-      /** Android WebView */
-      if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(JSON.stringify(PAYLOAD));
-      }
+    //   /** Android WebView */
+    //   if (window.ReactNativeWebView) {
+    //     window.ReactNativeWebView.postMessage(JSON.stringify(PAYLOAD));
+    //   }
 
-      return;
-    }
+    //   return;
+    // }
 
     /** 2. Nếu là web browser, mở iframe */
     setIframeUrl(RES_SYNC_MERCHANT);
@@ -688,7 +699,7 @@ const ConnectShopify = ({
           </div>
         </div>
       )}
-      {iframe_url && (
+      {/* {iframe_url && (
         <IframeModal
           url={iframe_url}
           onClose={() => {
@@ -696,7 +707,7 @@ const ConnectShopify = ({
             afterIframeCallback?.();
           }}
         />
-      )}
+      )} */}
     </div>
   );
 };
