@@ -73,7 +73,7 @@ Yêu cầu:
      "currency": string    // Đơn vị tiền tệ, viết hoa: VND, USD, EUR...
    }
 3. Không thêm mô tả, không tiêu đề, không chú thích gì ngoài JSON thuần.
-
+4. Quan trọng: Nếu không có dữ liệu thì trả về [], không bịa ra sản phẩm.
 Ví dụ:
 [
   {

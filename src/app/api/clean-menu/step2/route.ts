@@ -5,9 +5,7 @@ const OPEN_AI = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: Request) {
   const { filteredText } = await req.json();
-  /**
-   * Prompt
-   */
+  /** Prompts */
   const PROMPTS = `
 Dưới đây là danh sách món ăn và giá tiền:
 
@@ -25,10 +23,15 @@ Yêu cầu:
    **"Tên món - Giá - VND"**
    hoặc **"Tên món - Giá - USD" / "EUR"**
 
-❌ Không thêm tiêu đề như "Danh sách món ăn:"
-❌ Không đánh số thứ tự dòng (1., 2., ...)
-✅ Nếu trước tên món phát hiện "-" hoặc "1." thì tự động xoá đi
-✅ Chỉ mỗi dòng là một món.
+✅ Nếu trước tên món phát hiện ký tự không cần thiết như "-" hoặc số thứ tự "1.", "2.", "3." thì tự động xoá.
+✅ Mỗi dòng chỉ gồm **một món duy nhất**, không thêm bất kỳ mô tả hay thông tin nào khác.
+✅ Nếu giá không rõ ràng hoặc nghi ngờ bị lỗi, **bỏ qua dòng đó**, **không được suy diễn tùy ý**.
+
+❌ Không được thêm dòng tiêu đề như "Danh sách món ăn:"
+❌ Không được đánh số thứ tự (1., 2., ...)
+❌ Không bịa ra món ăn hoặc giá nếu không có trong văn bản.
+
+⚠️ Nếu không có dòng nào hợp lệ, **trả về kết quả rỗng** (không được tạo ra dòng giả).
 `;
 
   try {
