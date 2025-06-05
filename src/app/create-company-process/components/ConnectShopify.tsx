@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import InputTitle from "./step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import { apiCommon } from "@/services/fetchApi";
+import { on } from "events";
 import { toRenderDomain } from "@/utils";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
@@ -19,6 +20,8 @@ type IProps = {
   setListProducts?: (value: any) => void;
   handleOrgId?: (value?: string) => void;
   handlePageId?: (value?: string) => void;
+  on_reset?: boolean;
+  setOnReset?: (value: boolean) => void;
 };
 const ConnectShopify = ({
   is_open,
@@ -32,6 +35,8 @@ const ConnectShopify = ({
   setListProducts,
   handleOrgId,
   handlePageId,
+  on_reset,
+  setOnReset,
 }: IProps) => {
   /** Đa ngôn ngữ */
   const t = useTranslations();
@@ -116,6 +121,15 @@ const ConnectShopify = ({
 
     runChatboxProcess();
   }, [is_checking_page, chatbox_token]);
+
+  useEffect(() => {
+    console.log(on_reset, "on_reset 123 is_checking_page");
+    if (on_reset) {
+      setIsCheckingPage(false);
+      setOnReset && setOnReset(false);
+      setOrganization([]);
+    }
+  }, [on_reset]);
 
   /**
    *  Hàm thêm page vào Tổ chức
