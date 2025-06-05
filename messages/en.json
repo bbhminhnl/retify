@@ -116,13 +116,13 @@
   "shop_info": "Store Information",
   "connect_shopify_title": "Connect to Shopify",
   "connect_shopify_description": "Please enter your store name accurately",
-  "shopify_example": "Example: https://shopify_partner.myshopify.com/admin/oauth... Shopify name: shopify_partner",
+  "shopify_example": "Example: https://shopify_partner.myshopify.com/admin/oauth... Store name: shopify_partner",
 
   "connect_shopify_success": "Connected to Shopify successfully",
   "authorization_shopify_success": "Authorized with Shopify successfully",
   "pull_product_success": "Pulled products from Shopify successfully",
   "connected": "Connected",
-  "enter_shopify_name": "https://ten-cua-hang.myshopify.co/admin/oauth...",
+  "enter_shopify_name": "https://store_name.myshopify.co/admin/oauth...",
 
   "reach_quota_page": "Reach quota page",
   "error_creating_page": "Error creating page"
