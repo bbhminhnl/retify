@@ -116,13 +116,16 @@
   },
   "shop_info": "Thông tin cửa hàng",
   "connect_shopify_title": "Kết nối với Shopify",
+  "connect_shopify_require": "Bạn cần kết nối với shopify và có cửa hàng trên Shopify",
   "connect_shopify_description": "Vui lòng nhập chính xác tên cửa hàng của bạn",
-  "shopify_example": "Ví dụ: https://shopify_partner.myshopify.com/admin/oauth... Tên cửa hàng: shopify_partner",
+  "shopify_example": "Đường dẫn cửa hàng sẽ có dạng: https://shopify_partner.myshopify.com/admin/...",
+  "shopify_store_name": " -> Tên cửa hàng là: 'shopify_partner'",
   "connect_shopify_success": "Kết nối với Shopify thành công",
   "authorization_shopify_success": "Uỷ quyền với Shopify thành công",
   "pull_product_success": "Lấy sản phẩm từ Shopify thành công",
   "connected": "Đã kết nối",
-  "enter_shopify_name": "https://ten-cua-hang.myshopify.com/admin/oauth...",
+  "enter_shopify_name": "https://ten-cua-hang.myshopify.com/admin/...",
   "reach_quota_page": "Đạt giới hạn Trang của Tổ chức",
-  "error_creating_page": "Lỗi khi tạo trang"
+  "error_creating_page": "Lỗi khi tạo trang",
+  "shopify_warning": "Khi đăng nhập lần đầu, shopify có thể phát sinh lỗi. Bạn vui lòng đóng Popup kết nối shopify và thao tác lại 1 lần nữa. "
 }

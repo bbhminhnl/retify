@@ -757,10 +757,15 @@ If you need further assistance, visit https://retify.ai to get free support from
             <h2 className="text-lg font-semibold">
               {t("connect_shopify_title")}
             </h2>
-            <p className="text-sm text-gray-600">
-              {t("connect_shopify_description")}
+            <p className="text-sm text-gray-700">
+              •{t("connect_shopify_require")}
             </p>
-            <p className="text-sm text-gray-600">{t("shopify_example")}</p>
+            <p className="text-sm text-gray-700">
+              •{t("connect_shopify_description")}
+            </p>
+            <p className="text-sm text-gray-700">• {t("shopify_example")}</p>
+            <p className="text-sm text-gray-700">{t("shopify_store_name")}</p>
+            <p className="text-sm text-gray-800">{t("shopify_warning")}</p>
           </div>
           <InputTitle
             value_input={shopify_name || ""}

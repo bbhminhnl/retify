@@ -115,15 +115,18 @@
   },
   "shop_info": "Store Information",
   "connect_shopify_title": "Connect to Shopify",
-  "connect_shopify_description": "Please enter your store name accurately",
-  "shopify_example": "Example: https://shopify_partner.myshopify.com/admin/oauth... Store name: shopify_partner",
 
+  "connect_shopify_require": "You need to connect to Shopify and have a store on Shopify.",
+  "connect_shopify_description": "Please enter your store name accurately",
+  "shopify_example": "Your store name should be in the following format: https://shopify_partner.myshopify.com/admin/... ",
+  "shopify_store_name": "-> Store name is: 'shopify_partner'",
   "connect_shopify_success": "Connected to Shopify successfully",
   "authorization_shopify_success": "Authorized with Shopify successfully",
   "pull_product_success": "Pulled products from Shopify successfully",
   "connected": "Connected",
-  "enter_shopify_name": "https://store_name.myshopify.co/admin/oauth...",
+  "enter_shopify_name": "https://store_name.myshopify.co/admin/...",
 
   "reach_quota_page": "Reach quota page",
-  "error_creating_page": "Error creating page"
+  "error_creating_page": "Error creating page",
+  "shopify_warning": "During the first login, Shopify may encounter an error. Please close the Shopify connection popup and try again."
 }
