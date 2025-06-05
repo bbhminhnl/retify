@@ -616,16 +616,6 @@ If you need further assistance, visit https://retify.ai to get free support from
   };
 
   /**
-   * Iframe url
-   */
-  const [iframe_url, setIframeUrl] = useState<string | null>(null);
-  /**
-   * After iframe callback
-   */
-  const [afterIframeCallback, setAfterIframeCallback] = useState<() => void>(
-    () => () => {}
-  );
-  /**
    * Hàm submit
    * @param shopify_name
    */
@@ -688,6 +678,11 @@ If you need further assistance, visit https://retify.ai to get free support from
          */
         const DATA =
           typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+
+        if (DATA?.type === "page.close_shopify_modal") {
+          setLoading?.(false);
+        }
+
         /** Check sự kiện */
         if (DATA?.type === "page.shopify_success") {
           /** Pull product*/
@@ -697,8 +692,9 @@ If you need further assistance, visit https://retify.ai to get free support from
           const PRODUCT_LIST = await fetchMerchantProduct();
           /** Gọi hàm và callback data */
           setListProducts?.(PRODUCT_LIST);
-          closeModal();
+
           setLoading?.(false);
+          setTimeout(() => closeModal(), 1000);
         }
       } catch (e) {
         console.error("Error handling native message:", e);

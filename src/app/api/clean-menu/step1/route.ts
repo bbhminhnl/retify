@@ -8,24 +8,43 @@ export async function POST(req: Request) {
   /**
    * Prompt
    */
+  //   const PROMPTS = `
+  // Dưới đây là văn bản sau khi đã được sửa lỗi chính tả:
+
+  // "${fixedText}"
+
+  // Nhiệm vụ:
+  // Trích xuất **các dòng mô tả món ăn kèm giá tiền** từ văn bản trên.
+
+  // Yêu cầu:
+  // 1. Chỉ giữ lại các dòng có chứa món ăn và giá tiền.
+  // 2. Loại bỏ các dòng sau:
+  //    - Dòng tiêu đề, tên nhóm món (như: THỊT BÒ, HẢI SẢN, ĐỒ UỐNG...)
+  //    - Dòng không có số tiền
+  //    - Dòng chỉ có mô tả phụ, trang trí, biểu tượng, emoji, hoặc các ký tự như --- , *** , ::
+  //    - Dòng chứa từ khóa không cần thiết như: "Menu", "Thực đơn", "Đồ uống", v.v.
+  // 3. Không được bịa ra dữ liệu. Nếu không có dòng hợp lệ, kết quả trả về phải rỗng.
+
+  // Chỉ trả về danh sách món ăn và giá (nếu có), mỗi dòng một món. Không thêm bất kỳ nội dung nào khác.
+  // `;
+
+  /**
+   * Prompt
+   */
   const PROMPTS = `
-Dưới đây là văn bản sau khi đã được sửa lỗi chính tả:
+Văn bản sau đã được sửa lỗi:
 
 "${fixedText}"
 
-Nhiệm vụ:
-Trích xuất **các dòng mô tả món ăn kèm giá tiền** từ văn bản trên.
-
 Yêu cầu:
-1. Chỉ giữ lại các dòng có chứa món ăn và giá tiền.
-2. Loại bỏ các dòng sau:
-   - Dòng tiêu đề, tên nhóm món (như: THỊT BÒ, HẢI SẢN, ĐỒ UỐNG...)
+1. Giữ lại dòng có món ăn và giá tiền, ví dụ: "Cà phê sữa đá 20k", "Bánh Mì - 25.000đ"
+2. Loại bỏ:
+   - Dòng tiêu đề/phân nhóm (vd: "THỊT BÒ", "HẢI SẢN", "ĐỒ UỐNG")
    - Dòng không có số tiền
-   - Dòng chỉ có mô tả phụ, trang trí, biểu tượng, emoji, hoặc các ký tự như --- , *** , ::
-   - Dòng chứa từ khóa không cần thiết như: "Menu", "Thực đơn", "Đồ uống", v.v.
-3. Không được bịa ra dữ liệu. Nếu không có dòng hợp lệ, kết quả trả về phải rỗng.
+   - Dòng chỉ chứa mô tả, trang trí, thông tin phụ
+3. Bỏ các từ khóa không cần thiết: "Menu", "Thực đơn", "Đồ uống", các dấu như "---", "***", "::", emoji
 
-Chỉ trả về danh sách món ăn và giá (nếu có), mỗi dòng một món. Không thêm bất kỳ nội dung nào khác.
+Trả về danh sách món ăn và giá dạng thô, mỗi món một dòng.
 `;
 
   try {
