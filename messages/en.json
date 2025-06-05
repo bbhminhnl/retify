@@ -119,5 +119,9 @@
   "connect_shopify_success": "Connected to Shopify successfully",
   "authorization_shopify_success": "Authorized with Shopify successfully",
   "pull_product_success": "Pulled products from Shopify successfully",
-  "connected": "Connected"
+  "connected": "Connected",
+  "enter_shopify_name": "https://ten-cua-hang.myshopify.co/admin/oauth...",
+
+  "reach_quota_page": "Reach quota page",
+  "error_creating_page": "Error creating page"
 }

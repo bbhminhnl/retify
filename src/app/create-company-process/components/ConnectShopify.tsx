@@ -1,6 +1,5 @@
-import React, { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import IframeModal from "./IframeModal";
 import InputTitle from "./step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import { apiCommon } from "@/services/fetchApi";
@@ -207,30 +206,44 @@ const ConnectShopify = ({
      * Endpoint tạo page
      */
     const END_POINT = "app/page/create_website_page";
+    try {
+      /** Tạo page */
+      const RES = await apiCommon({
+        end_point: END_POINT,
+        method: "POST",
+        body: {
+          org_id: ORG_ID,
+          name: DOMAIN,
+        },
+        headers: {
+          Authorization: ACCESS_TOKEN,
+        },
+        service_type: "service",
+      });
 
-    /** Tạo page */
-    const RES = await apiCommon({
-      end_point: END_POINT,
-      method: "POST",
-      body: {
-        org_id: ORG_ID,
-        name: DOMAIN,
-      },
-      headers: {
-        Authorization: ACCESS_TOKEN,
-      },
-      service_type: "service",
-    });
+      console.log(RES, "res");
 
-    // /** Tạo QR code */
-    // const BASE_64_IMG = await generateQRCodeImage(
-    //   `https://retify.ai/c/${RES?.data?.fb_page_id}`
-    // );
-    // /**
-    //  * Update QR code
-    //  */
-    // updateQRCode && updateQRCode(BASE_64_IMG);
-    return RES?.data?.fb_page_id;
+      // /** Tạo QR code */
+      // const BASE_64_IMG = await generateQRCodeImage(
+      //   `https://retify.ai/c/${RES?.data?.fb_page_id}`
+      // );
+      // /**
+      //  * Update QR code
+      //  */
+      // updateQRCode && updateQRCode(BASE_64_IMG);
+      return RES?.data?.fb_page_id;
+    } catch (error) {
+      console.log(error, "error =======");
+      if (error === "REACH_QUOTA.PAGE") {
+        /**
+         * Gọi handle Error
+         */
+        handleError(t("reach_quota_page"));
+        return;
+      }
+      /** Hiện lỗi chung */
+      handleError(t("error_creating_page"));
+    }
   };
 
   /** Lấy client ID
@@ -364,6 +377,12 @@ If you need further assistance, visit https://retify.ai to get free support from
       if (list_page.length === 0 || !list_page) {
         /** Tạo page */
         const PAGE_ID = await createPage(ORG_ID, ACCESS_TOKEN, DOMAIN);
+        /** Nếu không có page */
+        if (!PAGE_ID) {
+          setLoadingInModal(false);
+          return;
+        }
+
         setIsCheckingPage(true);
         /** Cập nhật page id */
         handlePageId && handlePageId(PAGE_ID);
@@ -741,6 +760,7 @@ If you need further assistance, visit https://retify.ai to get free support from
             <p className="text-sm text-gray-600">
               {t("connect_shopify_description")}
             </p>
+            <p className="text-sm text-gray-600">{t("shopify_example")}</p>
           </div>
           <InputTitle
             value_input={shopify_name || ""}
@@ -748,7 +768,7 @@ If you need further assistance, visit https://retify.ai to get free support from
               setShopifyName(e);
             }}
             title={t("shop_name")}
-            placeholder={t("enter_shop_name")}
+            placeholder={t("enter_shopify_name")}
           />
           <div className="flex justify-end space-x-2">
             <button
@@ -761,7 +781,8 @@ If you need further assistance, visit https://retify.ai to get free support from
               onClick={async () => {
                 /** Nếu chưa nhập tên cửa hàng thì show toast lỗi và return */
                 if (shopify_name === "") {
-                  toast.error(t("enter_shop_name"));
+                  // toast.error(t("enter_shop_name"));
+                  toast.error(t("enter_shopify_name"));
                   return;
                 }
                 setLoading?.(true);

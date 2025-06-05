@@ -117,8 +117,12 @@
   "shop_info": "Thông tin cửa hàng",
   "connect_shopify_title": "Kết nối với Shopify",
   "connect_shopify_description": "Vui lòng nhập chính xác tên cửa hàng của bạn",
+  "shopify_example": "Ví dụ: https://shopify_partner.myshopify.com/admin/oauth... Tên cửa hàng: shopify_partner",
   "connect_shopify_success": "Kết nối với Shopify thành công",
   "authorization_shopify_success": "Uỷ quyền với Shopify thành công",
   "pull_product_success": "Lấy sản phẩm từ Shopify thành công",
-  "connected": "Đã kết nối"
+  "connected": "Đã kết nối",
+  "enter_shopify_name": "https://ten-cua-hang.myshopify.com/admin/oauth...",
+  "reach_quota_page": "Đạt giới hạn Trang của Tổ chức",
+  "error_creating_page": "Lỗi khi tạo trang"
 }
