@@ -128,5 +128,14 @@
 
   "reach_quota_page": "Reach quota page",
   "error_creating_page": "Error creating page",
-  "shopify_warning": "During the first login, Shopify may encounter an error. Please close the Shopify connection popup and try again."
+  "shopify_warning": "During the first login, Shopify may encounter an error. Please close the Shopify connection popup and try again.",
+
+  "all_step_connect_shopify": "Steps to sync products from Shopify",
+  "note": "Note",
+  "shopify": {
+    "step1": "Step 1: Log in to Shopify",
+    "step2": "Step 2: Authorize the app",
+    "step3": "Step 3: Automatically import products for display"
+  },
+  "store_not_exist": "Store not found, please check again."
 }

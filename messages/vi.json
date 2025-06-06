@@ -127,5 +127,14 @@
   "enter_shopify_name": "https://ten-cua-hang.myshopify.com/admin/...",
   "reach_quota_page": "Đạt giới hạn Trang của Tổ chức",
   "error_creating_page": "Lỗi khi tạo trang",
-  "shopify_warning": "Khi đăng nhập lần đầu, shopify có thể phát sinh lỗi. Bạn vui lòng đóng Popup kết nối shopify và thao tác lại 1 lần nữa. "
+  "shopify_warning": "Khi đăng nhập lần đầu, shopify có thể phát sinh lỗi. Bạn vui lòng đóng Popup kết nối shopify và thao tác lại 1 lần nữa. ",
+
+  "all_step_connect_shopify": "Các bước đồng bộ sản phẩm từ Shopify",
+  "note": "Lưu ý",
+  "shopify": {
+    "step1": "B1: Đăng nhập shopify",
+    "step2": "B2: Xác thực ủy quyền ứng dụng",
+    "step3": "B3: Tự động kéo sản phẩm về để hiển thị lên."
+  },
+  "store_not_exist": "Cửa hàng không tìm thấy, vui lòng kiểm tra lại."
 }

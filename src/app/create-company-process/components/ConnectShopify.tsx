@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import InputTitle from "./step3/InputTitle";
 import Loading from "@/components/loading/Loading";
 import { apiCommon } from "@/services/fetchApi";
-import { on } from "events";
 import { toRenderDomain } from "@/utils";
 import { toast } from "react-toastify";
 import { useTranslations } from "next-intl";
@@ -630,13 +629,49 @@ If you need further assistance, visit https://retify.ai to get free support from
   };
 
   /**
+   *  Kiem tra store exist
+   * @param shopify_name
+   * @returns
+   */
+  const checkExistStore = async (shopify_name: string) => {
+    /**
+     * End point
+     */
+    const END_POINT = `https://api-product.merchant.vn/integration/check_integration_store?platform=SHOPIFY&store=${shopify_name}`;
+    /** call api */
+    const RES = await fetch(END_POINT, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "token-business": token_business,
+      },
+    });
+    /** parse data */
+    const DATA = await RES.json();
+    console.log(DATA, "DATA");
+    /** Trả về trạng thái tồn tại của store shopify */
+    return DATA?.store_exist;
+  };
+
+  /**
    * Hàm submit
    * @param shopify_name
    */
   const handleSubmit = async (shopify_name: string) => {
-    /**
-     * Tạo store
-     */
+    /** Check exist store */
+    const IS_EXIST_STORE = await checkExistStore(shopify_name);
+    if (!IS_EXIST_STORE) {
+      toast.error(t("store_not_exist"));
+      // setLoadingInModal(false);
+      setLoadingInModal?.(false);
+
+      /** Tắt loading */
+      setLoading?.(false);
+
+      return;
+    }
+
+    /** Tạo store*/
     await addStoreName(shopify_name);
     /** Lấy link shopify */
     const RES_SYNC_MERCHANT = await fetchShopifyLink();
@@ -652,6 +687,7 @@ If you need further assistance, visit https://retify.ai to get free support from
     const PAYLOAD = {
       type: "page.OPEN_SHOPIFY_OAUTH",
       url: RES_SYNC_MERCHANT,
+      link_login_shopify: "https://accounts.shopify.com/lookup",
     };
 
     /** Android WebView */
@@ -700,15 +736,16 @@ If you need further assistance, visit https://retify.ai to get free support from
         /** Check sự kiện */
         if (DATA?.type === "page.shopify_success") {
           /** Pull product*/
-          const PULL_PRODUCT = await pullProduct(token_business);
-          console.log(PULL_PRODUCT, "PULL_PRODUCT");
+          // const PULL_PRODUCT = await pullProduct(token_business);
+          // console.log(PULL_PRODUCT, "PULL_PRODUCT");
           /** Lấy list sản phẩm từ merchant */
           const PRODUCT_LIST = await fetchMerchantProduct();
           /** Gọi hàm và callback data */
           setListProducts?.(PRODUCT_LIST);
-
+          /** Tắt loading */
           setLoading?.(false);
-          setTimeout(() => closeModal(), 1000);
+          /** Set timeout */
+          setTimeout(() => closeModal(), 500);
         }
       } catch (e) {
         console.error("Error handling native message:", e);
@@ -764,18 +801,29 @@ If you need further assistance, visit https://retify.ai to get free support from
       ) : (
         <div className="flex flex-col bg-white w-full md:max-w-[400px] mx-4 md:mx-auto gap-4 rounded-2xl p-6 shadow-lg">
           <div className="flex flex-col gap-4">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold ">
               {t("connect_shopify_title")}
             </h2>
-            <p className="text-sm text-gray-700">
-              •{t("connect_shopify_require")}
-            </p>
-            <p className="text-sm text-gray-700">
-              •{t("connect_shopify_description")}
-            </p>
-            <p className="text-sm text-gray-700">• {t("shopify_example")}</p>
-            <p className="text-sm text-gray-700">{t("shopify_store_name")}</p>
-            <p className="text-sm text-gray-800">{t("shopify_warning")}</p>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-black font-semibold">
+                {t("all_step_connect_shopify")}
+              </p>
+              <p className="text-sm text-gray-700">•{t("shopify.step1")}</p>
+              <p className="text-sm text-gray-700">•{t("shopify.step2")}</p>
+              <p className="text-sm text-gray-700">•{t("shopify.step3")}</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-black font-semibold">{t("note")}:</p>
+              <p className="text-sm text-gray-700">
+                •{t("connect_shopify_require")}
+              </p>
+              <p className="text-sm text-gray-700">
+                •{t("connect_shopify_description")}
+              </p>
+              <p className="text-sm text-gray-700">• {t("shopify_example")}</p>
+              <p className="text-sm text-gray-700">{t("shopify_store_name")}</p>
+            </div>
+            {/* <p className="text-sm text-gray-800">{t("shopify_warning")}</p> */}
           </div>
           <InputTitle
             value_input={shopify_name || ""}
@@ -796,21 +844,18 @@ If you need further assistance, visit https://retify.ai to get free support from
               onClick={async () => {
                 /** Nếu chưa nhập tên cửa hàng thì show toast lỗi và return */
                 if (shopify_name === "") {
-                  // toast.error(t("enter_shop_name"));
+                  /** Hiện toast */
                   toast.error(t("enter_shopify_name"));
                   return;
                 }
+                /**
+                 * Tắt loading
+                 */
                 setLoading?.(true);
-
+                /**
+                 * Hàm submit
+                 */
                 await handleSubmit(shopify_name);
-
-                /** Delay 2s để tắt loading */
-                //   setTimeout(() => {
-                //     /** tắt Trạng thái mở modal */
-                //     closeModal();
-                //     /** Tắt loading */
-                //     setLoading?.(false);
-                //   }, 2000);
               }}
               disabled={loading}
               className="flex justify-center cursor-pointer hover:bg-blue-500 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg w-full "
@@ -821,15 +866,6 @@ If you need further assistance, visit https://retify.ai to get free support from
           </div>
         </div>
       )}
-      {/* {iframe_url && (
-        <IframeModal
-          url={iframe_url}
-          onClose={() => {
-            setIframeUrl(null);
-            afterIframeCallback?.();
-          }}
-        />
-      )} */}
     </div>
   );
 };
